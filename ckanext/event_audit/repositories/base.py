@@ -1,18 +1,25 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
+
 from ckanext.event_audit import types
 
 
-class AbstractEventWriter:
-    def write_event(self, event) -> types.WriteStatus:
-        raise NotImplementedError
+class AbstractRepository(ABC):
+    name = "abstract"
 
+    @abstractmethod
+    def write_event(self, event: types.Event) -> types.WriteStatus:
+        """Write an event to the repository. This method accepts an Event object
+        and writes it to the repository. The Event object validates the input."""
 
-class AbstractEventReader:
+    def build_event(self, event_data: types.EventData) -> types.Event:
+        return types.Event(**event_data)
+
+    @abstractmethod
     def get_event(self, event_id: str) -> types.Event:
         """Get a single event by its ID"""
-        raise NotImplementedError
 
-    def filter_events(self, limit: int, offset: int, **kwargs) -> list[types.Event]:
+    @abstractmethod
+    def filter_events(self, filters: types.Filters) -> list[types.Event]:
         """Filter events based on the provided kwargs"""
-        raise NotImplementedError

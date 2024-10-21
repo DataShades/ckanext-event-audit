@@ -1,12 +1,7 @@
 import ckan.plugins as plugins
-import ckan.plugins.toolkit as toolkit
+import ckan.plugins.toolkit as tk
 
 
+@tk.blanket.config_declarations
 class EventAuditPlugin(plugins.SingletonPlugin):
-    plugins.implements(plugins.IConfigurer)
-
-
-    # IConfigurer
-
-    def update_config(self, config_):
-        toolkit.add_resource("assets", "event_audit")
+    pass

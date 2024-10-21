@@ -1,3 +1,4 @@
-from .redis import RedisEventReader, RedisEventWriter, RedisRepository
+from .redis import RedisRepository
+from .base import AbstractRepository
 
-__all__ = ["RedisEventReader", "RedisEventWriter", "RedisRepository"]
+__all__ = ["RedisRepository", "AbstractRepository"]
