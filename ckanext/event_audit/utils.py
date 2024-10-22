@@ -1,23 +1,31 @@
 from __future__ import annotations
 
-from typing import Type
+
+import ckan.plugins as p
 
 import ckanext.event_audit.repositories as repos
 import ckanext.event_audit.config as audit_config
+from ckanext.event_audit.interfaces import IEventAudit
 
 
-def get_available_repos() -> dict[str, Type[repos.AbstractRepository]]:
+def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
     """Get the available repositories
 
     Returns:
-        dict[str, Type[repos.AbstractRepository]]: The available repositories
+        dict[str, type[repos.AbstractRepository]]: The available repositories
     """
-    return {
-        repos.RedisRepository.name: repos.RedisRepository,
+    plugin_repos: dict[str, type[repos.AbstractRepository]] = {
+        repos.RedisRepository.get_name(): repos.RedisRepository,
     }
 
+    for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
+        for name, repo in plugin.register_repository().items():
+            plugin_repos[name] = repo
 
-def get_active_repo() -> Type[repos.AbstractRepository]:
+    return plugin_repos
+
+
+def get_active_repo() -> type[repos.AbstractRepository]:
     """Get the active repository.
 
     Returns:

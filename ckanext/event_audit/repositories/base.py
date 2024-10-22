@@ -8,6 +8,11 @@ from ckanext.event_audit import types
 class AbstractRepository(ABC):
     name = "abstract"
 
+    @classmethod
+    @abstractmethod
+    def get_name(cls) -> str:
+        """Return the name of the repository"""
+
     @abstractmethod
     def write_event(self, event: types.Event) -> types.WriteStatus:
         """Write an event to the repository. This method accepts an Event object
@@ -17,7 +22,7 @@ class AbstractRepository(ABC):
         return types.Event(**event_data)
 
     @abstractmethod
-    def get_event(self, event_id: str) -> types.Event:
+    def get_event(self, event_id: str) -> types.Event | None:
         """Get a single event by its ID"""
 
     @abstractmethod

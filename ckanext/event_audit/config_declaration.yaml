@@ -5,5 +5,5 @@ groups:
       - key: ckanext.event_audit.active_repo
         description: The active repository to store the audit logs
         default: redis
-        validators: one_of(["redis",])
+        validators: audit_active_repo_validator
         editable: true

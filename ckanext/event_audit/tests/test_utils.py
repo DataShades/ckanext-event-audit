@@ -15,5 +15,5 @@ class TestEventAuditUtils:
     def test_get_active_repo(self):
         result = utils.get_active_repo()
 
-        assert result.name == "redis"
+        assert result.get_name() == "redis"
         assert result is repositories.RedisRepository

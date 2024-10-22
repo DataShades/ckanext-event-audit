@@ -13,6 +13,10 @@ REDIS_SET_KEY = "event-audit"
 class RedisRepository(AbstractRepository):
     name = "redis"
 
+    @classmethod
+    def get_name(cls) -> str:
+        return "redis"
+
     def __init__(self) -> None:
         self.conn = connect_to_redis()
 
