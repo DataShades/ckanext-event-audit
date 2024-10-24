@@ -1,7 +1,7 @@
-site_name: ckanext-popo
-site_url: https://.github.io/ckanext-popo/
+site_name: ckanext-event-audit
+site_url: https://.github.io/ckanext-event-audit/
 
-repo_url:  https://github.com//ckanext-popo
+repo_url:  https://github.com//ckanext-event-audit
 
 markdown_extensions:
   - pymdownx.snippets # include code snippets
@@ -74,4 +74,3 @@ theme:
 
 nav:
   - index.md
-  - hui.md
