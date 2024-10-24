@@ -1,7 +1,7 @@
 site_name: ckanext-event-audit
 site_url: https://.github.io/ckanext-event-audit/
 
-repo_url:  https://github.com//ckanext-event-audit
+repo_url:  https://github.com/DataShades/ckanext-event-audit
 
 markdown_extensions:
   - pymdownx.snippets # include code snippets
