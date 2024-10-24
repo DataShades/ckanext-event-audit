@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-
 import ckan.plugins as p
 
-import ckanext.event_audit.repositories as repos
 import ckanext.event_audit.config as audit_config
+import ckanext.event_audit.repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
 
 
 def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
-    """Get the available repositories
+    """Get the available repositories.
 
     Returns:
         dict[str, type[repos.AbstractRepository]]: The available repositories

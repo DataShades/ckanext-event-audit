@@ -1,6 +1,5 @@
 import ckan.plugins.toolkit as tk
 
-
 CONF_ACTIVE_REPO = "ckanext.event_audit.active_repo"
 
 

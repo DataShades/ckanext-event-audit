@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import pytest
-
-from ckanext.event_audit import utils, repositories, config
+from ckanext.event_audit import repositories, utils
 
 
 class TestEventAuditUtils:

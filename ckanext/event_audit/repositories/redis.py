@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime as dt, timezone as tz
+from datetime import datetime as dt
+from datetime import timezone as tz
 
 from ckan.lib.redis import connect_to_redis
 
@@ -28,9 +29,10 @@ class RedisRepository(AbstractRepository):
         return types.WriteStatus(status=True)
 
     def _build_event_key(self, event: types.Event) -> str:
-        """Builds the key for the event in Redis, storing all the info inside
-        the key to be able to search for it fast."""
+        """Builds the key for the event in Redis.
 
+        We store all the info inside the key to be able to search for it fast.
+        """
         return (
             f"id:{event.id}|"
             f"category:{event.category}|"
@@ -46,7 +48,7 @@ class RedisRepository(AbstractRepository):
     def get_event(self, event_id: float) -> types.Event | None:
         _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
 
-        for _, event_data in result.items():
+        for event_data in result.values():
             return types.Event.model_validate_json(event_data)
 
     def filter_events(self, filters: types.Filters) -> list[types.Event]:
@@ -68,8 +70,12 @@ class RedisRepository(AbstractRepository):
                 REDIS_SET_KEY, cursor=cursor, match=pattern  # type: ignore
             )
 
-            for _, event_data in result.items():
-                matching_events.append(types.Event.model_validate_json(event_data))
+            matching_events.extend(
+                [
+                    types.Event.model_validate_json(event_data)
+                    for event_data in result.values()
+                ]
+            )
 
             if cursor == 0:
                 break
@@ -99,20 +105,14 @@ class RedisRepository(AbstractRepository):
         if not time_from and not time_to:
             return events
 
-        def is_within_time_range(event_time: dt) -> bool:
-            if time_from and time_to:
-                return time_from <= event_time <= time_to
-            if time_from:
-                return time_from <= event_time <= dt.now(tz.utc)
-            if time_to:
-                return event_time <= time_to
-            return True
+        self.time_from = time_from
+        self.time_to = time_to
 
         if events:
             return [
                 event
                 for event in events
-                if is_within_time_range(dt.fromisoformat(event.timestamp))
+                if self.is_within_time_range(dt.fromisoformat(event.timestamp))
             ]
 
         filtered_events: list[types.Event] = []
@@ -122,14 +122,23 @@ class RedisRepository(AbstractRepository):
             while True:
                 cursor, result = self.conn.hscan(REDIS_SET_KEY, cursor=cursor)  # type: ignore
 
-                for _, event_data in result.items():
+                for event_data in result.values():
                     event = types.Event.model_validate_json(event_data)
                     event_time = dt.fromisoformat(event.timestamp)
 
-                    if is_within_time_range(event_time):
+                    if self.is_within_time_range(event_time):
                         filtered_events.append(event)
 
                 if cursor == 0:
                     break
 
         return filtered_events
+
+    def is_within_time_range(self, event_time: dt) -> bool:
+        if self.time_from and self.time_to:
+            return self.time_from <= event_time <= self.time_to
+        if self.time_from:
+            return self.time_from <= event_time <= dt.now(tz.utc)
+        if self.time_to:
+            return event_time <= self.time_to
+        return True

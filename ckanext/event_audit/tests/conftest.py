@@ -5,7 +5,14 @@ from ckan.tests.factories import User
 from ckanext.event_audit import types
 
 
-@pytest.fixture
+@pytest.fixture()
+def clean_db(reset_db, migrate_db_for):
+    reset_db()
+
+    migrate_db_for("event_audit")
+
+
+@pytest.fixture()
 def event():
     return types.ModelEvent(
         action="created",
@@ -14,7 +21,7 @@ def event():
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def event_factory():
     def factory(**kwargs):
         kwargs.setdefault("action", "created")

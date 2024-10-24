@@ -4,9 +4,9 @@ import pytest
 
 import ckan.plugins as p
 
+from ckanext.event_audit import types, utils
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.repositories import AbstractRepository
-from ckanext.event_audit import types, utils
 
 
 class MyRepository(AbstractRepository):
@@ -35,7 +35,7 @@ class TestEventAuditPlugin(p.SingletonPlugin):
 
 @pytest.mark.ckan_config("ckan.plugins", "event_audit test_event_audit")
 @pytest.mark.usefixtures("non_clean_db", "with_plugins")
-class TestOTLInterace(object):
+class TestOTLInterace:
     def test_get_available_repos(self, app, user, sysadmin):
         repos = utils.get_available_repos()
         assert MyRepository.get_name() in repos

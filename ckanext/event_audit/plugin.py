@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import os
+
 import yaml
 
-import ckan.plugins as plugins
 import ckan.plugins.toolkit as tk
+from ckan import plugins as p
 from ckan.config.declaration import Declaration, Key
 from ckan.logic import clear_validators_cache
 
 
 @tk.blanket.config_declarations
 @tk.blanket.validators
-class EventAuditPlugin(plugins.SingletonPlugin):
-    plugins.implements(plugins.IConfigDeclaration)
+class EventAuditPlugin(p.SingletonPlugin):
+    p.implements(p.IConfigDeclaration)
 
     # IConfigDeclaration
 

@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import uuid
-from typing import Optional, TypedDict, Any, Dict, Literal
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, Literal, Optional, TypedDict, Union
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, validator
 
-import ckan.model as model
 import ckan.plugins.toolkit as tk
+from ckan import model
 
 
 @dataclass
@@ -26,13 +26,18 @@ class EventData(TypedDict):
     action_object_id: str
     target_type: str
     target_id: str
-    timestamp: str
+    timestamp: Union[str, datetime]
     result: Dict[Any, Any]
     payload: Dict[Any, Any]
 
 
 class Event(BaseModel):
-    """TODO: test this"""
+    """Event model.
+
+    This model represents an event that occurred in the system.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
 
     id: Any = Field(default_factory=lambda: str(uuid.uuid4()))
     category: str
@@ -42,48 +47,52 @@ class Event(BaseModel):
     action_object_id: str = ""
     target_type: str = ""
     target_id: str = ""
-    timestamp: str = Field(
+    timestamp: Union[str, datetime] = Field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat(),
     )
     result: Dict[Any, Any] = Field(default_factory=dict)
     payload: Dict[Any, Any] = Field(default_factory=dict)
 
     @validator("category")
-    def validate_category(cls, v):
-        if not v or not isinstance(v, str):
+    @classmethod
+    def validate_category(cls, v: str) -> str:
+        if not v:
             raise ValueError("The `category` field must be a non-empty string.")
 
         return v
 
     @validator("action")
-    def validate_action(cls, v):
-        if not v or not isinstance(v, str):
+    @classmethod
+    def validate_action(cls, v: str) -> str:
+        if not v:
             raise ValueError("The `action` field must be a non-empty string.")
 
         return v
 
     @validator("actor")
-    def validate_actor(cls, v: str):
+    @classmethod
+    def validate_actor(cls, v: str) -> str:
         if not v:
             return v
 
-        if not isinstance(v, str):
-            raise ValueError("The `actor` field must be a string.")
-
         if not model.Session.query(model.User).get(v):
-            raise ValueError("%s: %s" % (tk._("Not found"), tk._("User")))
+            raise ValueError("{}: {}".format(tk._("Not found"), tk._("User")))
 
         return v
 
     @validator("timestamp")
-    def validate_timestamp(cls, v):
+    @classmethod
+    def validate_timestamp(cls, v: Union[str, datetime]) -> str:
+        if v and isinstance(v, datetime):
+            return v.isoformat()
+
         if not v or not isinstance(v, str):
             raise ValueError("The `timestamp` field must be a non-empty string.")
 
         try:
             tk.h.date_str_to_datetime(v)
-        except (TypeError, ValueError):
-            raise ValueError(tk._("Date format incorrect"))
+        except (TypeError, ValueError) as e:
+            raise ValueError(tk._("Date format incorrect")) from e
 
         return v
 
@@ -101,9 +110,9 @@ class ApiEvent(Event):
 
 
 class Filters(BaseModel):
-    """TODO: test this
-    Filters for querying events. This model is used to filter events based on
-    different criteria.
+    """Filters for querying events.
+
+    This model is used to filter events based on different criteria.
     """
 
     category: Optional[str] = Field(
@@ -134,3 +143,34 @@ class Filters(BaseModel):
     time_to: Optional[datetime] = Field(
         default=None, description="End time for filtering (defaults to now)"
     )
+
+    @validator("actor")
+    @classmethod
+    def validate_actor(cls, v: str) -> str:
+        if not v:
+            return v
+
+        if not model.Session.query(model.User).get(v):
+            raise ValueError("{}: {}".format(tk._("Not found"), tk._("User")))
+
+        return v
+
+    @validator("time_to")
+    @classmethod
+    def validate_time_range(cls, time_to: datetime, values: dict[str, Any]):
+        """Ensure `time_from` is before `time_to`."""
+        time_from = values.get("time_from")
+
+        if time_from and time_to and time_from > time_to:
+            raise ValueError("`time_from` must be earlier than `time_to`.")
+
+        return time_to
+
+    @validator("*", pre=True)
+    @classmethod
+    def strip_strings(cls, v: Any) -> Any:
+        """Strip leading and trailing spaces from all string fields."""
+        if isinstance(v, str):
+            return v.strip()
+
+        return v
