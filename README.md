@@ -11,7 +11,7 @@ Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for 
 To install ckanext-event-audit for development, activate your CKAN virtualenv and
 do:
 
-    git clone https://github.com//ckanext-event-audit.git
+    git clone https://github.com/DataShades/ckanext-event-audit.git
     cd ckanext-event-audit
     pip install -e .
     pip install -r dev-requirements.txt
