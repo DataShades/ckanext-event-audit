@@ -1,3 +1,50 @@
+[build-system]
+requires = [ "setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ckanext-event-audit"
+version = "0.1.0"
+description = ""
+classifiers = [
+            "Development Status :: 4 - Beta",
+            "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+]
+keywords = [ "CKAN" ]
+dependencies = [
+             "pydantic>=2.3.0,<2.4.0",
+]
+authors = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+    {name = "LD"},
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+text = "AGPL"
+
+[project.urls]
+Homepage = "https://github.com/DataShades/ckanext-event-audit"
+Documentation = "https://datashades.github.io/ckanext-event-audit/"
+
+[project.optional-dependencies]
+
+[project.entry-points."ckan.plugins"]
+event_audit = "ckanext.event_audit.plugin:EventAuditPlugin"
+test_event_audit = "ckanext.event_audit.tests.test_interface:TestEventAuditPlugin"
+
+[project.entry-points."babel.extractors"]
+ckan = "ckan.lib.extract:extract_ckan"
+
+[tool.setuptools.packages]
+find = {}
+
 [tool.ruff]
 target-version = "py38"
 exclude = [

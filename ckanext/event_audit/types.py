@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Literal, Optional, TypedDict, Union
+from typing import Any, Dict, Optional, TypedDict, Union
 
 from pydantic import BaseModel, ConfigDict, Field, validator
 
@@ -83,10 +83,10 @@ class Event(BaseModel):
     @validator("timestamp")
     @classmethod
     def validate_timestamp(cls, v: Union[str, datetime]) -> str:
-        if v and isinstance(v, datetime):
+        if isinstance(v, datetime):
             return v.isoformat()
 
-        if not v or not isinstance(v, str):
+        if not v:
             raise ValueError("The `timestamp` field must be a non-empty string.")
 
         try:
@@ -100,13 +100,13 @@ class Event(BaseModel):
 class ModelEvent(Event):
     """TODO: do we need it?"""
 
-    category: Literal["model"] = "model"
+    category: str = "model"
 
 
 class ApiEvent(Event):
     """TODO: do we need it?"""
 
-    category: Literal["api"] = "api"
+    category: str = "api"
 
 
 class Filters(BaseModel):

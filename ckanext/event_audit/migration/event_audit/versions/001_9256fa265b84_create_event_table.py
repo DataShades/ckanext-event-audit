@@ -1,10 +1,11 @@
-"""Create Event table
+"""Create Event table.
 
 Revision ID: 9256fa265b84
 Revises:
 Create Date: 2024-10-23 12:03:33.876737
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -27,8 +28,8 @@ def upgrade():
         sa.Column("target_type", sa.String()),
         sa.Column("target_id", sa.String()),
         sa.Column("timestamp", sa.TIMESTAMP(timezone=True), nullable=False),
-        sa.Column("result", sa.JSON(), default={}),
-        sa.Column("payload", sa.JSON(), default={}),
+        sa.Column("result", sa.JSON(), server_default="{}"),
+        sa.Column("payload", sa.JSON(), server_default="{}"),
     )
 
     op.create_index("ix_event_category", "event_audit_event", ["category"])

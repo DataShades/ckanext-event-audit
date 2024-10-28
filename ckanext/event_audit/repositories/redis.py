@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime as dt
 from datetime import timezone as tz
+from typing import Any
 
 from ckan.lib.redis import connect_to_redis
 
@@ -51,7 +52,7 @@ class RedisRepository(AbstractRepository):
         for event_data in result.values():
             return types.Event.model_validate_json(event_data)
 
-    def filter_events(self, filters: types.Filters) -> list[types.Event]:
+    def filter_events(self, filters: types.Filters | Any) -> list[types.Event]:
         """Filters events based on patterns generated from the provided filters."""
         if not isinstance(filters, types.Filters):
             raise TypeError(
@@ -67,7 +68,7 @@ class RedisRepository(AbstractRepository):
                 break
 
             cursor, result = self.conn.hscan(
-                REDIS_SET_KEY, cursor=cursor, match=pattern  # type: ignore
+                REDIS_SET_KEY, cursor=cursor, match=pattern,  # type: ignore
             )
 
             matching_events.extend(

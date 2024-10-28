@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any
 
 from ckanext.event_audit import types
 
@@ -25,7 +26,7 @@ class AbstractRepository(ABC):
         return types.Event(**event_data)
 
     @abstractmethod
-    def get_event(self, event_id: str) -> types.Event | None:
+    def get_event(self, event_id: Any) -> types.Event | None:
         """Get a single event by its ID."""
 
     @abstractmethod

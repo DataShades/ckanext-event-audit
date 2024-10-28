@@ -9,9 +9,13 @@ class IEventAudit(Interface):
     def register_repository(self) -> dict[str, type[repos.AbstractRepository]]:
         """Return the repositories provided by this plugin.
 
-        Return a dictionary mapping repository names (strings) to
-        repository classes. For example:
+        Example:
+            ```
+            def register_repository(self):
+                return {RedisRepository.get_name(): RedisRepository}
+            ```
 
-            {RedisRepository.get_name(): RedisRepository}
+        Returns:
+            mapping of repository names to repository classes
         """
         return {}
