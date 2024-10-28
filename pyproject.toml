@@ -16,6 +16,8 @@ classifiers = [
 keywords = [ "CKAN" ]
 dependencies = [
              "pydantic>=2.3.0,<2.4.0",
+            #  "boto3-stubs[cloudwatch]>=1.35.0,<2.0.0"
+             "boto3-stubs[logs]>=1.35.0,<2.0.0"
 ]
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},

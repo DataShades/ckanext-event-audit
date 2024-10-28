@@ -66,7 +66,9 @@ class RedisRepository(AbstractRepository):
                 break
 
             cursor, result = self.conn.hscan(
-                REDIS_SET_KEY, cursor=cursor, match=pattern,  # type: ignore
+                REDIS_SET_KEY,
+                cursor=cursor,
+                match=pattern,  # type: ignore
             )
 
             matching_events.extend(

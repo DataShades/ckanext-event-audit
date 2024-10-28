@@ -122,6 +122,8 @@ class Filters(BaseModel):
     This model is used to filter events based on different criteria.
     """
 
+    id: str = Field(default=None, description="Event ID")
+
     category: Optional[str] = Field(
         default=None, description="Event category, e.g., 'api'"
     )

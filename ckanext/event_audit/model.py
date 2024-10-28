@@ -25,8 +25,8 @@ class EventModel(tk.BaseModel):
         Column("target_type", String, index=True),
         Column("target_id", String, index=True),
         Column("timestamp", TIMESTAMP(timezone=True), nullable=False, index=True),
-        Column("result", MutableDict.as_mutable(JSONB), default="{}"),  # type: ignore
-        Column("payload", MutableDict.as_mutable(JSONB), default="{}"),  # type: ignore
+        Column("result", MutableDict.as_mutable(JSONB), default="{}"),
+        Column("payload", MutableDict.as_mutable(JSONB), default="{}"),
         Index("ix_event_actor_action", "actor", "action"),
     )
 

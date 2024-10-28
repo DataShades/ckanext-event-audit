@@ -10,6 +10,7 @@ TODO:
 - [ ] support batch operations for writing
 - [ ] add remove_event method
 - [ ] add remove_events method
+- [ ] add async support for writing
 
 ## Developer installation
 
