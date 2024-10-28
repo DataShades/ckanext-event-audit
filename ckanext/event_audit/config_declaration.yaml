@@ -7,3 +7,18 @@ groups:
         default: redis
         validators: audit_active_repo_validator
         editable: true
+
+      - key: ckanext.event_audit.cloudwatch.access_key
+        description: The access key for the AWS account
+        default: ''
+        editable: true
+
+      - key: ckanext.event_audit.cloudwatch.secret_key
+        description: The secret key for the AWS account
+        default: ''
+        editable: true
+
+      - key: ckanext.event_audit.cloudwatch.region
+        description: The region for the AWS account
+        default: ''
+        editable: true

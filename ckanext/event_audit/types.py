@@ -12,9 +12,16 @@ from ckan import model
 
 
 @dataclass
-class WriteStatus:
+class Result:
     status: bool
     message: Optional[str] = None
+
+
+@dataclass
+class AWSCredentials:
+    aws_access_key_id: str
+    aws_secret_access_key: str
+    region_name: str
 
 
 class EventData(TypedDict):

@@ -13,8 +13,6 @@ REDIS_SET_KEY = "event-audit"
 
 
 class RedisRepository(AbstractRepository):
-    name = "redis"
-
     @classmethod
     def get_name(cls) -> str:
         return "redis"
@@ -22,12 +20,12 @@ class RedisRepository(AbstractRepository):
     def __init__(self) -> None:
         self.conn = connect_to_redis()
 
-    def write_event(self, event: types.Event) -> types.WriteStatus:
+    def write_event(self, event: types.Event) -> types.Result:
         key = self._build_event_key(event)
 
         self.conn.hset(REDIS_SET_KEY, key, event.model_dump_json())
 
-        return types.WriteStatus(status=True)
+        return types.Result(status=True)
 
     def _build_event_key(self, event: types.Event) -> str:
         """Builds the key for the event in Redis.

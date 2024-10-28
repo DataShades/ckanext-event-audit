@@ -7,9 +7,10 @@ from sqlalchemy import select
 from ckan.model import Session
 
 from ckanext.event_audit import model, types
+from ckanext.event_audit.repositories.base import AbstractRepository
 
 
-class PostgresRepository:
+class PostgresRepository(AbstractRepository):
     def __init__(self):
         self.session = Session
 
@@ -17,11 +18,11 @@ class PostgresRepository:
     def get_name(cls) -> str:
         return "postgres"
 
-    def write_event(self, event: types.Event) -> types.WriteStatus:
+    def write_event(self, event: types.Event) -> types.Result:
         db_event = model.EventModel(**event.model_dump())
         db_event.save()
 
-        return types.WriteStatus(status=True)
+        return types.Result(status=True)
 
     def get_event(self, event_id: str) -> types.Event | None:
         result = self.session.execute(

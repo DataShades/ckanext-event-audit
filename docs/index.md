@@ -39,7 +39,7 @@ class MyRepository(AbstractRepository):
     def get_name(cls) -> str:
         return "my_repository"
 
-    def write_event(self, event: types.Event) -> types.WriteStatus:
+    def write_event(self, event: types.Event) -> types.Result:
         pass
 
     def get_event(self, event_id: str) -> types.Event | None:

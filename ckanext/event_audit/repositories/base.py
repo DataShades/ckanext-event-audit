@@ -7,15 +7,13 @@ from ckanext.event_audit import types
 
 
 class AbstractRepository(ABC):
-    name = "abstract"
-
     @classmethod
     @abstractmethod
     def get_name(cls) -> str:
         """Return the name of the repository."""
 
     @abstractmethod
-    def write_event(self, event: types.Event) -> types.WriteStatus:
+    def write_event(self, event: types.Event) -> types.Result:
         """Write an event to the repository.
 
         This method accepts an Event object and writes it to the repository.
