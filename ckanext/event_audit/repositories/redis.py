@@ -7,12 +7,16 @@ from typing import Any
 from ckan.lib.redis import connect_to_redis
 
 from ckanext.event_audit import types
-from ckanext.event_audit.repositories.base import AbstractRepository
+from ckanext.event_audit.repositories.base import (
+    AbstractRepository,
+    RemoveAll,
+    RemoveSingle,
+)
 
 REDIS_SET_KEY = "event-audit"
 
 
-class RedisRepository(AbstractRepository):
+class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
     @classmethod
     def get_name(cls) -> str:
         return "redis"
@@ -59,27 +63,9 @@ class RedisRepository(AbstractRepository):
 
         pattern = self._build_pattern(filters)
         matching_events: list[types.Event] = []
-        cursor = 0
 
-        while True:
-            if not pattern:
-                break
-
-            cursor, result = self.conn.hscan(
-                REDIS_SET_KEY,
-                cursor=cursor,
-                match=pattern,  # type: ignore
-            )
-
-            matching_events.extend(
-                [
-                    types.Event.model_validate_json(event_data)
-                    for event_data in result.values()
-                ]
-            )
-
-            if cursor == 0:
-                break
+        for _, event_data in self.conn.hscan_iter(REDIS_SET_KEY, match=pattern or None):
+            matching_events.append(types.Event.model_validate_json(event_data))
 
         if not any([filters.time_from, filters.time_to]):
             return matching_events
@@ -119,19 +105,12 @@ class RedisRepository(AbstractRepository):
         filtered_events: list[types.Event] = []
 
         if not events:
-            cursor = 0
-            while True:
-                cursor, result = self.conn.hscan(REDIS_SET_KEY, cursor=cursor)  # type: ignore
+            for _, event_data in self.conn.hscan_iter(REDIS_SET_KEY):
+                event = types.Event.model_validate_json(event_data)
+                event_time = dt.fromisoformat(event.timestamp)
 
-                for event_data in result.values():
-                    event = types.Event.model_validate_json(event_data)
-                    event_time = dt.fromisoformat(event.timestamp)
-
-                    if self.is_within_time_range(event_time):
-                        filtered_events.append(event)
-
-                if cursor == 0:
-                    break
+                if self.is_within_time_range(event_time):
+                    filtered_events.append(event)
 
         return filtered_events
 
@@ -143,3 +122,19 @@ class RedisRepository(AbstractRepository):
         if self.time_to:
             return event_time <= self.time_to
         return True
+
+    def remove_event(self, event_id: float) -> types.Result:
+        _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
+
+        if not result:
+            return types.Result(status=False, message="Event not found")
+
+        for key in result:
+            self.conn.hdel(REDIS_SET_KEY, key)
+
+        return types.Result(status=True, message="Event removed successfully")
+
+    def remove_all_events(self) -> types.Result:
+        self.conn.delete(REDIS_SET_KEY)
+
+        return types.Result(status=True, message="All events removed successfully")
