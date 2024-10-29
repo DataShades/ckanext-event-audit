@@ -73,6 +73,16 @@ class MyRepositoryPlugin(plugins.SingletonPlugin):
         }
 ```
 
+### CloudWatch repository
+
+There is a repository to store the events in AWS CloudWatch. To use it, you'll
+have to provide AWS credentials via CKAN configuration.
+
+```
+ckanext.event_audit.cloudwatch.access_key = xxx
+ckanext.event_audit.cloudwatch.secret_key = xxx
+ckanext.event_audit.cloudwatch.region = ap-southeast-2
+```
 
 ## Tests
 
