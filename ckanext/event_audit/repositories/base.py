@@ -30,3 +30,19 @@ class AbstractRepository(ABC):
     @abstractmethod
     def filter_events(self, filters: types.Filters) -> list[types.Event]:
         """Filter events based on the provided kwargs."""
+
+    def remove_event(self, event_id: Any) -> types.Result:
+        """Remove an event from the repository."""
+        raise NotImplementedError
+
+    def remove_all_events(self) -> types.Result:
+        """Remove all events from the repository."""
+        raise NotImplementedError
+
+
+class RemoveSingle:
+    """If the repository supports remove single event, it should inherit from this class."""
+
+
+class RemoveAll:
+    """If the repository supports remove all events, it should inherit from this class."""

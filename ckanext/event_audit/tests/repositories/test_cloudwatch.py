@@ -158,3 +158,13 @@ class TestCloudWatchRepository:
 
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
+
+    def test_remove_all_events(self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]):
+        repo, stubber = cloudwatch_repo
+
+        stubber.add_response("delete_log_group", {})
+
+        with stubber:
+            result = repo.remove_all_events()
+
+        assert result.status

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import boto3
+from ckanext.xloader.cli import status
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
@@ -15,7 +16,7 @@ else:
 
 
 from ckanext.event_audit import config, types
-from ckanext.event_audit.repositories import AbstractRepository
+from ckanext.event_audit.repositories import AbstractRepository, RemoveAll
 
 
 class CloudWatchEvent(TypedDict):
@@ -23,7 +24,7 @@ class CloudWatchEvent(TypedDict):
     message: str
 
 
-class CloudWatchRepository(AbstractRepository):
+class CloudWatchRepository(AbstractRepository, RemoveAll):
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
@@ -124,7 +125,8 @@ class CloudWatchRepository(AbstractRepository):
             types.Event.model_validate(json.loads(e["message"]))
             for e in self._get_all_matching_events(
                 {k: v for k, v in kwargs.items() if v is not None}
-            ) if "message" in e
+            )
+            if "message" in e
         ]
 
     def _build_filter_pattern(self, filters: types.Filters) -> Optional[str]:
@@ -161,3 +163,23 @@ class CloudWatchRepository(AbstractRepository):
             events.extend(page.get("events", []))
 
         return events
+
+    def remove_event(self, event_id: str) -> types.Result:
+        """As of today, you cannot delete a single log event
+        from CloudWatch log stream, the alternative will be using Lambda
+        functions: set a Lambda function trigger, filter all logs, then write
+        the remaining logs to a new log group/stream, then delete the original
+        log stream.
+
+        It's potentially too expensive to do this operation, so it's not implemented.
+        """
+        raise NotImplementedError
+
+    def remove_all_events(self) -> types.Result:
+        """Removes all events from the repository."""
+        try:
+            self.client.delete_log_group(logGroupName=self.log_group)
+        except self.client.exceptions.ResourceNotFoundException as err:
+            return types.Result(status=False, message=str(err))
+
+        return types.Result(status=True)

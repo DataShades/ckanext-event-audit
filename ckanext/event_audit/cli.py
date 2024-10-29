@@ -126,7 +126,9 @@ def cw_remove_log_group(log_group: str | None = None):
     repo = CloudWatchRepository()
 
     try:
-        repo.client.delete_log_group(logGroupName=log_group or repo.log_group)
+        result = repo.client.delete_log_group(logGroupName=log_group or repo.log_group)
+
+        click.secho(result)
     except repo.client.exceptions.ResourceNotFoundException as err:
         return click.secho(str(err), fg="red")
 
