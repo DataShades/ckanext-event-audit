@@ -1,16 +1,15 @@
 from __future__ import annotations
 
-from typing import Any, Generator, Callable
 from datetime import datetime as dt
 from datetime import timedelta as td
 from datetime import timezone as tz
+from typing import Any
 
 import pytest
 from botocore.stub import Stubber
 
 from ckanext.event_audit import types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
-
 
 put_log_events_response: dict[str, Any] = {
     "nextSequenceToken": "49654796026243824240318171692305216662718669063406487010",
@@ -29,16 +28,21 @@ put_log_events_response: dict[str, Any] = {
 
 
 @pytest.fixture()
-def cloudwatch_repo() -> Generator[tuple[CloudWatchRepository, Stubber]]:
+def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
     """Fixture to initialize the CloudWatchRepository with a stubbed client."""
     repo = CloudWatchRepository()
 
     stubber = Stubber(repo.client)
 
-    yield repo, stubber
+    return repo, stubber
 
 
 class TestCloudWatchRepository:
+    """Tests for the CloudWatchRepository.
+
+    It's really hard to test the repository, without mocking the AWS client.
+    And with mocking we still have doubts of the correctness of the implementation.
+    """
     def test_write_event(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
     ):

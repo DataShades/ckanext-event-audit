@@ -9,9 +9,7 @@ import boto3
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
-    from mypy_boto3_logs.type_defs import (
-        FilteredLogEventTypeDef,
-    )
+    from mypy_boto3_logs.type_defs import FilteredLogEventTypeDef
 else:
     CloudWatchLogsClient = object
 
@@ -29,7 +27,7 @@ class CloudWatchRepository(AbstractRepository):
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
-        log_group: str = "ckan/event-audit",
+        log_group: str = "/ckan/event-audit",
         log_stream: str = "event-audit-stream",
     ):
         if not credentials:
@@ -46,7 +44,6 @@ class CloudWatchRepository(AbstractRepository):
         self.log_group = log_group
         self.log_stream = log_stream
 
-        # Ensure the log group exists
         self._create_log_group_if_not_exists()
 
     @classmethod
@@ -97,7 +94,6 @@ class CloudWatchRepository(AbstractRepository):
 
     def get_event(self, event_id: str) -> Optional[types.Event]:
         """Retrieves a single event by its ID."""
-
         result = self.filter_events(types.Filters(id=event_id))
 
         if not result:
@@ -125,19 +121,18 @@ class CloudWatchRepository(AbstractRepository):
         }
 
         return [
-            self._parse_event(e)
+            types.Event.model_validate(json.loads(e["message"]))
             for e in self._get_all_matching_events(
                 {k: v for k, v in kwargs.items() if v is not None}
-            )
+            ) if "message" in e
         ]
 
     def _build_filter_pattern(self, filters: types.Filters) -> Optional[str]:
-        """Builds the CloudWatch filter pattern for querying logs.
-        TODO: the filter pattern is not yet implemented properly !!!
-        """
+        """Builds the CloudWatch filter pattern for querying logs."""
         conditions = [
-            f'$.{field} = "{value}"'
+            f'($.{field} = "{value}")'
             for field, value in [
+                ("id", filters.id),
                 ("category", filters.category),
                 ("action", filters.action),
                 ("actor", filters.actor),
@@ -146,10 +141,11 @@ class CloudWatchRepository(AbstractRepository):
                 ("target_type", filters.target_type),
                 ("target_id", filters.target_id),
             ]
+            if value
         ]
 
         if conditions:
-            return " && ".join(conditions)
+            return f'{{ {" && ".join(conditions)} }}'
 
         return None
 
@@ -165,10 +161,3 @@ class CloudWatchRepository(AbstractRepository):
             events.extend(page.get("events", []))
 
         return events
-
-    def _parse_event(self, event: FilteredLogEventTypeDef) -> types.Event:
-        """Parse a CloudWatch event into the Event model.
-
-        CloudWatch events store the event message as a JSON string
-        """
-        return types.Event.model_validate(json.loads(event["message"]))

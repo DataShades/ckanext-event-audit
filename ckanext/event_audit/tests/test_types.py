@@ -110,10 +110,10 @@ class TestEvent:
     def test_invalid_field_assignment(self):
         """Test that assigning invalid data types to fields raises an error."""
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", result="not-a-dict")
+            types.Event(category="model", action="created", result="not-a-dict") # type: ignore
 
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", payload="not-a-dict")
+            types.Event(category="model", action="created", payload="not-a-dict") # type: ignore
 
 
 class TestFilters:
@@ -131,8 +131,8 @@ class TestFilters:
             action_object_id="123",
             target_type="organization",
             target_id="456",
-            time_from=datetime.now() - timedelta(days=1),
-            time_to=datetime.now(),
+            time_from=datetime.now(timezone.utc) - timedelta(days=1),
+            time_to=datetime.now(timezone.utc),
         )
         assert filters.category == "api"
         assert filters.action == "created"
@@ -156,19 +156,19 @@ class TestFilters:
             ValueError, match="`time_from` must be earlier than `time_to`."
         ):
             types.Filters(
-                time_from=datetime.now(),
-                time_to=datetime.now() - timedelta(days=1),
+                time_from=datetime.now(timezone.utc),
+                time_to=datetime.now(timezone.utc) - timedelta(days=1),
             )
 
     def test_invalid_time_from_type(self):
         """Test that invalid datetime fields raise a validation error."""
         with pytest.raises(ValueError, match="Input should be a valid datetime"):
-            types.Filters(time_from="xxx")
+            types.Filters(time_from="xxx") # type: ignore
 
     def test_invalid_actor_type(self):
         """Test that passing incorrect field types raises an error."""
         with pytest.raises(ValueError, match="Input should be a valid string"):
-            types.Filters(actor=123)  # Actor must be a string
+            types.Filters(actor=123)  # type: ignore
 
     def test_actor_doesnt_exist(self):
         """Test that an invalid actor reference raises a ValidationError."""

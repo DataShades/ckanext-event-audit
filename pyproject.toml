@@ -59,7 +59,7 @@ select = [
        "BLE",  # do not catch blind exception
        "C4",  # better list/set/dict comprehensions
        "C90",  # check McCabe complexity
-       # "DTZ", # enforce timezone in date objects
+       "DTZ", # enforce timezone in date objects
        "E",  # pycodestyle error
        "W",  # pycodestyle warning
        "F",  # pyflakes
@@ -99,6 +99,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "ckanext/event_audit/tests*" = ["S", "PL", "ANN"]
+"ckanext/event_audit/config.py" = ["S105",] # false positive for Possible hardcoded secret key
+"ckanext/event_audit/cli.py" = ["PLR0913",] # skip max argument number check
 
 [tool.ruff.lint.flake8-import-conventions.aliases]
 "ckan.plugins" = "p"
@@ -121,7 +123,6 @@ section-order = [
 ]
 
 [tool.ruff.lint.isort.sections]
-# Group all Django imports into a separate section.
 ckan = ["ckan"]
 ckanext = ["ckanext"]
 self = ["ckanext.event_audit"]

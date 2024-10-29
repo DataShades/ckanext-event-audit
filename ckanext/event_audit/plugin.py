@@ -6,5 +6,6 @@ from ckan import plugins as p
 
 @tk.blanket.config_declarations
 @tk.blanket.validators
+@tk.blanket.cli
 class EventAuditPlugin(p.SingletonPlugin):
     pass

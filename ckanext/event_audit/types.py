@@ -24,7 +24,7 @@ class AWSCredentials:
     region_name: str
 
 
-class EventData(TypedDict):
+class EventData(TypedDict, total=False):
     id: Any
     category: str
     action: str
