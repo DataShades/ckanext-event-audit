@@ -117,3 +117,34 @@ class TestPostgresRepo:
         )
 
         assert len(events) == 5
+
+    def test_remove_event(self, event: types.Event):
+        postgres_repo = PostgresRepository()
+
+        postgres_repo.write_event(event)
+        status = postgres_repo.remove_event(event.id)
+
+        assert status.status
+        assert postgres_repo.get_event(event.id) is None
+
+    def test_remove_event_not_found(self):
+        postgres_repo = PostgresRepository()
+
+        result = postgres_repo.remove_event("xxx")
+
+        assert not result.status
+        assert result.message == "Event not found"
+
+    def test_remove_all_events(self, event_factory: Callable[..., types.Event]):
+        postgres_repo = PostgresRepository()
+
+        for _ in range(5):
+            postgres_repo.write_event(event_factory())
+
+        assert len(postgres_repo.filter_events(types.Filters())) == 5
+
+        status = postgres_repo.remove_all_events()
+        assert status.status
+
+        events = postgres_repo.filter_events(types.Filters())
+        assert len(events) == 0

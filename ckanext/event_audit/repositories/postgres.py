@@ -7,10 +7,14 @@ from sqlalchemy import select
 from ckan.model import Session
 
 from ckanext.event_audit import model, types
-from ckanext.event_audit.repositories.base import AbstractRepository
+from ckanext.event_audit.repositories.base import (
+    AbstractRepository,
+    RemoveAll,
+    RemoveSingle,
+)
 
 
-class PostgresRepository(AbstractRepository):
+class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
     def __init__(self):
         self.session = Session
 
@@ -65,3 +69,16 @@ class PostgresRepository(AbstractRepository):
 
         result = self.session.execute(query).scalars().all()
         return [types.Event.model_validate(event) for event in result]
+
+    def remove_event(self, event_id: str) -> types.Result:
+        event = model.EventModel.get(event_id)
+
+        if event:
+            event.delete()
+            return types.Result(status=True, message="Event removed successfully")
+
+        return types.Result(status=False, message="Event not found")
+
+    def remove_all_events(self) -> types.Result:
+        self.session.query(model.EventModel).delete()
+        return types.Result(status=True, message="All events removed successfully")

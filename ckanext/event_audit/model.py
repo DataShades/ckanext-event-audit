@@ -6,7 +6,8 @@ from typing import Any
 from sqlalchemy import TIMESTAMP, Column, Index, String, Table
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, Query
+from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
 from ckan import model
@@ -45,3 +46,15 @@ class EventModel(tk.BaseModel):
     def save(self) -> None:
         model.Session.add(self)
         model.Session.commit()
+
+    def delete(self, defer_commit: bool = False) -> None:
+        model.Session.delete(self)
+
+        if not defer_commit:
+            model.Session.commit()
+
+    @classmethod
+    def get(cls, event_id: str) -> Self | None:
+        query: Query = model.Session.query(cls).filter(cls.id == event_id)
+
+        return query.one_or_none()
