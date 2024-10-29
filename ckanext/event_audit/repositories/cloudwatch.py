@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import boto3
-from ckanext.xloader.cli import status
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
