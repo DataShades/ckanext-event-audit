@@ -15,7 +15,7 @@ else:
 
 
 from ckanext.event_audit import config, types
-from ckanext.event_audit.repositories import AbstractRepository, RemoveAll
+from ckanext.event_audit.repositories.base import AbstractRepository, RemoveAll
 
 
 class CloudWatchEvent(TypedDict):

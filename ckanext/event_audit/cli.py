@@ -4,8 +4,8 @@ from typing import Any
 
 import click
 
-from ckanext.event_audit import types
-from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
+from ckanext.event_audit import types, utils
+
 
 __all__ = [
     "event_audit",
@@ -39,6 +39,8 @@ def cw_write_event(
     payload: str | None = None,
 ):
     """Write an event to CloudWatch Logs."""
+    from ckanext.event_audit.repositories import CloudWatchRepository
+
     repo = CloudWatchRepository()
 
     event_data = {
@@ -65,6 +67,8 @@ def cw_write_event(
 @click.argument("event_id")
 def cw_get_event(event_id: str):
     """Get an event from CloudWatch Logs."""
+    from ckanext.event_audit.repositories import CloudWatchRepository
+
     repo = CloudWatchRepository()
 
     event = repo.get_event(event_id)
@@ -99,6 +103,8 @@ def cw_filter_events(
     time_to: str | None = None,
 ):
     """Filter events from CloudWatch logs based on the given filters."""
+    from ckanext.event_audit.repositories import CloudWatchRepository
+
     repo = CloudWatchRepository()
 
     filter_data: dict[str, Any] = {
@@ -123,6 +129,8 @@ def cw_filter_events(
 @click.argument("log_group", required=False)
 def cw_remove_log_group(log_group: str | None = None):
     """Remove the specified log group or the default log group if not specified."""
+    from ckanext.event_audit.repositories import CloudWatchRepository
+
     repo = CloudWatchRepository()
 
     try:

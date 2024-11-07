@@ -9,10 +9,9 @@ from sqlalchemy.orm import Session as SQLAlchemySession
 import ckan.plugins as p
 from ckan.model.base import Session
 
-from ckanext.event_audit import config, const, types
+from ckanext.event_audit import config, const, types, utils
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel
-from ckanext.event_audit.utils import get_active_repo
 
 CACHE_ATTR = "_audit_cache"
 
@@ -55,7 +54,7 @@ def after_commit(session: SQLAlchemySession):
     if not hasattr(session, CACHE_ATTR):
         return
 
-    repo = get_active_repo()
+    repo = utils.get_active_repo()
     thread_mode_enabled = config.is_threaded_mode_enabled()
 
     for action, instances in session._audit_cache.items():  # type: ignore
