@@ -29,9 +29,6 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         session: SQLAlchemySession | None = None,
         defer_commit: bool = False,
     ) -> types.Result:
-        event.payload = self._ensure_dict_is_serialisable(event.payload)
-        event.result = self._ensure_dict_is_serialisable(event.result)
-
         db_event = model.EventModel(**event.model_dump())
         db_event.save(session=session or self.session, defer_commit=defer_commit)
 

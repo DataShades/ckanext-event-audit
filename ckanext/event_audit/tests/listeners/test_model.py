@@ -8,7 +8,7 @@ from botocore.stub import Stubber
 
 from ckan.tests.helpers import call_action
 
-from ckanext.event_audit import config, const, repositories, types, utils
+from ckanext.event_audit import config, repositories, types, utils, const
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -62,7 +62,7 @@ class TestModelListener:
                         "message": json.dumps(
                             {
                                 "id": user["id"],
-                                "category": "model",
+                                "category": const.Category.MODEL.value,
                                 "action": "created",
                                 "actor": "",
                                 "action_object": "User",
@@ -80,7 +80,7 @@ class TestModelListener:
                         "message": json.dumps(
                             {
                                 "id": "xxx",
-                                "category": "model",
+                                "category": const.Category.MODEL.value,
                                 "action": "created",
                                 "actor": "",
                                 "action_object": "Dashboard",
@@ -126,21 +126,21 @@ class TestModelListener:
 
         site_user = call_action("get_site_user", {})
 
-        assert events[system_user_idx].category == "model"
+        assert events[system_user_idx].category == const.Category.MODEL.value
         assert events[system_user_idx].action == "created"
         assert events[system_user_idx].action_object == "User"
         assert events[system_user_idx].action_object_id == site_user["id"]
         assert events[system_user_idx].payload["name"] == site_user["name"]
         assert events[system_user_idx].payload["id"] == site_user["id"]
 
-        assert events[user_idx].category == "model"
+        assert events[user_idx].category == const.Category.MODEL.value
         assert events[user_idx].action == "created"
         assert events[user_idx].action_object == "User"
         assert events[user_idx].action_object_id == user["id"]
         assert events[user_idx].payload["name"] == user["name"]
         assert events[user_idx].payload["id"] == user["id"]
 
-        assert events[dashboard].category == "model"
+        assert events[dashboard].category == const.Category.MODEL.value
         assert events[dashboard].action == "created"
         assert events[dashboard].action_object == "Dashboard"
         assert events[dashboard].action_object_id == user["id"]

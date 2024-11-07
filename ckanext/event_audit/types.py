@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, TypedDict, Union
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_validator
 
 import ckan.plugins.toolkit as tk
 from ckan import model
@@ -65,7 +65,7 @@ class Event(BaseModel):
     result: Dict[Any, Any] = Field(default_factory=dict)
     payload: Dict[Any, Any] = Field(default_factory=dict)
 
-    @validator("category")
+    @field_validator("category")
     @classmethod
     def validate_category(cls, v: str) -> str:
         if not v:
@@ -73,7 +73,7 @@ class Event(BaseModel):
 
         return v
 
-    @validator("action")
+    @field_validator("action")
     @classmethod
     def validate_action(cls, v: str) -> str:
         if not v:
@@ -81,7 +81,7 @@ class Event(BaseModel):
 
         return v
 
-    @validator("actor")
+    @field_validator("actor")
     @classmethod
     def validate_actor(cls, v: str) -> str:
         if not v:
@@ -92,7 +92,7 @@ class Event(BaseModel):
 
         return v
 
-    @validator("timestamp")
+    @field_validator("timestamp")
     @classmethod
     def validate_timestamp(cls, v: Union[str, datetime]) -> str:
         if isinstance(v, datetime):
@@ -107,6 +107,30 @@ class Event(BaseModel):
             raise ValueError(tk._("Date format incorrect")) from e
 
         return v
+
+    @field_validator("result", "payload", mode="before")
+    @classmethod
+    def validate_dict(cls, v: Dict[Any, Any]) -> Dict[Any, Any]:
+        return cls._ensure_dict_is_serialisable(v)
+
+    @classmethod
+    def _ensure_dict_is_serialisable(cls, data: dict[str, Any]) -> dict[str, Any]:
+        def make_serializable(value: Any) -> Any:
+            if isinstance(value, dict):
+                return {k: make_serializable(v) for k, v in value.items()}  # type: ignore
+
+            if isinstance(value, list):
+                return [make_serializable(item) for item in value]  # type: ignore
+
+            if isinstance(value, datetime):
+                return value.isoformat()
+
+            if hasattr(value, "__dict__"):
+                return cls._ensure_dict_is_serialisable(value.__dict__)
+
+            return str(value)
+
+        return {k: make_serializable(v) for k, v in data.items()}
 
 
 class Filters(BaseModel):
@@ -146,7 +170,7 @@ class Filters(BaseModel):
         default=None, description="End time for filtering (defaults to now)"
     )
 
-    @validator("actor")
+    @field_validator("actor")
     @classmethod
     def validate_actor(cls, v: str) -> str:
         if not v:
@@ -157,18 +181,18 @@ class Filters(BaseModel):
 
         return v
 
-    @validator("time_to")
+    @field_validator("time_to")
     @classmethod
-    def validate_time_range(cls, time_to: datetime, values: dict[str, Any]):
+    def validate_time_range(cls, time_to: datetime, info: FieldValidationInfo):
         """Ensure `time_from` is before `time_to`."""
-        time_from = values.get("time_from")
+        time_from = info.data.get("time_from")
 
         if time_from and time_to and time_from > time_to:
             raise ValueError("`time_from` must be earlier than `time_to`.")
 
         return time_to
 
-    @validator("*", pre=True)
+    @field_validator("*", mode="before")
     @classmethod
     def strip_strings(cls, v: Any) -> Any:
         """Strip leading and trailing spaces from all string fields."""

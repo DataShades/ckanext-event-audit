@@ -57,13 +57,6 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
 
     def write_event(self, event: types.Event) -> types.Result:
         """Writes an event to CloudWatch Logs."""
-        event_data = event.model_dump()
-
-        event_data["payload"] = self._ensure_dict_is_serialisable(event_data["payload"])
-        event_data["result"] = self._ensure_dict_is_serialisable(event_data["result"])
-
-        event_data = json.dumps(event_data)
-
         try:
             self.client.put_log_events(
                 logGroupName=self.log_group,
@@ -71,7 +64,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 logEvents=[
                     {
                         "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
-                        "message": event_data,
+                        "message": event.model_dump_json(),
                     }
                 ],
             )

@@ -121,21 +121,17 @@ class TestEvent:
         )
         assert event.id == custom_id
 
-    def test_invalid_field_assignment(self):
-        """Test that assigning invalid data types to fields raises an error."""
-        with pytest.raises(ValidationError):
-            types.Event(
-                category=const.Category.MODEL.value,
-                action="created",
-                result="not-a-dict",  # type: ignore
-            )  # type: ignore
+    def test_unserializable_fields(self):
+        """Test that unserializable fields are converted to strings."""
+        event = types.Event(
+            category=const.Category.MODEL.value,
+            action="created",
+            result={"key": datetime.now(timezone.utc)},
+            payload={"key": object()},
+        )
 
-        with pytest.raises(ValidationError):
-            types.Event(
-                category=const.Category.MODEL.value,
-                action="created",
-                payload="not-a-dict",  # type: ignore
-            )
+        assert isinstance(event.result["key"], str)
+        assert isinstance(event.payload["key"], str)
 
 
 class TestFilters:

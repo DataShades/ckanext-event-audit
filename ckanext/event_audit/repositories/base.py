@@ -51,24 +51,6 @@ class AbstractRepository(ABC):
         """Remove all events from the repository."""
         raise NotImplementedError
 
-    def _ensure_dict_is_serialisable(self, data: dict[str, Any]) -> dict[str, Any]:
-        def make_serializable(value: Any) -> Any:
-            if isinstance(value, dict):
-                return {k: make_serializable(v) for k, v in value.items()}  # type: ignore
-
-            if isinstance(value, list):
-                return [make_serializable(item) for item in value]  # type: ignore
-
-            if isinstance(value, datetime):
-                return value.isoformat()
-
-            if hasattr(value, "__dict__"):
-                return self._ensure_dict_is_serialisable(value.__dict__)
-
-            return str(value)
-
-        return {k: make_serializable(v) for k, v in data.items()}
-
     def enqueue_event(self, event: types.Event) -> types.Result:
         """Enqueue an event to be written to the repository."""
         plugin.EventAuditPlugin.event_queue.put(event)  # type: ignore
