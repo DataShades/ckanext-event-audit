@@ -11,10 +11,9 @@ from ckanext.event_audit.repositories import RedisRepository
 
 @pytest.mark.usefixtures("clean_redis", "with_plugins")
 @pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, False)
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "redis")
 class TestRedisRepo:
-    def test_get_event(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_get_event(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True
 
@@ -23,12 +22,10 @@ class TestRedisRepo:
         assert isinstance(loaded_event, types.Event)
         assert event.model_dump() == loaded_event.model_dump()
 
-    def test_get_event_not_found(self):
-        assert not RedisRepository().get_event(1)
+    def test_get_event_not_found(self, repo: RedisRepository):
+        assert not repo.get_event(1)
 
-    def test_filter_by_category(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_filter_by_category(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True
 
@@ -36,9 +33,7 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_filter_by_action(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_filter_by_action(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True
 
@@ -46,9 +41,9 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_filter_by_action_and_action_object(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_filter_by_action_and_action_object(
+        self, event: types.Event, repo: RedisRepository
+    ):
         result = repo.write_event(event)
         assert result.status is True
 
@@ -58,9 +53,9 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_filter_by_time_from(self, event_factory: Callable[..., types.Event]):
-        repo = RedisRepository()
-
+    def test_filter_by_time_from(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
         event = event_factory(timestamp=(dt.now(tz.utc) - td(days=365)).isoformat())
         result = repo.write_event(event)
         assert result.status is True
@@ -74,9 +69,7 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_filter_by_time_to(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_filter_by_time_to(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True
 
@@ -87,9 +80,9 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_filter_by_time_between(self, event_factory: Callable[..., types.Event]):
-        repo = RedisRepository()
-
+    def test_filter_by_time_between(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
         event = event_factory(timestamp=(dt.now(tz.utc) - td(days=365)).isoformat())
         result = repo.write_event(event)
         assert result.status is True
@@ -102,26 +95,22 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_redis_remove_event(self, event: types.Event):
-        repo = RedisRepository()
-
+    def test_redis_remove_event(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True
 
         assert repo.remove_event(event.id).status is True
         assert not repo.get_event(event.id)
 
-    def test_redis_remove_event_not_found(self):
-        repo = RedisRepository()
-
+    def test_redis_remove_event_not_found(self, repo: RedisRepository):
         result = repo.remove_event(1)
 
         assert result.status is False
         assert result.message == "Event not found"
 
-    def test_redis_remove_all_events(self, event_factory: Callable[..., types.Event]):
-        repo = RedisRepository()
-
+    def test_redis_remove_all_events(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
         for _ in range(5):
             repo.write_event(event_factory())
 

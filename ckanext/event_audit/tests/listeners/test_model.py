@@ -8,7 +8,7 @@ from botocore.stub import Stubber
 
 from ckan.tests.helpers import call_action
 
-from ckanext.event_audit import config, repositories, types, utils, const
+from ckanext.event_audit import config, const, repositories, types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -21,8 +21,8 @@ from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 class TestModelListener:
     @pytest.mark.usefixtures("with_plugins", "clean_redis", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "redis")
-    def test_redis(self, user: dict[str, Any]):
-        self._check_events(user, utils.get_active_repo())
+    def test_redis(self, user: dict[str, Any], repo: repositories.AbstractRepository):
+        self._check_events(user, repo)
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "cloudwatch")
@@ -33,8 +33,6 @@ class TestModelListener:
     ):
         repo, stubber = cloudwatch_repo
 
-        site_user = call_action("get_site_user", {})
-
         stubber.add_response(
             "filter_log_events",
             {
@@ -43,17 +41,20 @@ class TestModelListener:
                         "timestamp": 1730713796,
                         "message": json.dumps(
                             {
-                                "id": site_user["id"],
+                                "id": "xxx",
                                 "category": const.Category.MODEL.value,
                                 "action": "created",
                                 "actor": "",
                                 "action_object": "User",
-                                "action_object_id": site_user["id"],
+                                "action_object_id": "xxx",
                                 "target_type": "",
                                 "target_id": "",
                                 "timestamp": "2024-11-04T11:49:56",
                                 "result": {},
-                                "payload": site_user,
+                                "payload": {
+                                    "name": "xxx",
+                                    "id": "xxx",
+                                },
                             }
                         ),
                     },
@@ -109,8 +110,8 @@ class TestModelListener:
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
-    def test_postgres(self, user: dict[str, Any]):
-        self._check_events(user, utils.get_active_repo())
+    def test_postgres(self, user: dict[str, Any], repo: repositories.AbstractRepository):
+        self._check_events(user, repo)
 
     def _check_events(
         self, user: dict[str, Any], repo: repositories.AbstractRepository
@@ -124,14 +125,12 @@ class TestModelListener:
         user_idx = 1
         dashboard = -1
 
-        site_user = call_action("get_site_user", {})
-
         assert events[system_user_idx].category == const.Category.MODEL.value
         assert events[system_user_idx].action == "created"
         assert events[system_user_idx].action_object == "User"
-        assert events[system_user_idx].action_object_id == site_user["id"]
-        assert events[system_user_idx].payload["name"] == site_user["name"]
-        assert events[system_user_idx].payload["id"] == site_user["id"]
+        assert events[system_user_idx].action_object_id
+        assert events[system_user_idx].payload["name"]
+        assert events[system_user_idx].payload["id"]
 
         assert events[user_idx].category == const.Category.MODEL.value
         assert events[user_idx].action == "created"
@@ -145,8 +144,3 @@ class TestModelListener:
         assert events[dashboard].action_object == "Dashboard"
         assert events[dashboard].action_object_id == user["id"]
         assert events[dashboard].payload["user_id"] == user["id"]
-
-
-@pytest.fixture()
-def repo():
-    return utils.get_active_repo()

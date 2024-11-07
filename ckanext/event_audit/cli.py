@@ -4,8 +4,7 @@ from typing import Any
 
 import click
 
-from ckanext.event_audit import types, utils
-
+from ckanext.event_audit import types
 
 __all__ = [
     "event_audit",
