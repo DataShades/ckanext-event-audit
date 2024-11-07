@@ -19,15 +19,14 @@ dependencies = [
              "boto3>=1.28.35,<2.0.0",
 
 ]
+authors = [
+    {name = "DataShades", email = "datashades@linkdigital.com.au"},
+    {name = "Oleksandr Cherniavskyi", email = "mutantsan@gmail.com"},
+]
 
 [project.optional-dependencies]
 dev = [
     "boto3-stubs[logs]>=1.35.0,<2.0.0"
-]
-
-authors = [
-    {name = "DataShades", email = "datashades@linkdigital.com.au"},
-    {name = "LD"},
 ]
 
 [project.readme]
