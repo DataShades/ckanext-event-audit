@@ -68,9 +68,16 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
             matching_events.append(types.Event.model_validate_json(event_data))
 
         if not any([filters.time_from, filters.time_to]):
+            matching_events.sort(key=lambda event: event.timestamp)
             return matching_events
 
-        return self._filter_by_time(matching_events, filters.time_from, filters.time_to)
+        matching_events = self._filter_by_time(
+            matching_events, filters.time_from, filters.time_to
+        )
+
+        matching_events.sort(key=lambda event: event.timestamp)
+
+        return matching_events
 
     def _build_pattern(self, filters: types.Filters) -> str:
         """Builds a search pattern based on the provided filters."""

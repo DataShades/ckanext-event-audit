@@ -17,8 +17,14 @@ keywords = [ "CKAN" ]
 dependencies = [
              "pydantic>=2.3.0,<3.0.0",
              "boto3>=1.28.35,<2.0.0",
-             "boto3-stubs[logs]>=1.35.0,<2.0.0"
+
 ]
+
+[project.optional-dependencies]
+dev = [
+    "boto3-stubs[logs]>=1.35.0,<2.0.0"
+]
+
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
     {name = "LD"},
@@ -34,8 +40,6 @@ text = "AGPL"
 [project.urls]
 Homepage = "https://github.com/DataShades/ckanext-event-audit"
 Documentation = "https://datashades.github.io/ckanext-event-audit/"
-
-[project.optional-dependencies]
 
 [project.entry-points."ckan.plugins"]
 event_audit = "ckanext.event_audit.plugin:EventAuditPlugin"
@@ -75,7 +79,7 @@ select = [
        "PL",  # pylint
        "PERF", # performance anti-patterns
        "PT",  # pytest style
-       # "PTH", # replace os.path with pathlib
+       "PTH", # replace os.path with pathlib
        "PIE",  # misc lints
        "RET",  # improvements for return statements
        "RSE",  # improvements for rise statements
@@ -99,7 +103,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"ckanext/event_audit/tests*" = ["S", "PL", "ANN"]
+"ckanext/event_audit/tests*" = ["S", "PL", "ANN", "D205"]
 "ckanext/event_audit/config.py" = ["S105",] # false positive for Possible hardcoded secret key
 "ckanext/event_audit/cli.py" = ["PLR0913",] # skip max argument number check
 

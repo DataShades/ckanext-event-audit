@@ -57,7 +57,12 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
 
     def write_event(self, event: types.Event) -> types.Result:
         """Writes an event to CloudWatch Logs."""
-        event_data = json.dumps(event.model_dump())
+        event_data = event.model_dump()
+
+        event_data["payload"] = self._ensure_dict_is_serialisable(event_data["payload"])
+        event_data["result"] = self._ensure_dict_is_serialisable(event_data["result"])
+
+        event_data = json.dumps(event_data)
 
         try:
             self.client.put_log_events(
@@ -164,7 +169,9 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         return events
 
     def remove_event(self, event_id: str) -> types.Result:
-        """As of today, you cannot delete a single log event
+        """Remove operation is not supported for CloudWatch logs.
+
+        As of today, you cannot delete a single log event
         from CloudWatch log stream, the alternative will be using Lambda
         functions: set a Lambda function trigger, filter all logs, then write
         the remaining logs to a new log group/stream, then delete the original

@@ -14,4 +14,4 @@ class TestEventAuditUtils:
         result = utils.get_active_repo()
 
         assert result.get_name() == "redis"
-        assert result is repositories.RedisRepository
+        assert isinstance(result, repositories.RedisRepository)

@@ -11,6 +11,11 @@ import ckan.plugins.toolkit as tk
 from ckan import model
 
 
+class ThreadData(TypedDict):
+    last_push: datetime
+    events: list[Event]
+
+
 @dataclass
 class Result:
     status: bool
@@ -102,18 +107,6 @@ class Event(BaseModel):
             raise ValueError(tk._("Date format incorrect")) from e
 
         return v
-
-
-class ModelEvent(Event):
-    """TODO: do we need it?"""
-
-    category: str = "model"
-
-
-class ApiEvent(Event):
-    """TODO: do we need it?"""
-
-    category: str = "api"
 
 
 class Filters(BaseModel):

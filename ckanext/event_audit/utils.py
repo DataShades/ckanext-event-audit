@@ -15,6 +15,8 @@ def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
     """
     plugin_repos: dict[str, type[repos.AbstractRepository]] = {
         repos.RedisRepository.get_name(): repos.RedisRepository,
+        repos.PostgresRepository.get_name(): repos.PostgresRepository,
+        repos.CloudWatchRepository.get_name(): repos.CloudWatchRepository,
     }
 
     for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
@@ -23,7 +25,7 @@ def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
     return plugin_repos
 
 
-def get_active_repo() -> type[repos.AbstractRepository]:
+def get_active_repo() -> repos.AbstractRepository:
     """Get the active repository.
 
     Returns:
@@ -32,4 +34,18 @@ def get_active_repo() -> type[repos.AbstractRepository]:
     repos = get_available_repos()
     active_repo_name = config.active_repo()
 
-    return repos[active_repo_name]
+    return repos[active_repo_name]()
+
+
+def get_repo(repo_name: str) -> repos.AbstractRepository:
+    """Get the repository by name.
+
+    Args:
+        repo_name: the name of the repository
+    """
+    repos = get_available_repos()
+
+    if repo_name not in repos:
+        raise ValueError(f"Repository {repo_name} not found")
+
+    return repos[repo_name]()

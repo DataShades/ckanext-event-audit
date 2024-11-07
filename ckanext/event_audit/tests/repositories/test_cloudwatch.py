@@ -5,7 +5,6 @@ from datetime import timedelta as td
 from datetime import timezone as tz
 from typing import Any
 
-import pytest
 from botocore.stub import Stubber
 
 from ckanext.event_audit import types
@@ -27,22 +26,13 @@ put_log_events_response: dict[str, Any] = {
 }
 
 
-@pytest.fixture()
-def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
-    """Fixture to initialize the CloudWatchRepository with a stubbed client."""
-    repo = CloudWatchRepository()
-
-    stubber = Stubber(repo.client)
-
-    return repo, stubber
-
-
 class TestCloudWatchRepository:
     """Tests for the CloudWatchRepository.
 
     It's really hard to test the repository, without mocking the AWS client.
     And with mocking we still have doubts of the correctness of the implementation.
     """
+
     def test_write_event(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
     ):
@@ -159,7 +149,9 @@ class TestCloudWatchRepository:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
-    def test_remove_all_events(self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]):
+    def test_remove_all_events(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
         repo, stubber = cloudwatch_repo
 
         stubber.add_response("delete_log_group", {})

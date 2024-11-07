@@ -3,10 +3,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
+import sqlalchemy as sa
 from sqlalchemy import TIMESTAMP, Column, Index, String, Table
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
-from sqlalchemy.orm import Mapped, Query
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Session as SQLAlchemySession
 from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
@@ -43,18 +45,45 @@ class EventModel(tk.BaseModel):
     result: Mapped[dict[str, Any]]
     payload: Mapped[dict[str, Any]]
 
-    def save(self) -> None:
-        model.Session.add(self)
-        model.Session.commit()
+    def save(
+        self, session: SQLAlchemySession | None = None, defer_commit: bool = False
+    ) -> None:
+        session = session or model.meta.create_local_session()
 
-    def delete(self, defer_commit: bool = False) -> None:
-        model.Session.delete(self)
+        session.execute(
+            sa.insert(EventModel).values(
+                id=self.id,
+                category=self.category,
+                action=self.action,
+                actor=self.actor,
+                action_object=self.action_object,
+                action_object_id=self.action_object_id,
+                target_type=self.target_type,
+                target_id=self.target_id,
+                timestamp=self.timestamp,
+                result=self.result,
+                payload=self.payload,
+            )
+        )
 
         if not defer_commit:
-            model.Session.commit()
+            session.commit()
+
+    def delete(
+        self, session: SQLAlchemySession | None = None, defer_commit: bool = False
+    ) -> None:
+        session = session or model.meta.create_local_session()
+
+        session.execute(sa.delete(EventModel).where(EventModel.id == self.id))
+        session.commit()
+
+        if not defer_commit:
+            session.commit()
 
     @classmethod
     def get(cls, event_id: str) -> Self | None:
-        query: Query = model.Session.query(cls).filter(cls.id == event_id)
+        session = model.meta.create_local_session()
 
-        return query.one_or_none()
+        return session.execute(
+            sa.select(cls).where(cls.id == event_id)
+        ).scalar_one_or_none()

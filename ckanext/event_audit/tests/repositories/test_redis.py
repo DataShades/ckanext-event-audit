@@ -5,11 +5,12 @@ from typing import Callable
 
 import pytest
 
-from ckanext.event_audit import types
+from ckanext.event_audit import config, types
 from ckanext.event_audit.repositories import RedisRepository
 
 
-@pytest.mark.usefixtures("clean_redis")
+@pytest.mark.usefixtures("clean_redis", "with_plugins")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, False)
 class TestRedisRepo:
     def test_get_event(self, event: types.Event):
         repo = RedisRepository()

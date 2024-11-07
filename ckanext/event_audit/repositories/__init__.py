@@ -1,4 +1,4 @@
-from .base import AbstractRepository, RemoveSingle, RemoveAll
+from .base import AbstractRepository, RemoveAll, RemoveSingle
 from .cloudwatch import CloudWatchRepository
 from .postgres import PostgresRepository
 from .redis import RedisRepository

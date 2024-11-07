@@ -22,3 +22,49 @@ groups:
         description: The region for the AWS account
         default: ''
         editable: true
+
+      - key: ckanext.event_audit.ignore.categories
+        description: |
+          A list of categories to exclude from event logging, applicable only to
+          built-in tracking methods (API, database).
+        type: list
+        example: api view
+        editable: true
+
+      - key: ckanext.event_audit.ignore.actions
+        description: |
+          A list of actions to exclude from event logging, applicable only to
+          built-in tracking methods (API, database).
+        type: list
+        example: package_create
+        editable: true
+
+      - key: ckanext.event_audit.track.model
+        description: Enable logging of database events
+        default: true
+        editable: true
+        type: bool
+
+      - key: ckanext.event_audit.track.api
+        description: Enable logging of API events
+        default: true
+        editable: true
+        type: bool
+
+      - key: ckanext.event_audit.batch.size
+        description: The number of events to batch before sending to the repository
+        default: 50
+        editable: true
+        type: int
+
+      - key: ckanext.event_audit.batch.timeout
+        description: Force push the events to the repository after this time in seconds since the last push
+        default: 3600
+        editable: true
+        type: int
+
+      - key: ckanext.event_audit.threaded_mode
+        description: Enable threaded mode for pushing events to the repository
+        default: true
+        editable: true
+        type: bool

@@ -5,11 +5,12 @@ from typing import Callable
 
 import pytest
 
-from ckanext.event_audit import types
+from ckanext.event_audit import config, types
 from ckanext.event_audit.repositories import PostgresRepository
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, False)
 class TestPostgresRepo:
     def test_write_event(self, event: types.Event):
         postgres_repo = PostgresRepository()
@@ -122,9 +123,9 @@ class TestPostgresRepo:
         postgres_repo = PostgresRepository()
 
         postgres_repo.write_event(event)
-        status = postgres_repo.remove_event(event.id)
+        assert postgres_repo.get_event(event.id) is not None
 
-        assert status.status
+        postgres_repo.remove_event(event.id)
         assert postgres_repo.get_event(event.id) is None
 
     def test_remove_event_not_found(self):

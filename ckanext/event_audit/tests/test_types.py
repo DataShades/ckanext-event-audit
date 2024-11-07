@@ -110,10 +110,10 @@ class TestEvent:
     def test_invalid_field_assignment(self):
         """Test that assigning invalid data types to fields raises an error."""
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", result="not-a-dict") # type: ignore
+            types.Event(category="model", action="created", result="not-a-dict")  # type: ignore
 
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", payload="not-a-dict") # type: ignore
+            types.Event(category="model", action="created", payload="not-a-dict")  # type: ignore
 
 
 class TestFilters:
@@ -163,7 +163,7 @@ class TestFilters:
     def test_invalid_time_from_type(self):
         """Test that invalid datetime fields raise a validation error."""
         with pytest.raises(ValueError, match="Input should be a valid datetime"):
-            types.Filters(time_from="xxx") # type: ignore
+            types.Filters(time_from="xxx")  # type: ignore
 
     def test_invalid_actor_type(self):
         """Test that passing incorrect field types raises an error."""

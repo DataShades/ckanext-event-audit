@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Iterable, List
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session as SQLAlchemySession
 
-from ckan.model import Session
+from ckan.model.meta import create_local_session
 
 from ckanext.event_audit import model, types
 from ckanext.event_audit.repositories.base import (
@@ -16,15 +17,36 @@ from ckanext.event_audit.repositories.base import (
 
 class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
     def __init__(self):
-        self.session = Session
+        self.session = create_local_session()
 
     @classmethod
     def get_name(cls) -> str:
         return "postgres"
 
-    def write_event(self, event: types.Event) -> types.Result:
+    def write_event(
+        self,
+        event: types.Event,
+        session: SQLAlchemySession | None = None,
+        defer_commit: bool = False,
+    ) -> types.Result:
+        event.payload = self._ensure_dict_is_serialisable(event.payload)
+        event.result = self._ensure_dict_is_serialisable(event.result)
+
         db_event = model.EventModel(**event.model_dump())
-        db_event.save()
+        db_event.save(session=session or self.session, defer_commit=defer_commit)
+
+        return types.Result(status=True, message="Event has been added to the queue")
+
+    def write_events(self, events: Iterable[types.Event]) -> types.Result:
+        """Write multiple events to the repository.
+
+        This method accepts a collection of Event objects and writes them to the
+        repository.
+        """
+        for event in events:
+            self.write_event(event, session=self.session, defer_commit=True)
+
+        self.session.commit()
 
         return types.Result(status=True)
 
@@ -40,11 +62,6 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
     def filter_events(self, filters: types.Filters) -> List[types.Event]:
         """Filters events based on provided filter criteria."""
-        if not isinstance(filters, types.Filters):
-            raise TypeError(
-                f"Expected 'filters' to be an instance of Filters, got {type(filters)}"
-            )
-
         query = select(model.EventModel)
 
         filterable_fields = [
@@ -67,14 +84,22 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         if filters.time_to:
             query = query.where(model.EventModel.timestamp <= filters.time_to)
 
+        query.order_by(model.EventModel.timestamp)
+
         result = self.session.execute(query).scalars().all()
         return [types.Event.model_validate(event) for event in result]
 
-    def remove_event(self, event_id: str) -> types.Result:
+    def remove_event(
+        self,
+        event_id: str,
+        session: SQLAlchemySession | None = None,
+        defer_commit: bool = False,
+    ) -> types.Result:
         event = model.EventModel.get(event_id)
 
         if event:
-            event.delete()
+            event.delete(session=session or self.session, defer_commit=defer_commit)
+
             return types.Result(status=True, message="Event removed successfully")
 
         return types.Result(status=False, message="Event not found")
