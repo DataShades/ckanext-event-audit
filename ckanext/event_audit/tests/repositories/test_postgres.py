@@ -5,7 +5,7 @@ from typing import Callable
 
 import pytest
 
-from ckanext.event_audit import config, types
+from ckanext.event_audit import config, const, types
 from ckanext.event_audit.repositories import PostgresRepository
 
 
@@ -35,7 +35,9 @@ class TestPostgresRepo:
         postgres_repo = PostgresRepository()
 
         postgres_repo.write_event(event)
-        events = postgres_repo.filter_events(types.Filters(category="model"))
+        events = postgres_repo.filter_events(
+            types.Filters(category=const.Category.MODEL.value)
+        )
 
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
@@ -54,7 +56,7 @@ class TestPostgresRepo:
 
         postgres_repo.write_event(event)
         events = postgres_repo.filter_events(
-            types.Filters(category="model", action_object="package")
+            types.Filters(category=const.Category.MODEL.value, action_object="package")
         )
 
         assert len(events) == 1
@@ -112,7 +114,7 @@ class TestPostgresRepo:
 
         events = postgres_repo.filter_events(
             types.Filters(
-                category="model",
+                category=const.Category.MODEL.value,
                 action="created",
             )
         )

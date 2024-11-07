@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session as SQLAlchemySession
 import ckan.plugins as p
 from ckan.model.base import Session
 
-from ckanext.event_audit import config, types
+from ckanext.event_audit import config, const, types
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel
 from ckanext.event_audit.utils import get_active_repo
@@ -65,7 +65,7 @@ def after_commit(session: SQLAlchemySession):
 
             event = repo.build_event(
                 types.EventData(
-                    category="model",
+                    category=const.Category.MODEL.value,
                     action=action,
                     action_object=instance.__class__.__name__,
                     action_object_id=inspect(instance).identity[0],

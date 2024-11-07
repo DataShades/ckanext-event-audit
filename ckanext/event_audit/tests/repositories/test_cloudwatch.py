@@ -7,7 +7,7 @@ from typing import Any
 
 from botocore.stub import Stubber
 
-from ckanext.event_audit import types
+from ckanext.event_audit import const, types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 put_log_events_response: dict[str, Any] = {
@@ -103,7 +103,9 @@ class TestCloudWatchRepository:
         )
 
         with stubber:
-            events = repo.filter_events(types.Filters(category="model"))
+            events = repo.filter_events(
+                types.Filters(category=const.Category.MODEL.value)
+            )
 
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()

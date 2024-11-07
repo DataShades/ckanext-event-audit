@@ -7,7 +7,7 @@ from botocore.stub import Stubber
 
 from ckan.tests.factories import User
 
-from ckanext.event_audit import types, utils
+from ckanext.event_audit import const, types, utils
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -21,7 +21,7 @@ def clean_db(reset_db: Any, migrate_db_for: Any):
 @pytest.fixture()
 def event() -> types.Event:
     return types.Event(
-        category="model",
+        category=const.Category.MODEL.value,
         action="created",
         action_object="package",
         actor=User()["id"],
@@ -31,7 +31,7 @@ def event() -> types.Event:
 @pytest.fixture()
 def event_factory():
     def factory(**kwargs: types.EventData) -> types.Event:
-        kwargs.setdefault("category", "model")  # type: ignore
+        kwargs.setdefault("category", const.Category.MODEL.value)  # type: ignore
         kwargs.setdefault("action", "created")  # type: ignore
 
         return types.Event(**kwargs)  # type: ignore

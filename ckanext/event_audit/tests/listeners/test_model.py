@@ -8,11 +8,14 @@ from botocore.stub import Stubber
 
 from ckan.tests.helpers import call_action
 
-from ckanext.event_audit import config, repositories, types, utils
+from ckanext.event_audit import config, const, repositories, types, utils
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
-@pytest.mark.ckan_config(config.CONF_IGNORED_CATEGORIES, ["api", "views"])
+@pytest.mark.ckan_config(
+    config.CONF_IGNORED_CATEGORIES,
+    [const.Category.API.value, const.Category.VIEW.value],
+)
 @pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
 @pytest.mark.usefixtures("with_plugins")
 class TestModelListener:
@@ -41,7 +44,7 @@ class TestModelListener:
                         "message": json.dumps(
                             {
                                 "id": site_user["id"],
-                                "category": "model",
+                                "category": const.Category.MODEL.value,
                                 "action": "created",
                                 "actor": "",
                                 "action_object": "User",

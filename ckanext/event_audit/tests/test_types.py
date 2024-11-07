@@ -3,15 +3,15 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic_core import ValidationError
 
-from ckanext.event_audit import types
+from ckanext.event_audit import const, types
 
 
 class TestEvent:
     def test_valid_event(self):
         """Test creation of a valid event with required fields."""
-        event = types.Event(category="model", action="created")
+        event = types.Event(category=const.Category.MODEL.value, action="created")
 
-        assert event.category == "model"
+        assert event.category == const.Category.MODEL.value
         assert event.action == "created"
 
         assert isinstance(event.id, str)
@@ -21,7 +21,7 @@ class TestEvent:
         """Test creating an event with all fields filled."""
         timestamp = datetime.now(timezone.utc).isoformat()
         event = types.Event(
-            category="model",
+            category=const.Category.MODEL.value,
             action="created",
             actor=user["id"],
             action_object="package",
@@ -52,68 +52,90 @@ class TestEvent:
         with pytest.raises(
             ValidationError, match="The `action` field must be a non-empty string."
         ):
-            types.Event(category="model", action="")
+            types.Event(category=const.Category.MODEL.value, action="")
 
     def test_category_not_string(self):
         """Test that non-string category raises a ValidationError."""
         with pytest.raises(ValidationError, match="Input should be a valid string."):
-            types.Event(category=1, action="created")
+            types.Event(category=1, action="created")  # type: ignore
 
     def test_action_not_string(self):
         """Test that non-string action raises a ValidationError."""
         with pytest.raises(ValidationError, match="Input should be a valid string"):
-            types.Event(category="model", action=1)
+            types.Event(category=const.Category.MODEL.value, action=1)  # type: ignore
 
     def test_actor_not_string(self):
         """Test that a non-string actor raises a ValidationError."""
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", actor=123)
+            types.Event(
+                category=const.Category.MODEL.value, action="created", actor=123  # type: ignore
+            )
 
     def test_invalid_timestamp_format(self):
         """Test that an invalid timestamp format raises a ValidationError."""
         with pytest.raises(ValidationError, match="Date format incorrect"):
-            types.Event(category="model", action="created", timestamp="invalid-date")
+            types.Event(
+                category=const.Category.MODEL.value,
+                action="created",
+                timestamp="invalid-date",
+            )
 
     def test_future_timestamp(self):
         """Test handling of future timestamps."""
         future_timestamp = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
         event = types.Event(
-            category="model", action="created", timestamp=future_timestamp
+            category=const.Category.MODEL.value,
+            action="created",
+            timestamp=future_timestamp,
         )
         assert event.timestamp == future_timestamp
 
     def test_default_timestamp(self):
         """Test that the default timestamp is set to the current time."""
-        event = types.Event(category="model", action="created")
+        event = types.Event(category=const.Category.MODEL.value, action="created")
         timestamp = datetime.now(timezone.utc).isoformat()
 
         # Allowing a small difference in time to handle execution delays
-        assert event.timestamp[:19] == timestamp[:19]
+        assert event.timestamp[:19] == timestamp[:19]  # type: ignore
 
     def test_empty_result_and_payload(self):
         """Test that result and payload default to empty dictionaries."""
-        event = types.Event(category="model", action="created")
+        event = types.Event(category=const.Category.MODEL.value, action="created")
         assert event.result == {}
         assert event.payload == {}
 
     def test_user_doesnt_exist(self):
         """Test that invalid actor reference raises a ValidationError."""
         with pytest.raises(ValidationError, match="Not found: User"):
-            types.Event(category="model", action="created", actor="non-existent-user")
+            types.Event(
+                category=const.Category.MODEL.value,
+                action="created",
+                actor="non-existent-user",
+            )
 
     def test_custom_id_generation(self):
         """Test that a custom id can be provided."""
         custom_id = "12345"
-        event = types.Event(category="model", action="created", id=custom_id)
+        event = types.Event(
+            category=const.Category.MODEL.value, action="created", id=custom_id
+        )
         assert event.id == custom_id
 
     def test_invalid_field_assignment(self):
         """Test that assigning invalid data types to fields raises an error."""
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", result="not-a-dict")  # type: ignore
+            types.Event(
+                category=const.Category.MODEL.value,
+                action="created",
+                result="not-a-dict",  # type: ignore
+            )  # type: ignore
 
         with pytest.raises(ValidationError):
-            types.Event(category="model", action="created", payload="not-a-dict")  # type: ignore
+            types.Event(
+                category=const.Category.MODEL.value,
+                action="created",
+                payload="not-a-dict",  # type: ignore
+            )
 
 
 class TestFilters:
@@ -124,7 +146,7 @@ class TestFilters:
     def test_valid_filters(self, user):
         """Test creating a valid Filters object."""
         filters = types.Filters(
-            category="api",
+            category=const.Category.API.value,
             action="created",
             actor=user["id"],
             action_object="package",
@@ -134,7 +156,7 @@ class TestFilters:
             time_from=datetime.now(timezone.utc) - timedelta(days=1),
             time_to=datetime.now(timezone.utc),
         )
-        assert filters.category == "api"
+        assert filters.category == const.Category.API.value
         assert filters.action == "created"
         assert filters.actor == user["id"]
 
@@ -147,7 +169,7 @@ class TestFilters:
     def test_whitespace_trimming(self):
         """Test that leading and trailing spaces are removed from string fields."""
         filters = types.Filters(category="  api  ", action="  created  ")
-        assert filters.category == "api"
+        assert filters.category == const.Category.API.value
         assert filters.action == "created"
 
     def test_time_range_validation(self):

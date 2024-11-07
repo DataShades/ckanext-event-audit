@@ -6,7 +6,7 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 import ckan.types as ckan_types
 
-from ckanext.event_audit import config, types, utils
+from ckanext.event_audit import config, const, types, utils
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -24,7 +24,7 @@ def action_succeeded_subscriber(
 
     event = repo.build_event(
         types.EventData(
-            category="api",
+            category=const.Category.API.value,
             actor=(
                 tk.current_user.id
                 if tk.current_user and not tk.current_user.is_anonymous
