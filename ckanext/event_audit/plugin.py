@@ -20,7 +20,6 @@ class EventWriteThread(threading.Thread):
         threading.Thread.__init__(self)
         self.queue = queue
         self.data = types.ThreadData(last_push=datetime.now(tz.utc), events=[])
-        self.lock = threading.Lock()
 
     def run(self):
         while True:
@@ -37,13 +36,12 @@ class EventWriteThread(threading.Thread):
             ) >= config.get_batch_size() or self._is_time_to_push(
                 self.data["last_push"]
             ):
-                with self.lock:
-                    repo = utils.get_active_repo()
+                repo = utils.get_active_repo()
 
-                    repo.write_events(self.data["events"])
+                repo.write_events(self.data["events"])
 
-                    self.data["events"] = []
-                    self.data["last_push"] = datetime.now(tz.utc)
+                self.data["events"] = []
+                self.data["last_push"] = datetime.now(tz.utc)
 
             self.queue.task_done()
 
