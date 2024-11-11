@@ -5,7 +5,7 @@ groups:
       - key: ckanext.event_audit.active_repo
         description: The active repository to store the audit logs
         default: redis
-        validators: audit_active_repo_validator
+        validators: audit_repo_exists
         editable: true
 
       - key: ckanext.event_audit.cloudwatch.access_key
@@ -66,5 +66,5 @@ groups:
       - key: ckanext.event_audit.threaded_mode
         description: Enable threaded mode for pushing events to the repository
         default: true
-        editable: true
+        editable: false
         type: bool

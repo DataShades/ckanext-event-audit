@@ -59,20 +59,33 @@ class EventWriteThread(threading.Thread):
 @tk.blanket.config_declarations
 @tk.blanket.validators
 @tk.blanket.cli
+@tk.blanket.blueprints
+@tk.blanket.helpers
 class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurable)
+    p.implements(p.IConfigurer)
     p.implements(p.ISignal)
     p.implements(IEventAudit, inherit=True)
 
     event_queue = queue.Queue()
 
+    # IConfigurer
+    def update_config(self, config_: CKANConfig):
+        tk.add_template_directory(config_, "templates")
+
     # IConfigurable
 
-    def configure(self, config: CKANConfig) -> None:
-        # spawn a thread, and pass it queue instance
-        t = EventWriteThread(self.event_queue)
-        t.setDaemon(True)
-        t.start()
+    def configure(self, config_: CKANConfig) -> None:
+        if utils.get_active_repo().get_name() == "cloudwatch" and not config_.get(
+            "testing"
+        ):
+            utils.test_cloudwatch_connection()
+
+        if config.is_threaded_mode_enabled():
+            # spawn a thread, and pass it queue instance
+            t = EventWriteThread(self.event_queue)
+            t.setDaemon(True)
+            t.start()
 
     # ISignal
 
@@ -81,7 +94,30 @@ class EventAuditPlugin(p.SingletonPlugin):
             tk.signals.action_succeeded: [
                 listeners.api.action_succeeded_subscriber,
             ],
+            tk.signals.ckanext.signal("ap_main:collect_config_sections"): [
+                self.collect_config_sections_subs
+            ],
+            tk.signals.ckanext.signal("ap_main:collect_config_schemas"): [
+                self.collect_config_schemas_subs
+            ],
         }
+
+    @staticmethod
+    def collect_config_sections_subs(sender: None):
+        return {
+            "name": "Event Audit",
+            "configs": [
+                {
+                    "name": "Configuration",
+                    "blueprint": "event_audit.config",
+                    "info": "Event Audit",
+                },
+            ],
+        }
+
+    @staticmethod
+    def collect_config_schemas_subs(sender: None):
+        return ["ckanext.event_audit:config_schema.yaml"]
 
     # IEventAudit
 

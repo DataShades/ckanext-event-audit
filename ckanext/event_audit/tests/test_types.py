@@ -133,6 +133,18 @@ class TestEvent:
         assert isinstance(event.result["key"], str)
         assert isinstance(event.payload["key"], str)
 
+    def test_empty_dict_fields(self):
+        """Test that empty dictionaries are not converted to strings."""
+        event = types.Event(
+            category=const.Category.MODEL.value,
+            action="created",
+            result={},
+            payload={},
+        )
+
+        assert event.result == {}
+        assert event.payload == {}
+
 
 class TestFilters:
     def test_empty_filters(self):

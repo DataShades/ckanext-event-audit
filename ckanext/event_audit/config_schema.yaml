@@ -1,0 +1,88 @@
+scheming_version: 2
+schema_id: event_audit_config
+about: An extension config form schema
+
+fields:
+  - field_name: ckanext.event_audit.active_repo
+    label: Active Repository
+    help_text: The active repository to store the audit logs
+    preset: select
+    required: true
+    choices_helper: event_audit_active_repo_choices
+
+  - field_name: ckanext.event_audit.cloudwatch.access_key
+    label: Access Key
+    help_text: The access key for the AWS account
+    required: false
+
+  - field_name: ckanext.event_audit.cloudwatch.secret_key
+    label: Secret Key
+    help_text: The secret key for the AWS account
+    required: false
+
+  - field_name: ckanext.event_audit.cloudwatch.region
+    label: Region
+    help_text: The region for the AWS account
+    required: false
+
+  - field_name: ckanext.event_audit.ignore.categories
+    label: Ignored Categories
+    help_text: |
+          A space separated list of categories to exclude from event logging, applicable only to
+          built-in tracking methods (API, database).
+    form_snippet: textarea.html
+    required: false
+
+  - field_name: ckanext.event_audit.ignore.actions
+    label: Ignored Actions
+    help_text: |
+          A space separated list of actions to exclude from event logging, applicable only to
+          built-in tracking methods (API, database).
+    form_snippet: textarea.html
+    required: false
+
+  - field_name: ckanext.event_audit.track.model
+    label: Track Model
+    help_text: Enable logging of database events
+    preset: select
+    required: true
+    choices:
+      - value: true
+        label: Yes
+      - value: false
+        label: No
+
+  - field_name: ckanext.event_audit.track.api
+    label: Track API
+    help_text: Enable logging of API events
+    preset: select
+    required: true
+    choices:
+      - value: true
+        label: Yes
+      - value: false
+        label: No
+
+  - field_name: ckanext.event_audit.threaded_mode
+    label: Threaded Mode
+    help_text: Enable threaded mode for pushing events to the repository
+    preset: select
+    required: true
+    choices:
+      - value: true
+        label: Yes
+      - value: false
+        label: No
+
+  - field_name: ckanext.event_audit.batch.size
+    label: Batch Size
+    help_text: The number of events to batch before sending to the repository. Actual only for threaded mode
+    input_type: number
+    required: true
+
+  - field_name: ckanext.event_audit.batch.timeout
+    help_text: Force push the events to the repository after this time in seconds since the last push. Actual only for threaded mode
+    label: Batch Timeout
+    form_snippet: text.html
+    input_type: number
+    required: true

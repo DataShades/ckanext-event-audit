@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import boto3
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
@@ -44,7 +45,13 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         self.log_group = log_group
         self.log_stream = log_stream
 
-        self._create_log_group_if_not_exists()
+        try:
+            self._create_log_group_if_not_exists()
+        except (NoCredentialsError, PartialCredentialsError):
+            raise ValueError(
+                "AWS credentials are not configured. "
+                "Please, check the extension configuration."
+            )
 
     @classmethod
     def get_name(cls) -> str:
