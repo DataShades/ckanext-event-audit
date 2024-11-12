@@ -26,6 +26,8 @@ class TestApiListener:
     ):
         repo, stubber = cloudwatch_repo
 
+        stubber.add_response("create_log_stream", {})
+        stubber.add_response("put_log_events", {})
         stubber.add_response(
             "filter_log_events",
             {

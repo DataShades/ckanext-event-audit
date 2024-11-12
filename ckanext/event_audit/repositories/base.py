@@ -65,6 +65,13 @@ class AbstractRepository(ABC):
 
         return types.Result(status=True, message="Event has been added to the queue")
 
+    @abstractmethod
+    def test_connection(self) -> bool:
+        """Test the connection to the repository.
+
+        This method should return True if the connection is successful, False otherwise.
+        """
+
 
 class RemoveSingle:
     """Mark the repository as supporting remove single event.

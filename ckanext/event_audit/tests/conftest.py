@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from botocore.stub import Stubber
 
+from ckan.lib.redis import connect_to_redis
 from ckan.tests.factories import User
 
 from ckanext.event_audit import const, types, utils
@@ -52,3 +53,48 @@ def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
 @pytest.fixture()
 def repo():
     return utils.get_active_repo()
+
+
+@pytest.fixture(scope="session")
+def reset_redis():
+    def cleaner(pattern: str = "*"):
+        """Remove keys matching pattern.
+
+        Return number of removed records.
+        """
+        conn = connect_to_redis()
+        keys = cast(Any, conn.keys(pattern))
+        if keys:
+            return cast(int, conn.delete(*keys))
+        return 0
+
+    return cleaner
+
+
+@pytest.fixture()
+def clean_redis(reset_redis: Any):
+    """Remove all keys from Redis.
+
+    This fixture removes all the records from Redis.
+
+    Example:
+        ```python
+        @pytest.mark.usefixtures("clean_redis")
+        def test_redis_is_empty():
+            assert redis.keys("*") == []
+        ```
+
+    If test requires presence of some initial data in redis, make sure that
+    data producer applied **after** ``clean_redis``:
+
+    Example:
+        ```python
+        @pytest.mark.usefixtures(
+            "clean_redis",
+            "fixture_that_adds_xxx_key_to_redis"
+        )
+        def test_redis_has_one_record():
+            assert redis.keys("*") == [b"xxx"]
+        ```
+    """
+    reset_redis()

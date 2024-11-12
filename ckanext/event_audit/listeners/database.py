@@ -55,6 +55,10 @@ def after_commit(session: SQLAlchemySession):
         return
 
     repo = utils.get_active_repo()
+
+    if repo._connection is False:
+        return
+
     thread_mode_enabled = config.is_threaded_mode_enabled()
 
     for action, instances in session._audit_cache.items():  # type: ignore

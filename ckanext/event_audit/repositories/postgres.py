@@ -105,3 +105,6 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         self.session.query(model.EventModel).delete()
         self.session.commit()
         return types.Result(status=True, message="All events removed successfully")
+
+    def test_connection(self) -> bool:
+        return True

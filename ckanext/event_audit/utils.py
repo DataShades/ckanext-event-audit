@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
-
 import ckan.plugins as p
 
 from ckanext.event_audit import config
@@ -53,17 +51,12 @@ def get_repo(repo_name: str) -> repos.AbstractRepository:
     return repos[repo_name]()
 
 
-def test_cloudwatch_connection() -> bool:
-    repo = repos.CloudWatchRepository()
+def test_active_connection() -> bool:
+    repo = get_active_repo()
 
     if repo._connection is not None:
         return repo._connection
 
-    try:
-        repo.client.describe_log_groups()
-    except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError):
-        repo._connection = False
-    else:
-        repo._connection = True
+    repo._connection = repo.test_connection()
 
     return repo._connection

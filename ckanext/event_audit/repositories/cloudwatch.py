@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, TypedDict
 
 import boto3
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
@@ -193,3 +193,16 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             return types.Result(status=False, message=str(err))
 
         return types.Result(status=True, message="All events removed successfully")
+
+    def test_connection(self) -> bool:
+        if self._connection is not None:
+            return self._connection
+
+        try:
+            self.client.describe_log_groups()
+        except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError):
+            self._connection = False
+        else:
+            self._connection = True
+
+        return self._connection

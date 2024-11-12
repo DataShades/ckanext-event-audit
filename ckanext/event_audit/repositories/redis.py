@@ -145,3 +145,6 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
         self.conn.delete(REDIS_SET_KEY)
 
         return types.Result(status=True, message="All events removed successfully")
+
+    def test_connection(self) -> bool:
+        return True

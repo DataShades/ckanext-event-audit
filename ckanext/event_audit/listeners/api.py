@@ -19,12 +19,6 @@ def action_succeeded_subscriber(
     if not config.is_api_log_enabled():
         return
 
-    # if not utils.is_cloudwatch_conn_tested():
-    #     utils.test_cloudwatch_connection2()
-
-    # if not utils.is_cloudwatch_available():
-    #     return
-
     repo = utils.get_active_repo()
 
     if repo._connection is False:
