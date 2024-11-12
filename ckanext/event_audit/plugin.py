@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import yaml
 import queue
 import threading
 from datetime import datetime, timedelta
@@ -10,6 +12,8 @@ import ckan.plugins.toolkit as tk
 from ckan import plugins as p
 from ckan.common import CKANConfig
 from ckan.types import SignalMapping
+from ckan.config.declaration import Declaration, Key
+from ckan.logic import clear_validators_cache
 
 from ckanext.event_audit import config, listeners, types, utils
 from ckanext.event_audit.interfaces import IEventAudit
@@ -56,7 +60,6 @@ class EventWriteThread(threading.Thread):
         )
 
 
-@tk.blanket.config_declarations
 @tk.blanket.validators
 @tk.blanket.cli
 @tk.blanket.blueprints
@@ -66,6 +69,7 @@ class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurer)
     p.implements(p.ISignal)
     p.implements(IEventAudit, inherit=True)
+    p.implements(p.IConfigDeclaration)
 
     event_queue = queue.Queue()
 
@@ -76,8 +80,12 @@ class EventAuditPlugin(p.SingletonPlugin):
     # IConfigurable
 
     def configure(self, config_: CKANConfig) -> None:
-        if utils.get_active_repo().get_name() == "cloudwatch" and not config_.get(
-            "testing"
+        repo = utils.get_active_repo()
+
+        if (
+            not config_.get("testing")
+            and repo.get_name() == "cloudwatch"
+            and repo._connection is None
         ):
             utils.test_cloudwatch_connection()
 
@@ -100,6 +108,9 @@ class EventAuditPlugin(p.SingletonPlugin):
             tk.signals.ckanext.signal("ap_main:collect_config_schemas"): [
                 self.collect_config_schemas_subs
             ],
+            tk.signals.ckanext.signal("collection:register_collections"): [
+                self.get_collection_factories,
+            ],
         }
 
     @staticmethod
@@ -112,12 +123,23 @@ class EventAuditPlugin(p.SingletonPlugin):
                     "blueprint": "event_audit.config",
                     "info": "Event Audit",
                 },
+                {
+                    "name": "Events dashboard",
+                    "blueprint": "event_audit.dashboard",
+                    "info": "A list of all events",
+                },
             ],
         }
 
     @staticmethod
     def collect_config_schemas_subs(sender: None):
         return ["ckanext.event_audit:config_schema.yaml"]
+
+    @staticmethod
+    def get_collection_factories(sender: None):
+        from ckanext.event_audit.collection import EventAuditListCollection
+
+        return {"event-audit-list": EventAuditListCollection}
 
     # IEventAudit
 
@@ -128,4 +150,19 @@ class EventAuditPlugin(p.SingletonPlugin):
         if event.category in config.get_ignored_categories():
             return True
 
+        if event.action_object in config.get_ignored_models():
+            return True
+
         return False
+
+    # IConfigDeclaration
+
+    def declare_config_options(self, declaration: Declaration, key: Key):
+        # this call allows using custom validators in config declarations
+        # we need it for CKAN 2.10, as this PR wasn't backported
+        # https://github.com/ckan/ckan/pull/7614
+        clear_validators_cache()
+        here = os.path.dirname(__file__)
+
+        with open(os.path.join(here, "config_declaration.yaml"), "rb") as src:
+            declaration.load_dict(yaml.safe_load(src))

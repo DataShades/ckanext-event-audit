@@ -1,22 +1,26 @@
 from __future__ import annotations
 
 from flask import Blueprint
+from flask.views import MethodView
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 
 from ckanext.event_audit import utils
 
-event_audit = Blueprint("event_audit", __name__)
+event_audit = Blueprint("event_audit", __name__, url_prefix="/admin-panel/event_audit")
 
 if p.plugin_loaded("admin_panel"):
+    from ckan.logic import parse_params
+
     from ckanext.ap_main.utils import ap_before_request
     from ckanext.ap_main.views.generics import ApConfigurationPageView
+    from ckanext.collection.shared import get_collection
 
     event_audit.before_request(ap_before_request)
 
     event_audit.add_url_rule(
-        "/admin-panel/event_audit/config",
+        "/config",
         view_func=ApConfigurationPageView.as_view(
             "config",
             "event_audit_config",
@@ -36,3 +40,17 @@ if p.plugin_loaded("admin_panel"):
 
         return tk.h.redirect_to("event_audit.config")
 
+    class EventAuditListView(MethodView):
+        def get(self) -> str:
+            return tk.render(
+                "event_audit/event_audit_list.html",
+                extra_vars={
+                    "collection": get_collection(
+                        "event-audit-list", parse_params(tk.request.args)
+                    )
+                },
+            )
+
+    event_audit.add_url_rule(
+        "/dashboard", view_func=EventAuditListView.as_view("dashboard")
+    )

@@ -6,8 +6,6 @@ from typing import Any
 import pytest
 from botocore.stub import Stubber
 
-from ckan.tests.helpers import call_action
-
 from ckanext.event_audit import config, const, repositories, types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
@@ -110,7 +108,9 @@ class TestModelListener:
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
-    def test_postgres(self, user: dict[str, Any], repo: repositories.AbstractRepository):
+    def test_postgres(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
         self._check_events(user, repo)
 
     def _check_events(

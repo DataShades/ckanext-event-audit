@@ -31,6 +31,10 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         log_group: str = "/ckan/event-audit",
         log_stream: str = "event-audit-stream",
     ):
+        # TODO: check conn?
+        if self._connection is not None:
+            return
+
         if not credentials:
             credentials = config.get_cloudwatch_credentials()
 
@@ -47,11 +51,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
 
         try:
             self._create_log_group_if_not_exists()
-        except (NoCredentialsError, PartialCredentialsError):
+        except (NoCredentialsError, PartialCredentialsError) as e:
             raise ValueError(
                 "AWS credentials are not configured. "
                 "Please, check the extension configuration."
-            )
+            ) from e
 
     @classmethod
     def get_name(cls) -> str:
@@ -188,4 +192,4 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         except self.client.exceptions.ResourceNotFoundException as err:
             return types.Result(status=False, message=str(err))
 
-        return types.Result(status=True)
+        return types.Result(status=True, message="All events removed successfully")

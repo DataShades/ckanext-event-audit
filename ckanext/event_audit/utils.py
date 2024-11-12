@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
+from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 import ckan.plugins as p
 
@@ -53,11 +53,17 @@ def get_repo(repo_name: str) -> repos.AbstractRepository:
     return repos[repo_name]()
 
 
-def test_cloudwatch_connection() -> None:
+def test_cloudwatch_connection() -> bool:
+    repo = repos.CloudWatchRepository()
+
+    if repo._connection is not None:
+        return repo._connection
+
     try:
-        repo = repos.CloudWatchRepository()
         repo.client.describe_log_groups()
-    except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError) as e:
-        raise ValueError(
-            f"AWS credentials are not configured. Please, check the extension configuration: {e}"
-        )
+    except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError):
+        repo._connection = False
+    else:
+        repo._connection = True
+
+    return repo._connection

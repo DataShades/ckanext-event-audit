@@ -12,6 +12,7 @@ CONF_CLOUDWATCH_REGION = "ckanext.event_audit.cloudwatch.region"
 
 CONF_IGNORED_CATEGORIES = "ckanext.event_audit.ignore.categories"
 CONF_IGNORED_ACTIONS = "ckanext.event_audit.ignore.actions"
+CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
 
 CONF_DATABASE_TRACK_ENABLED = "ckanext.event_audit.track.model"
 CONF_API_TRACK_ENABLED = "ckanext.event_audit.track.api"
@@ -43,6 +44,11 @@ def get_ignored_categories() -> list[str]:
 def get_ignored_actions() -> list[str]:
     """A list of actions to ignore when logging events."""
     return tk.config[CONF_IGNORED_ACTIONS]
+
+
+def get_ignored_models() -> list[str]:
+    """A list of database models to ignore when logging events."""
+    return tk.config[CONF_IGNORED_MODELS]
 
 
 def is_database_log_enabled() -> bool:

@@ -1,2 +1,0 @@
-pytest-ckan
-mkdocs>=1.6.1,<1.7

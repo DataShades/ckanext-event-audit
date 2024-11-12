@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime as dt
-from datetime import timezone as tz
-
 import pytest
 from botocore.stub import Stubber
 
@@ -12,13 +9,15 @@ from ckanext.event_audit import config, repositories, types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
-@pytest.mark.usefixtures("with_plugins", "clean_redis", "clean_db")
+@pytest.mark.usefixtures("with_plugins")
 @pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)
 class TestApiListener:
+    @pytest.mark.usefixtures("with_plugins", "clean_redis", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "redis")
     def test_redis(self, repo: repositories.AbstractRepository):
         self._check_events(repo)
 
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "cloudwatch")
     def test_cloudwatch(
         self,
@@ -32,7 +31,7 @@ class TestApiListener:
             {
                 "events": [
                     {
-                        "timestamp": int(dt.now(tz.utc).timestamp() * 1000),
+                        "timestamp": 1730713796,
                         "message": event.model_dump_json(),
                     },
                 ],
@@ -45,6 +44,7 @@ class TestApiListener:
         with stubber:
             self._check_events(repo)
 
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
     def test_postgres(self, repo: repositories.AbstractRepository):
         self._check_events(repo)

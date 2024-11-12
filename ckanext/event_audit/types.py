@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from time import sleep
-
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, TypedDict, Union
 
-import ipdb
 from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_validator
 
 import ckan.plugins.toolkit as tk
@@ -120,21 +117,29 @@ class Event(BaseModel):
     def _ensure_dict_is_serialisable(cls, data: dict[str, Any]) -> dict[str, Any]:
         def make_serializable(value: Any) -> Any:
             if isinstance(value, dict):
-                return {k: make_serializable(v) for k, v in value.items()}  # type: ignore
+                return {
+                    k: make_serializable(v)
+                    for k, v in value.items()
+                    if not k.startswith("_")
+                }
 
             if isinstance(value, list):
-                return [make_serializable(item) for item in value]  # type: ignore
+                return [make_serializable(item) for item in value]
 
             if isinstance(value, datetime):
                 return value.isoformat()
 
             # TODO: not sure if this is needed, we're doing too much?
+            # For example, the SQLAlchemy has a __dict__ attribute, but do we
+            # need to convert it to a dict?
             # if hasattr(value, "__dict__"):
             #     return make_serializable(value.__dict__)
 
             return str(value)
 
-        return {k: make_serializable(v) for k, v in data.items() if not k.startswith("_")}
+        return {
+            k: make_serializable(v) for k, v in data.items() if not k.startswith("_")
+        }
 
 
 class Filters(BaseModel):

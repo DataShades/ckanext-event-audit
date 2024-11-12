@@ -30,6 +30,7 @@ groups:
         type: list
         example: api view
         editable: true
+        default: ''
 
       - key: ckanext.event_audit.ignore.actions
         description: |
@@ -38,6 +39,16 @@ groups:
         type: list
         example: package_create
         editable: true
+        default: editable_config_list editable_config_change get_site_user ckanext_pages_list user_show
+
+      - key: ckanext.event_audit.ignore.models
+        description: |
+          A list of models to exclude from event logging, applicable only to
+          built-in tracking methods (API, database).
+        type: list
+        example: User Package Resource
+        editable: true
+        default: Option
 
       - key: ckanext.event_audit.track.model
         description: Enable logging of database events

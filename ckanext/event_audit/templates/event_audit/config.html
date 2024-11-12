@@ -4,10 +4,14 @@
     <form method="POST" action="{{ h.url_for('event_audit.clear_repo') }}" class="mb-3">
 
         <div class="event-audit-info">
-            <button type="submit" name="clear_repo" value="clear_repo" class="btn btn-danger" data-module="confirm-action" data-module-content="{{ _('Are you sure you want to delete all events?') }}">
+            <button
+                type="submit" name="clear_repo" value="clear_repo"
+                class="btn btn-danger"
+                data-module="ap-confirm-action"
+                data-module-content="{{ _('Are you sure you want to delete all events?') }}"
+                data-module-with-data="true">
                 </i>{{ _('Clear repo') }}
             </button>
         </div>
     </form>
 {% endblock %}
-

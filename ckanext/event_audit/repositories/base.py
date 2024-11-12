@@ -7,6 +7,15 @@ from ckanext.event_audit import plugin, types
 
 
 class AbstractRepository(ABC):
+    _connection = None
+
+    def __new__(cls, *args: Any, **kwargs: Any):
+        """Singleton pattern implementation."""
+        if not hasattr(cls, "_instance"):
+            cls._instance = super().__new__(cls)
+
+        return cls._instance
+
     @classmethod
     @abstractmethod
     def get_name(cls) -> str:

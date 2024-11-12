@@ -30,7 +30,7 @@ fields:
     help_text: |
           A space separated list of categories to exclude from event logging, applicable only to
           built-in tracking methods (API, database).
-    form_snippet: textarea.html
+    form_snippet: tom_tags.html
     required: false
 
   - field_name: ckanext.event_audit.ignore.actions
@@ -38,7 +38,15 @@ fields:
     help_text: |
           A space separated list of actions to exclude from event logging, applicable only to
           built-in tracking methods (API, database).
-    form_snippet: textarea.html
+    form_snippet: tom_tags.html
+    required: false
+
+  - field_name: ckanext.event_audit.ignore.models
+    label: Ignored Models
+    help_text: |
+          A space separated list of database models to exclude from event logging,
+          applicable only to built-in tracking methods (API, database).
+    form_snippet: tom_tags.html
     required: false
 
   - field_name: ckanext.event_audit.track.model
