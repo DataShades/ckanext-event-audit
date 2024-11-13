@@ -2,8 +2,7 @@ from __future__ import annotations
 
 import ckan.plugins as p
 
-from ckanext.event_audit import config
-from ckanext.event_audit import repositories as repos
+from ckanext.event_audit import exporters, config, repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -57,6 +56,38 @@ def test_active_connection() -> bool:
     if repo._connection is not None:
         return repo._connection
 
-    repo._connection = repo.test_connection()
+    repo._connection = repo.test_connection()  # type: ignore
 
-    return repo._connection
+    return repo._connection  # type: ignore
+
+
+def get_available_exporters() -> dict[str, type[exporters.AbstractExporter]]:
+    """Get the available exporters.
+
+    Returns:
+        available exporters
+    """
+    plugin_exporters: dict[str, type[exporters.AbstractExporter]] = {
+        "csv": exporters.CSVExporter,
+        "tsv": exporters.TSVExporter,
+        "json": exporters.JSONExporter,
+    }
+
+    for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
+        plugin_exporters.update(plugin.register_exporter())
+
+    return plugin_exporters
+
+
+def get_exporter(exporter_name: str) -> type[exporters.AbstractExporter]:
+    """Get the exporter by name.
+
+    Args:
+        exporter_name: the name of the exporter
+    """
+    exporters = get_available_exporters()
+
+    if exporter_name not in exporters:
+        raise ValueError(f"Exporter {exporter_name} not found")
+
+    return exporters[exporter_name]

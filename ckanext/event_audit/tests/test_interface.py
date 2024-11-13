@@ -8,6 +8,7 @@ from ckan.tests.helpers import call_action
 from ckanext.event_audit import config, const, types, utils
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.repositories import AbstractRepository
+from ckanext.event_audit.exporters import AbstractExporter
 
 
 class MyRepository(AbstractRepository):
@@ -25,12 +26,22 @@ class MyRepository(AbstractRepository):
         return []
 
 
+class MyExporter(AbstractExporter):
+    def export(self, events: list[types.Event]) -> bool:
+        return True
+
+
 class TestEventAuditPlugin(p.SingletonPlugin):
     p.implements(IEventAudit, inherit=True)
 
     def register_repository(self) -> dict[str, type[AbstractRepository]]:
         return {
             MyRepository.get_name(): MyRepository,
+        }
+
+    def register_exporter(self) -> dict[str, type[AbstractExporter]]:
+        return {
+            "my_exporter": MyExporter,
         }
 
     def skip_event(self, event: types.Event) -> bool:
@@ -54,6 +65,11 @@ class TestEventAuditInterace:
     def test_get_available_repos(self):
         repos = utils.get_available_repos()
         assert MyRepository.get_name() in repos
+
+    def test_get_available_exporters(self):
+        exporters = utils.get_available_exporters()
+        assert "my_exporter" in exporters
+        assert exporters["my_exporter"]().export([]) == True
 
     def test_write_event_doesnt_trigger_skip_event(self, event):
         """We're not calling the skip_event method for regular write_event calls,

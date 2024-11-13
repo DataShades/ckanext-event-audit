@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from ckan.plugins.interfaces import Interface
 
-import ckanext.event_audit.repositories as repos
-from ckanext.event_audit import types
+from ckanext.event_audit import types, repositories as repos, exporters
 
 
 class IEventAudit(Interface):
@@ -18,6 +17,20 @@ class IEventAudit(Interface):
 
         Returns:
             mapping of repository names to repository classes
+        """
+        return {}
+
+    def register_exporter(self) -> dict[str, type[exporters.AbstractExporter]]:
+        """Return the exporters provided by this plugin.
+
+        Example:
+            ```
+            def register_exporter(self):
+                return {"csv": CSVExporter}
+            ```
+
+        Returns:
+            mapping of exporter names to exporter classes
         """
         return {}
 

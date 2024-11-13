@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import click
 
-from ckanext.event_audit import types
+from ckanext.event_audit import types, utils
 
 __all__ = [
     "event_audit",
@@ -140,3 +141,38 @@ def cw_remove_log_group(log_group: str | None = None):
         return click.secho(str(err), fg="red")
 
     click.secho(f"Log group removed: {log_group or repo.log_group}", fg="green")
+
+
+@event_audit.command()
+@click.argument("exporter_name", type=str)
+@click.option(
+    "--start",
+    required=True,
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="ISO format start date",
+)
+@click.option(
+    "--end",
+    required=False,
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="ISO format end date",
+)
+@click.option("--config", required=False, type=str, help="Custom config in JSON format")
+def export_data(exporter_name, start, end, config):
+    try:
+        config_dict = json.loads(config or "{}")
+    except json.JSONDecodeError:
+        return click.secho("Invalid JSON format for config.")
+
+    try:
+        exporter = utils.get_exporter(exporter_name)(**config_dict)
+    except TypeError as e:
+        return click.secho(f"Invalid exporter config: {config}. Error: {e}", fg="red")
+
+    if not exporter:
+        return click.secho(f"Unknown exporter: {exporter_name}", fg="red")
+
+    if start and end and start > end:
+        return click.secho("Start date must be before the end date.", fg="red")
+
+    click.echo(exporter.from_filters(types.Filters(time_from=start, time_to=end)))
