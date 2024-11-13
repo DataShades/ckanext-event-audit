@@ -71,6 +71,7 @@ def get_available_exporters() -> dict[str, type[exporters.AbstractExporter]]:
         "csv": exporters.CSVExporter,
         "tsv": exporters.TSVExporter,
         "json": exporters.JSONExporter,
+        "xlsx": exporters.XLSXExporter,
     }
 
     for plugin in reversed(list(p.PluginImplementations(IEventAudit))):

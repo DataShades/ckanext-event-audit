@@ -7,10 +7,8 @@ This extension will capture and retain a comprehensive record of all changes wit
 Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for a full user guide.
 
 TODO:
-- [X] support batch operations for writing
-- [X] add remove_event method
 - [ ] add remove_events method
-- [X] add async support for writing
+- [ ] add config option to exclude result and payload fields from being stored
 
 ## Developer installation
 
