@@ -13,19 +13,19 @@ TODO:
 
 1. Install the extension from `PyPI`:
 
-    pip install ckanext-event-audit
+    `pip install ckanext-event-audit`
 
 2. Enable the plugin in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`):
 
-    ckan.plugins = ... event_audit ...
+    `ckan.plugins = ... event_audit ...`
 
 3. Run DB migrations. For CKAN 2.10+ we can run this command:
 
-    ckan db pending-migrations
+    `ckan db pending-migrations`
 
-CKAN 2.11+ allows us to run the following command to create the tables:
+    CKAN 2.11+ allows us to run the following command to create the tables:
 
-    ckan db upgrade
+    `ckan db upgrade`
 
 4. Configure the extension up to your needs and you're ready to go. See the [documentation](https://datashades.github.io/ckanext-event-audit/) for more details about the configuration options.
 
