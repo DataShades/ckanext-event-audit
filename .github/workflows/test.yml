@@ -32,8 +32,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        path: ${{ github.sha }}
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
