@@ -7,18 +7,34 @@ This extension will capture and retain a comprehensive record of all changes wit
 Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for a full user guide.
 
 TODO:
-- [ ] add remove_events method
 - [ ] add config option to exclude result and payload fields from being stored
+
+## Quick start
+
+1. Install the extension from `PyPI`:
+
+    pip install ckanext-event-audit
+
+2. Enable the plugin in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`):
+
+    ckan.plugins = ... event_audit ...
+
+3. Run DB migrations. For CKAN 2.10+ we can run this command:
+
+    ckan db pending-migrations
+
+CKAN 2.11+ allows us to run the following command to create the tables:
+
+    ckan db upgrade
+
+4. Configure the extension up to your needs and you're ready to go. See the [documentation](https://datashades.github.io/ckanext-event-audit/) for more details about the configuration options.
 
 ## Developer installation
 
 To install ckanext-event-audit for development, activate your CKAN virtualenv and
 do:
 
-    git clone https://github.com/DataShades/ckanext-event-audit.git
-    cd ckanext-event-audit
-    pip install -e .
-    pip install -r dev-requirements.txt
+    pip install -e '.[dev, xlsx]'
 
 ## Tests
 
