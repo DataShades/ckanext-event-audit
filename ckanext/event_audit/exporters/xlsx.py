@@ -14,7 +14,7 @@ from ckanext.event_audit.exporters.base import AbstractExporter
 class XLSXExporter(AbstractExporter):
     def __init__(
         self,
-        file_path: str,
+        file_path: str | BytesIO,
         ignore_fields: list[str] | None = None,
     ):
         """CSV exporter.
@@ -33,7 +33,17 @@ class XLSXExporter(AbstractExporter):
             else {"result", "payload"}
         )
 
-    def export(self, events: Iterable[types.Event]) -> str | None:
+    def export(self, events: Iterable[types.Event]) -> str | BytesIO | None:
+        """Export events to a XLSX file.
+
+        Args:
+            events (Iterable[types.Event]): events to export.
+
+        Returns:
+            str | BytesIO | None: path to the file or BytesIO object if the
+            export was successful, None otherwise.
+        """
+
         if not events:
             return None
 
