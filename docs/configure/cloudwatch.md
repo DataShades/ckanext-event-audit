@@ -6,4 +6,4 @@ ckanext.event_audit.cloudwatch.secret_key = YOUR_SECRET_KEY
 ckanext.event_audit.cloudwatch.region = YOUR_REGION
 ```
 
-TBD: Add more details about setting up on the AWS side.
+See the [AWS documentation](https://docs.aws.amazon.com/cloudwatch/) for more information on how to obtain these values and configure the AWS Cloudwatch service.

@@ -81,22 +81,27 @@ theme:
 nav:
   - index.md
   - install.md
+  - usage.md
+  - interfaces.md
+  - utils.md
+
   - Configuration:
     - configure/active_repo.md
     - configure/cloudwatch.md
     - configure/ignore.md
     - configure/tracking.md
     - configure/async.md
-  - interfaces.md
-  - utils.md
+
   - Exporters:
     - exporters/basic.md
     - exporters/csv.md
     - exporters/tsv.md
     - exporters/json.md
     - exporters/xlsx.md
+
   - Repositories:
     - repositories/basic.md
+    - repositories/abstract.md
     - repositories/redis.md
     - repositories/postgres.md
     - repositories/cloudwatch.md

@@ -1,3 +1,5 @@
+# In-built tracking
+
 There are two built-in trackers in the extension that are enabled by default and work out of the box - API and Database trackers.
 
 ## API tracker
@@ -26,6 +28,6 @@ We can ignore specific models from being tracked by setting the `ckanext.event_a
 
 ## Custom trackers
 
-You can create and write an event anywhere in your codebase. 
+You can create and write an event anywhere in your codebase.
 
 TODO: add link to usage docs

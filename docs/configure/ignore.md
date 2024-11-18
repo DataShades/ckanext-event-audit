@@ -1,3 +1,5 @@
+# Ignore events
+
 The extension provides a various set of configuration options to adjust the behavior of the audit logs.
 
 ???+ warning "Warning"
@@ -14,7 +16,7 @@ ckanext.event_audit.ignore.categories = test
 
 By default, we're not ignoring any categories. The `categories` option is a comma-separated list of categories that should be ignored.
 
-Categories are arbitrary strings that can be used to group events. 
+Categories are arbitrary strings that can be used to group events.
 
 ## Ignoring actions
 
@@ -22,7 +24,7 @@ The extension allows to ignore specific actions. To do this, we have to set the 
 
 ```ini
 ckanext.event_audit.ignore.actions = test
-``` 
+```
 
 Some actions might be called more frequently than others, and we might not be interested in storing them. The `actions` option is a comma-separated list of actions that should be ignored.
 
