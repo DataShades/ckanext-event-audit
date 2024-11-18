@@ -4,6 +4,7 @@ site_url: https://.github.io/ckanext-event-audit/
 repo_url:  https://github.com/DataShades/ckanext-event-audit
 
 markdown_extensions:
+  - pymdownx.details
   - pymdownx.snippets # include code snippets
   - pymdownx.highlight # code highlighting
   - pymdownx.inlinehilite # inline code highlighting
@@ -74,3 +75,12 @@ theme:
 
 nav:
   - index.md
+  - install.md
+  - Usage:
+    - configure/configuration.md
+    - configure/cloudwatch.md
+    - configure/ignore.md
+    - configure/tracking.md
+    - configure/async.md
+  - Exporters:
+    - exporters/exporters.md
