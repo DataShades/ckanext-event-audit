@@ -31,6 +31,14 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         log_group: str = "/ckan/event-audit",
         log_stream: str = "event-audit-stream",
     ):
+        """CloudWatch repository.
+
+        Args:
+            credentials (types.AWSCredentials | None, optional): AWS credentials.
+                If not provided, the extension configuration will be used.
+            log_group (str, optional): CloudWatch log group name.
+            log_stream (str, optional): CloudWatch log stream name.
+        """
         # TODO: check conn?
         if self._connection is not None:
             return
@@ -67,7 +75,14 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             self.client.create_log_group(logGroupName=self.log_group)
 
     def write_event(self, event: types.Event) -> types.Result:
-        """Writes an event to CloudWatch Logs."""
+        """Writes a single event to the repository.
+
+        Args:
+            event (types.Event): event to write.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         try:
             self.client.put_log_events(
                 logGroupName=self.log_group,
@@ -102,7 +117,14 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         return log_stream
 
     def get_event(self, event_id: str) -> Optional[types.Event]:
-        """Retrieves a single event by its ID."""
+        """Retrieves a single event from the repository.
+
+        Args:
+            event_id (str): event ID.
+
+        Returns:
+            types.Event | None: event object or None if not found.
+        """
         result = self.filter_events(types.Filters(id=event_id))
 
         if not result:
@@ -117,7 +139,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         self,
         filters: types.Filters,
     ) -> list[types.Event]:
-        """Filter events from CloudWatch logs based on the given filters."""
+        """Filters events based on provided filter criteria.
+
+        Args:
+            filters (types.Filters): filters to apply.
+        """
         kwargs: dict[str, str | int | datetime | None] = {
             "logGroupName": self.log_group,
             "startTime": (
@@ -182,11 +208,18 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         log stream.
 
         It's potentially too expensive to do this operation, so it's not implemented.
+
+        Note:
+            The remove single event operation is not supported
         """
         raise NotImplementedError
 
     def remove_all_events(self) -> types.Result:
-        """Removes all events from the repository."""
+        """Removes all events from the repository.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         try:
             self.client.delete_log_group(logGroupName=self.log_group)
         except self.client.exceptions.ResourceNotFoundException as err:
@@ -195,6 +228,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         return types.Result(status=True, message="All events removed successfully")
 
     def test_connection(self) -> bool:
+        """Tests the connection to the repository.
+
+        Returns:
+            bool: whether the connection was successful.
+        """
         if self._connection is not None:
             return self._connection
 

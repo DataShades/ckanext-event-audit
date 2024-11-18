@@ -24,7 +24,7 @@ class CSVExporter(AbstractExporter):
             quotechar (str, optional): quote character. Defaults to '"'.
             quoting (int, optional): quoting. Defaults to QUOTE_ALL.
             ignore_fields (list[str] | None, optional): fields to ignore. By
-            default we ignore the "result" and "payload" fields.
+                default we ignore the "result" and "payload" fields.
         """
         self.ignore_fields = ignore_fields or ["result", "payload"]
         self.delimiter = delimiter

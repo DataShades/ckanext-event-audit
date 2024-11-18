@@ -25,6 +25,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
+          paths: ["ckanext"]
           options:
             show_root_full_path: false
             show_root_toc_entry: false
@@ -36,6 +37,10 @@ plugins:
 
 watch:
   - README.md
+  - ckanext/event_audit/interfaces.py
+  - ckanext/event_audit/exporters
+  - ckanext/event_audit/repositories
+  - ckanext/event_audit/utils.py
 
 theme:
   name: material
@@ -76,11 +81,23 @@ theme:
 nav:
   - index.md
   - install.md
-  - Usage:
-    - configure/configuration.md
+  - Configuration:
+    - configure/active_repo.md
     - configure/cloudwatch.md
     - configure/ignore.md
     - configure/tracking.md
     - configure/async.md
+  - interfaces.md
+  - utils.md
   - Exporters:
-    - exporters/exporters.md
+    - exporters/basic.md
+    - exporters/csv.md
+    - exporters/tsv.md
+    - exporters/json.md
+    - exporters/xlsx.md
+  - Repositories:
+    - repositories/basic.md
+    - repositories/redis.md
+    - repositories/postgres.md
+    - repositories/cloudwatch.md
+    - repositories/custom.md

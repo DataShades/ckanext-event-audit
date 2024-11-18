@@ -85,7 +85,7 @@ class EventAuditPlugin(p.SingletonPlugin):
 
         if repo.get_name() == "cloudwatch" and repo._connection is None:
             if config_.get("testing"):
-                repo._connection = True # type: ignore
+                repo._connection = True  # type: ignore
             else:
                 utils.test_active_connection()
 
@@ -150,10 +150,7 @@ class EventAuditPlugin(p.SingletonPlugin):
         if event.category in config.get_ignored_categories():
             return True
 
-        if event.action_object in config.get_ignored_models():
-            return True
-
-        return False
+        return event.action_object in config.get_ignored_models()
 
     # IConfigDeclaration
 

@@ -25,6 +25,14 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
         self.conn = connect_to_redis()
 
     def write_event(self, event: types.Event) -> types.Result:
+        """Writes an event to Redis.
+
+        Args:
+            event (types.Event): event to write.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         key = self._build_event_key(event)
 
         self.conn.hset(REDIS_SET_KEY, key, event.model_dump_json())
@@ -49,13 +57,22 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
         )
 
     def get_event(self, event_id: float) -> types.Event | None:
+        """Get an event by its ID.
+
+        Args:
+            event_id (float): event ID.
+        """
         _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
 
         for event_data in result.values():
             return types.Event.model_validate_json(event_data)
 
     def filter_events(self, filters: types.Filters | Any) -> list[types.Event]:
-        """Filters events based on patterns generated from the provided filters."""
+        """Filters events based on patterns generated from the provided filters.
+
+        Args:
+            filters (types.Filters): filters to apply.
+        """
         if not isinstance(filters, types.Filters):
             raise TypeError(
                 f"Expected 'filters' to be an instance of Filters, got {type(filters)}"
@@ -106,7 +123,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
             return [
                 event
                 for event in events
-                if self.is_within_time_range(dt.fromisoformat(event.timestamp))
+                if self._is_within_time_range(dt.fromisoformat(event.timestamp))
             ]
 
         filtered_events: list[types.Event] = []
@@ -116,12 +133,12 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
                 event = types.Event.model_validate_json(event_data)
                 event_time = dt.fromisoformat(event.timestamp)
 
-                if self.is_within_time_range(event_time):
+                if self._is_within_time_range(event_time):
                     filtered_events.append(event)
 
         return filtered_events
 
-    def is_within_time_range(self, event_time: dt) -> bool:
+    def _is_within_time_range(self, event_time: dt) -> bool:
         if self.time_from and self.time_to:
             return self.time_from <= event_time <= self.time_to
         if self.time_from:
@@ -131,6 +148,14 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
         return True
 
     def remove_event(self, event_id: float) -> types.Result:
+        """Removes an event by its ID.
+
+        Args:
+            event_id (float): event ID.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
 
         if not result:
@@ -142,9 +167,19 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
         return types.Result(status=True, message="Event removed successfully")
 
     def remove_all_events(self) -> types.Result:
+        """Removes all events from the repository.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         self.conn.delete(REDIS_SET_KEY)
 
         return types.Result(status=True, message="All events removed successfully")
 
     def test_connection(self) -> bool:
+        """Tests the connection to the repository.
+
+        Returns:
+            bool: whether the connection was successful.
+        """
         return True

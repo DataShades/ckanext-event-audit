@@ -19,21 +19,31 @@ class AbstractRepository(ABC):
     @classmethod
     @abstractmethod
     def get_name(cls) -> str:
-        """Return the name of the repository."""
+        """Return the name of the repository.
+
+        Returns:
+            str: name of the repository.
+        """
 
     @abstractmethod
     def write_event(self, event: types.Event) -> types.Result:
-        """Write an event to the repository.
+        """Writes a single event to the repository.
 
-        This method accepts an Event object and writes it to the repository.
-        The Event object validates the input.
+        Args:
+            event (types.Event): event to write.
+
+        Returns:
+            types.Result: result of the operation.
         """
 
     def write_events(self, events: Iterable[types.Event]) -> types.Result:
         """Write multiple events to the repository.
 
-        This method accepts a collection of Event objects and writes them to the
-        repository.
+        Args:
+            events (Iterable[types.Event]): events to write.
+
+        Returns:
+            types.Result: result of the operation.
         """
         for event in events:
             self.write_event(event)
@@ -41,26 +51,63 @@ class AbstractRepository(ABC):
         return types.Result(status=True)
 
     def build_event(self, event_data: types.EventData) -> types.Event:
+        """Build an event object from the provided data.
+
+        Args:
+            event_data (types.EventData): event data.
+
+        Returns:
+            types.Event: event object.
+        """
         return types.Event(**event_data)
 
     @abstractmethod
     def get_event(self, event_id: Any) -> types.Event | None:
-        """Get a single event by its ID."""
+        """Retrieves a single event from the repository.
+
+        Args:
+            event_id (str): event ID.
+
+        Returns:
+            types.Event | None: event object or None if not found.
+        """
 
     @abstractmethod
     def filter_events(self, filters: types.Filters) -> list[types.Event]:
-        """Filter events based on the provided kwargs."""
+        """Filters events based on provided filter criteria.
+
+        Args:
+            filters (types.Filters): filters to apply.
+        """
 
     def remove_event(self, event_id: Any) -> types.Result:
-        """Remove an event from the repository."""
+        """Removes a single event from the repository.
+
+        Args:
+            event_id (Any): event ID.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         raise NotImplementedError
 
     def remove_all_events(self) -> types.Result:
-        """Remove all events from the repository."""
+        """Removes all events from the repository.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         raise NotImplementedError
 
     def enqueue_event(self, event: types.Event) -> types.Result:
-        """Enqueue an event to be written to the repository."""
+        """Enqueue an event to be written to the repository.
+
+        Args:
+            event (types.Event): event to write.
+
+        Returns:
+            types.Result: result of the operation.
+        """
         plugin.EventAuditPlugin.event_queue.put(event)  # type: ignore
 
         return types.Result(status=True, message="Event has been added to the queue")
@@ -69,7 +116,8 @@ class AbstractRepository(ABC):
     def test_connection(self) -> bool:
         """Test the connection to the repository.
 
-        This method should return True if the connection is successful, False otherwise.
+        Returns:
+            bool: whether the connection was successful.
         """
 
 

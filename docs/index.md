@@ -2,7 +2,7 @@
 
 # ckanext-event-audit
 
-This extension will capture and retain a comprehensive record of all changes within a CKAN app. 
+This extension will capture and retain a comprehensive record of all changes within a CKAN app.
 
 ## Developer installation
 
@@ -17,7 +17,7 @@ do:
 
 ## Register new repositories
 
-There are few repositories available by default, but you can register new repositories to store the events. Think of it as a way to store the events in different databases or services. We don't want to limit the extension to a specific storage. The main idea is to provide a way to store, retrieve, and filter the events.
+
 
 To register a new repository, you need to define a repository class and register it.
 

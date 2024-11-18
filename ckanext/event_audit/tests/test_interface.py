@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from typing import Iterable
+
 import pytest
 
 import ckan.plugins as p
 from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, const, types, utils
+from ckanext.event_audit.exporters import AbstractExporter
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.repositories import AbstractRepository
-from ckanext.event_audit.exporters import AbstractExporter
 
 
 class MyRepository(AbstractRepository):
@@ -27,7 +29,7 @@ class MyRepository(AbstractRepository):
 
 
 class MyExporter(AbstractExporter):
-    def export(self, events: list[types.Event]) -> bool:
+    def export(self, events: Iterable[types.Event]) -> bool:
         return True
 
 
@@ -48,13 +50,10 @@ class TestEventAuditPlugin(p.SingletonPlugin):
         if event.category == const.Category.API.value and event.action == "status_show":
             return True
 
-        if (
+        return (
             event.category == const.Category.MODEL.value
             and event.action_object == "Dashboard"
-        ):
-            return True
-
-        return False
+        )
 
 
 @pytest.mark.usefixtures("clean_redis", "with_plugins")

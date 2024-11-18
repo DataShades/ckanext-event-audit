@@ -1,3 +1,5 @@
+# Active repository
+
 The event audit logs are stored in a configurable storages, we call them repositories.
 
 The default repository is `redis`, but it can be changed to a different one. To do this, we have to set the following configuration options in the CKAN configuration file:

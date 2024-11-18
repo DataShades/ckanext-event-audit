@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime as dt
 from typing import Any
 
 import click
@@ -158,7 +159,7 @@ def cw_remove_log_group(log_group: str | None = None):
     help="ISO format end date",
 )
 @click.option("--config", required=False, type=str, help="Custom config in JSON format")
-def export_data(exporter_name, start, end, config):
+def export_data(exporter_name: str, start: dt, end: dt, config: str):
     try:
         config_dict = json.loads(config or "{}")
     except json.JSONDecodeError:

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from io import BytesIO
-from typing import Iterable
 from datetime import datetime as dt
 from datetime import timezone as tz
+from io import BytesIO
+from typing import Iterable
 
 from openpyxl import Workbook
 
@@ -17,11 +17,13 @@ class XLSXExporter(AbstractExporter):
         file_path: str | BytesIO,
         ignore_fields: list[str] | None = None,
     ):
-        """CSV exporter.
+        """XLSX exporter.
 
         Args:
+            file_path (str | BytesIO): path to the file or BytesIO object to
+                write the XLSX data.
             ignore_fields (list[str] | None, optional): fields to ignore. By
-            default we ignore the "result" and "payload" fields.
+                default we ignore the "result" and "payload" fields.
         """
         self.file_path = file_path
 
@@ -43,7 +45,6 @@ class XLSXExporter(AbstractExporter):
             str | BytesIO | None: path to the file or BytesIO object if the
             export was successful, None otherwise.
         """
-
         if not events:
             return None
 

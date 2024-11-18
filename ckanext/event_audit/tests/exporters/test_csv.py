@@ -4,7 +4,7 @@ from typing import Callable
 
 import pytest
 
-from ckanext.event_audit import exporters, types, config
+from ckanext.event_audit import config, exporters, types
 from ckanext.event_audit.repositories import RedisRepository
 
 
