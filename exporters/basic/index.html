@@ -8,24 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://.github.io/ckanext-event-audit/usage/">
+        <link rel="canonical" href="https://.github.io/ckanext-event-audit/exporters/basic/">
       
       
+        <link rel="prev" href="../../utils/">
       
       
-      <link rel="icon" href="../img/favicon.ico">
+        <link rel="next" href="../csv/">
+      
+      
+      <link rel="icon" href="../../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
-        <title>Usage - ckanext-event-audit</title>
+        <title>Basic - ckanext-event-audit</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.0253249f.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -44,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -71,6 +75,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#base-exporter-class" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -83,9 +92,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href="../.." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="../img/logo.png" alt="logo">
+  <img src="../../img/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -102,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Usage
+              Basic
             
           </span>
         </div>
@@ -225,9 +234,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href="../.." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="../img/logo.png" alt="logo">
+  <img src="../../img/logo.png" alt="logo">
 
     </a>
     ckanext-event-audit
@@ -254,7 +263,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -274,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../install/" class="md-nav__link">
+      <a href="../../install/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -341,7 +350,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configure/active_repo/" class="md-nav__link">
+      <a href="../../configure/active_repo/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -362,7 +371,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configure/cloudwatch/" class="md-nav__link">
+      <a href="../../configure/cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -383,7 +392,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configure/ignore/" class="md-nav__link">
+      <a href="../../configure/ignore/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -404,7 +413,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configure/tracking/" class="md-nav__link">
+      <a href="../../configure/tracking/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -425,7 +434,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../configure/async/" class="md-nav__link">
+      <a href="../../configure/async/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -453,7 +462,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
+      <a href="../../interfaces/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -473,7 +482,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../utils/" class="md-nav__link">
+      <a href="../../utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -490,8 +499,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -508,11 +519,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
           <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
@@ -526,7 +537,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             Exporters
@@ -537,10 +548,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../exporters/basic/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Basic
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -549,6 +578,51 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#base-exporter-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      Base exporter class
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event_audit.exporters.base.AbstractExporter.export" class="md-nav__link">
+    <span class="md-ellipsis">
+      export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event_audit.exporters.base.AbstractExporter.from_filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_filters
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -561,7 +635,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../exporters/csv/" class="md-nav__link">
+      <a href="../csv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -582,7 +656,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../exporters/tsv/" class="md-nav__link">
+      <a href="../tsv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -603,7 +677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../exporters/json/" class="md-nav__link">
+      <a href="../json/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -624,7 +698,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../exporters/xlsx/" class="md-nav__link">
+      <a href="../xlsx/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -699,7 +773,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../repositories/basic/" class="md-nav__link">
+      <a href="../../repositories/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -720,7 +794,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../repositories/redis/" class="md-nav__link">
+      <a href="../../repositories/redis/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -741,7 +815,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../repositories/postgres/" class="md-nav__link">
+      <a href="../../repositories/postgres/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -762,7 +836,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../repositories/cloudwatch/" class="md-nav__link">
+      <a href="../../repositories/cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -783,7 +857,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../repositories/custom/" class="md-nav__link">
+      <a href="../../repositories/custom/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -822,6 +896,41 @@
   
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#base-exporter-class" class="md-nav__link">
+    <span class="md-ellipsis">
+      Base exporter class
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event_audit.exporters.base.AbstractExporter.export" class="md-nav__link">
+    <span class="md-ellipsis">
+      export
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event_audit.exporters.base.AbstractExporter.from_filters" class="md-nav__link">
+    <span class="md-ellipsis">
+      from_filters
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -838,9 +947,229 @@
   
 
 
-  <h1>Usage</h1>
+  <h1>Basic</h1>
+
+<p>The exporters allow you to export the event audit logs to a different file format.</p>
+<p>The following exporters are available:</p>
+<ol>
+<li><strong>CSV Exporter</strong>: Exports the event audit logs to a CSV file.</li>
+<li><strong>JSON Exporter</strong>: Exports the event audit logs to a JSON file.</li>
+<li><strong>TSV Exporter</strong>: Exports the event audit logs to a TSV file.</li>
+<li><strong>XLSX Exporter</strong>: Exports the event audit logs to an XLSX file.</li>
+</ol>
+<p>Each exporter has its own configuration options. The configuration options are described in the respective exporter's documentation section.</p>
+<h2 id="base-exporter-class">Base exporter class</h2>
 
 
+<div class="doc doc-object doc-class">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+        <p>Base class for all exporters.</p>
+<p>Exporters are used to export a lsit of events to a specific file format.</p>
+
+
+
+
+
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.exporters.base.AbstractExporter.export" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">events</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export events to a specific format.</p>
+<p>We are not providing a specific return type, because it will depend on the
+specific exporter implementation.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>events</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>events to export</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Iterable">Iterable</span>[<span title="ckanext.event_audit.types.Event">Event</span>]</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>Any</code>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>exported data.</p>
+              </div>
+                <p>
+                  <span class="doc-returns-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Any">Any</span></code>
+                  </span>
+                </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.exporters.base.AbstractExporter.from_filters" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">from_filters</span><span class="p">(</span><span class="n">filters</span><span class="p">,</span> <span class="n">repo_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export events from a repo using the given filters.</p>
+<p>If <code>repo_name</code> is not provided, the active repo is used.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>filters</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>search filters.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="ckanext.event_audit.types.Filters">Filters</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>repo_name</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>name of the repo to use. Defaults to None.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str | None</code>
+                  </span>
+                  <span class="doc-param-default">
+                    <b>DEFAULT:</b>
+                      <code>None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>Any</code>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>exported data.</p>
+              </div>
+                <p>
+                  <span class="doc-returns-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Any">Any</span></code>
+                  </span>
+                </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
@@ -872,6 +1201,44 @@
         <footer class="md-footer">
   
     
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../../utils/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Utility Functions">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Utility Functions
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../csv/" class="md-footer__link md-footer__link--next" aria-label="Next: CSV exporter">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                CSV exporter
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
   
   <div class="md-footer-meta md-typeset">
     <div class="md-footer-meta__inner md-grid">
@@ -897,10 +1264,10 @@
       <div class="md-progress" data-md-component="progress" role="progressbar"></div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
