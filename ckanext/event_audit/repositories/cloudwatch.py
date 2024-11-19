@@ -214,6 +214,10 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         """
         raise NotImplementedError
 
+    def remove_events(self, filters: types.Filters) -> types.Result:
+        """See `remove_event` method docstring."""
+        raise NotImplementedError
+
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.
 

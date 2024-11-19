@@ -6,6 +6,7 @@ from datetime import datetime as dt
 import click
 
 from ckanext.event_audit import types, utils
+from ckanext.event_audit.repositories.base import RemoveFiltered, RemoveAll
 
 __all__ = [
     "event_audit",
@@ -61,11 +62,64 @@ def export_data(exporter_name: str, start: dt, end: dt | None, config: str | Non
         exporter = utils.get_exporter(exporter_name)(**config_dict)
     except TypeError as e:
         return click.secho(f"Invalid exporter config: {config}. Error: {e}", fg="red")
-
-    if not exporter:
-        return click.secho(f"Unknown exporter: {exporter_name}", fg="red")
+    except ValueError as e:
+        return click.secho(e, fg="red")
 
     if start and end and start > end:
         return click.secho("Start date must be before the end date.", fg="red")
 
     click.echo(exporter.from_filters(types.Filters(time_from=start, time_to=end)))
+
+
+@event_audit.command()
+@click.option("--repository", required=False, help="The repository name")
+@click.option(
+    "--start",
+    required=False,
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="ISO format start date",
+)
+@click.option(
+    "--end",
+    required=False,
+    type=click.DateTime(formats=["%Y-%m-%d"]),
+    help="ISO format end date",
+)
+def remove_events(repository: str | None, start: dt | None, end: dt | None):
+    """Remove events from the repository by time range.
+
+    Args:
+        repository (str | None): The repository name. If not provided, the
+            active repository will be used.
+        start (str): The start date string in %Y-%m-%d format.
+        end (str | None): The end date string in %Y-%m-%d format.
+
+    Example:
+        $ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12
+    """
+    if start and end and start > end:
+        return click.secho("Start date must be before the end date.", fg="red")
+
+    repo = utils.get_repo(repository) if repository else utils.get_active_repo()
+
+    if not repo:
+        return click.secho(f"Unknown repository: {repository}", fg="red")
+
+    if not isinstance(repo, (RemoveFiltered, RemoveAll)):
+        return click.secho(
+            f"Repository {repository} does not support removing events.", fg="red"
+        )
+
+    if not isinstance(repo, RemoveFiltered):
+        if start or end:
+            return click.secho(
+                (
+                    f"Repository {repository} does not support removing events by time range. "
+                    "Please remove the --start and --end flags to delete all events."
+                ),
+                fg="red",
+            )
+        else:
+            return repo.remove_all_events()
+
+    return repo.remove_events(types.Filters(time_from=start, time_to=end))

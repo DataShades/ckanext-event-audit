@@ -5,6 +5,7 @@ from datetime import timedelta as td
 from datetime import timezone as tz
 from typing import Any
 
+import pytest
 from botocore.stub import Stubber
 
 from ckanext.event_audit import const, types
@@ -162,3 +163,11 @@ class TestCloudWatchRepository:
             result = repo.remove_all_events()
 
         assert result.status
+
+    def test_remove_filtered_events(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        with pytest.raises(NotImplementedError):
+            repo.remove_events(types.Filters())

@@ -133,3 +133,20 @@ class TestPostgresRepo:
 
         events = repo.filter_events(types.Filters())
         assert len(events) == 0
+
+    def test_remove_filtered_events(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        event_factory(category="test")
+
+        for _ in range(5):
+            repo.write_event(event_factory(category="test2"))
+
+        assert len(repo.filter_events(types.Filters())) == 5
+
+        status = repo.remove_events(types.Filters(category="test2"))
+        assert status.message == "5 event(s) removed successfully"
+        assert status.status
+
+        events = repo.filter_events(types.Filters())
+        assert len(events) == 0

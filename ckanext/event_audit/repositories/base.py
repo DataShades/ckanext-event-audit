@@ -91,6 +91,17 @@ class AbstractRepository(ABC):
         """
         raise NotImplementedError
 
+    def remove_events(self, filters: types.Filters) -> types.Result:
+        """Removes a filtered set of events from the repository.
+
+        Args:
+            filters (types.Filters): filters to apply.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+        raise NotImplementedError
+
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.
 
@@ -133,5 +144,13 @@ class RemoveAll:
     """Mark the repository as supporting remove all events.
 
     If the repository supports remove all events, it should inherit from
+    this class.
+    """
+
+
+class RemoveFiltered:
+    """Mark the repository as supporting remove a filtered set of events.
+
+    If the repository supports remove a filtered set of events, it should inherit from
     this class.
     """

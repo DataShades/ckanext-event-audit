@@ -11,12 +11,13 @@ from ckanext.event_audit.repositories.base import (
     AbstractRepository,
     RemoveAll,
     RemoveSingle,
+    RemoveFiltered,
 )
 
 REDIS_SET_KEY = "event-audit"
 
 
-class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
+class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltered):
     @classmethod
     def get_name(cls) -> str:
         return "redis"
@@ -165,6 +166,25 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle):
             self.conn.hdel(REDIS_SET_KEY, key)
 
         return types.Result(status=True, message="Event removed successfully")
+
+    def remove_events(self, filters: types.Filters) -> types.Result:
+        """Removes a filtered set of events from the repository.
+
+        Args:
+            filters (types.Filters): filters to apply.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+        events = self.filter_events(filters)
+
+        for event in events:
+            key = self._build_event_key(event)
+            self.conn.hdel(REDIS_SET_KEY, key)
+
+        return types.Result(
+            status=True, message=f"{len(events)} event(s) removed successfully"
+        )
 
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.

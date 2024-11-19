@@ -83,7 +83,24 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
         Args:
             filters (types.Filters): filters to apply.
+
+        Returns:
+            List[types.Event]: list of events.
         """
+        return [
+            types.Event.model_validate(event) for event in self._filter_events(filters)
+        ]
+
+    def _filter_events(self, filters: types.Filters) -> list[model.EventModel]:
+        """Filters events based on provided filter criteria.
+
+        Args:
+            filters (types.Filters): filters to apply.
+
+        Returns:
+            list[model.EventModel]: list of event models.
+        """
+
         query = select(model.EventModel)
 
         filterable_fields = [
@@ -108,8 +125,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
         query.order_by(model.EventModel.timestamp)
 
-        result = self.session.execute(query).scalars().all()
-        return [types.Event.model_validate(event) for event in result]
+        return self.session.execute(query).scalars().all()
 
     def remove_event(
         self,
@@ -135,6 +151,27 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
             return types.Result(status=True, message="Event removed successfully")
 
         return types.Result(status=False, message="Event not found")
+
+    def remove_events(self, filters: types.Filters) -> types.Result:
+        """Removes a filtered set of events from the repository.
+
+        Args:
+            filters (types.Filters): filters to apply.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+
+        events = self._filter_events(filters)
+
+        for event in events:
+            event.delete(defer_commit=True)
+
+        self.session.commit()
+
+        return types.Result(
+            status=True, message=f"{len(events)} event(s) removed successfully"
+        )
 
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.
