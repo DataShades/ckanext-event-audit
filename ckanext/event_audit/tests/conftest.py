@@ -12,14 +12,14 @@ from ckanext.event_audit import const, types, utils
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
-@pytest.fixture
+@pytest.fixture()
 def clean_db(reset_db: Any, migrate_db_for: Any):
     reset_db()
 
     migrate_db_for("event_audit")
 
 
-@pytest.fixture
+@pytest.fixture()
 def event() -> types.Event:
     return types.Event(
         category=const.Category.MODEL.value,
@@ -29,7 +29,7 @@ def event() -> types.Event:
     )
 
 
-@pytest.fixture
+@pytest.fixture()
 def event_factory():
     def factory(**kwargs: types.EventData) -> types.Event:
         kwargs.setdefault("category", const.Category.MODEL.value)  # type: ignore
@@ -40,7 +40,7 @@ def event_factory():
     return factory
 
 
-@pytest.fixture
+@pytest.fixture()
 def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
     """Fixture to initialize the CloudWatchRepository with a stubbed client."""
     repo = CloudWatchRepository()
@@ -50,7 +50,7 @@ def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
     return repo, stubber
 
 
-@pytest.fixture
+@pytest.fixture()
 def repo():
     return utils.get_active_repo()
 
@@ -71,7 +71,7 @@ def reset_redis():
     return cleaner
 
 
-@pytest.fixture
+@pytest.fixture()
 def clean_redis(reset_redis: Any):
     """Remove all keys from Redis.
 

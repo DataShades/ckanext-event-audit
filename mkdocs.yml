@@ -41,6 +41,8 @@ watch:
   - ckanext/event_audit/exporters
   - ckanext/event_audit/repositories
   - ckanext/event_audit/utils.py
+  - ckanext/event_audit/logic/validators.py
+  - ckanext/event_audit/cli.py
 
 theme:
   name: material
@@ -85,6 +87,7 @@ nav:
   - interfaces.md
   - validators.md
   - utils.md
+  - cli.md
 
   - Configuration:
     - configure/active_repo.md

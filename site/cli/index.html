@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://.github.io/ckanext-event-audit/configure/async/">
+        <link rel="canonical" href="https://.github.io/ckanext-event-audit/cli/">
       
       
-        <link rel="prev" href="../tracking/">
+        <link rel="prev" href="../utils/">
       
       
-        <link rel="next" href="../../exporters/basic/">
+        <link rel="next" href="../configure/active_repo/">
       
       
-      <link rel="icon" href="../../img/favicon.ico">
+      <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
     
     
       
-        <title>Asynchronous processing - ckanext-event-audit</title>
+        <title>CLI - ckanext-event-audit</title>
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.0253249f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0253249f.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#asynchronous-processing" class="md-skip">
+        <a href="#cli" class="md-skip">
           Skip to content
         </a>
       
@@ -92,9 +92,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../.." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href=".." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="../../img/logo.png" alt="logo">
+  <img src="../img/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Asynchronous processing
+              CLI
             
           </span>
         </div>
@@ -234,9 +234,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../.." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href=".." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="../../img/logo.png" alt="logo">
+  <img src="../img/logo.png" alt="logo">
 
     </a>
     ckanext-event-audit
@@ -263,7 +263,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../.." class="md-nav__link">
+      <a href=".." class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -283,7 +283,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../install/" class="md-nav__link">
+      <a href="../install/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -303,7 +303,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../usage/" class="md-nav__link">
+      <a href="../usage/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -323,7 +323,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../interfaces/" class="md-nav__link">
+      <a href="../interfaces/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -343,7 +343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../validators/" class="md-nav__link">
+      <a href="../validators/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -363,7 +363,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../utils/" class="md-nav__link">
+      <a href="../utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -378,159 +378,6 @@
     
       
       
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../cli/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    CLI
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Configuration
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_8">
-            <span class="md-nav__icon md-icon"></span>
-            Configuration
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../active_repo/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Active repository
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../cloudwatch/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Cloudwatch
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ignore/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ignore events
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tracking/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    In-built tracking
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
   
   
     
@@ -549,7 +396,7 @@
           
   
   <span class="md-ellipsis">
-    Asynchronous processing
+    CLI
   </span>
   
 
@@ -560,7 +407,7 @@
         
   
   <span class="md-ellipsis">
-    Asynchronous processing
+    CLI
   </span>
   
 
@@ -582,18 +429,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#batch-size" class="md-nav__link">
+  <a href="#event_audit.cli.export_data" class="md-nav__link">
     <span class="md-ellipsis">
-      Batch size
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batch-timeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch timeout
+      export_data
     </span>
   </a>
   
@@ -603,6 +441,157 @@
   
 </nav>
       
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Configuration
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Configuration
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/active_repo/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Active repository
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/cloudwatch/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Cloudwatch
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/ignore/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ignore events
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/tracking/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    In-built tracking
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/async/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Asynchronous processing
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -669,7 +658,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../exporters/basic/" class="md-nav__link">
+      <a href="../exporters/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -690,7 +679,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../exporters/csv/" class="md-nav__link">
+      <a href="../exporters/csv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -711,7 +700,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../exporters/tsv/" class="md-nav__link">
+      <a href="../exporters/tsv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -732,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../exporters/json/" class="md-nav__link">
+      <a href="../exporters/json/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -753,7 +742,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../exporters/xlsx/" class="md-nav__link">
+      <a href="../exporters/xlsx/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -830,7 +819,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/basic/" class="md-nav__link">
+      <a href="../repositories/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -851,7 +840,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/abstract/" class="md-nav__link">
+      <a href="../repositories/abstract/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -872,7 +861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/redis/" class="md-nav__link">
+      <a href="../repositories/redis/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -893,7 +882,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/postgres/" class="md-nav__link">
+      <a href="../repositories/postgres/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -914,7 +903,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/cloudwatch/" class="md-nav__link">
+      <a href="../repositories/cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -935,7 +924,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../repositories/custom/" class="md-nav__link">
+      <a href="../repositories/custom/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -983,18 +972,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#batch-size" class="md-nav__link">
+  <a href="#event_audit.cli.export_data" class="md-nav__link">
     <span class="md-ellipsis">
-      Batch size
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#batch-timeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      Batch timeout
+      export_data
     </span>
   </a>
   
@@ -1018,25 +998,257 @@
   
 
 
-<h1 id="asynchronous-processing">Asynchronous processing</h1>
-<p>To avoid blocking the main thread, the extension uses a separate thread to write the audit logs. A separate thread will be started automatically along with the CKAN application.</p>
-<p>The thread is responsible for storing the logs in the configured repository.</p>
-<p>By default, we're using the threaded mode. However, if you want to disable the threaded mode, you can do this by setting the following configuration option in the CKAN configuration file:</p>
-<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.threaded_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
-</code></pre></div>
-<p>Disabling the threaded mode will cause the extension to write the logs in the main thread. This can be useful for debugging purposes.</p>
-<p>Note, that pairing it with the <code>Cloudwatch</code> repository is not recommended, as it can block the main thread for a long time. Network operations can be slow and can cause the application to hang for a while.</p>
-<p>If your custom repository involves a network operations, it's recommended to keep the threaded mode enabled.</p>
-<h2 id="batch-size">Batch size</h2>
-<p>The extension writes the logs in batches. The batch size can be adjusted by setting the following configuration option in the CKAN configuration file:</p>
-<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.batch.size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">50</span>
-</code></pre></div>
-<p>By default, we're accumulating 50 events before writing them to the repository.</p>
-<h2 id="batch-timeout">Batch timeout</h2>
-<p>Force push the events to the repository after this time in seconds since the last push:</p>
-<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.batch.timeout</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">3600</span>
-</code></pre></div>
-<p>The default value is 3600 seconds (1 hour). This options is required to ensure that the logs are written to the repository in case of low activity.</p>
+<h1 id="cli">CLI</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+
+    <div class="doc doc-contents first">
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.cli.export_data" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">export_data</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Export data using the specified exporter.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>exporter_name</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The name of the exporter.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>start</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The start date string in %Y-%m-%d format.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>end</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The end date string in %Y-%m-%d format.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>config</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The exporter config in JSON format. See the exporter's
+documentation for args details.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>str</code>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>The exported data</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>$ ckan event-audit export-data csv --start=2024-11-11 &gt; report.csv</p>
+<p>$ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] | {id, category, action}]'</p>
+<p>$ ckan event-audit export-data xlsx --start=2024-11-11 --config='{"file_path": "/tmp/test.xlsx"}'</p>
+</details>
+            <details class="quote">
+              <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;exporter_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--start&quot;</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format start date&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--end&quot;</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format end date&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Custom config in JSON format&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">export_data</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export data using the specified exporter.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        exporter_name (str): The name of the exporter.</span>
+<span class="sd">        start (str): The start date string in %Y-%m-%d format.</span>
+<span class="sd">        end (str): The end date string in %Y-%m-%d format.</span>
+<span class="sd">        config (str): The exporter config in JSON format. See the exporter&#39;s</span>
+<span class="sd">            documentation for args details.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str : The exported data</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        $ ckan event-audit export-data csv --start=2024-11-11 &gt; report.csv</span>
+
+<span class="sd">        $ ckan event-audit export-data json --start=2024-11-11 | jq &#39;[.[] | {id, category, action}]&#39;</span>
+
+<span class="sd">        $ ckan event-audit export-data xlsx --start=2024-11-11 --config=&#39;{&quot;file_path&quot;: &quot;/tmp/test.xlsx&quot;}&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Invalid JSON format for config.&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">exporter</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_exporter</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">)(</span><span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid exporter config: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">exporter</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown exporter: </span><span class="si">{</span><span class="n">exporter_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Start date must be before the end date.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">exporter</span><span class="o">.</span><span class="n">from_filters</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">time_from</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">time_to</span><span class="o">=</span><span class="n">end</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
 
 
 
@@ -1072,7 +1284,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../tracking/" class="md-footer__link md-footer__link--prev" aria-label="Previous: In-built tracking">
+          <a href="../utils/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Utility Functions">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1082,20 +1294,20 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                In-built tracking
+                Utility Functions
               </div>
             </div>
           </a>
         
         
           
-          <a href="../../exporters/basic/" class="md-footer__link md-footer__link--next" aria-label="Next: Basic">
+          <a href="../configure/active_repo/" class="md-footer__link md-footer__link--next" aria-label="Next: Active repository">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Basic
+                Active repository
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1131,10 +1343,10 @@
       <div class="md-progress" data-md-component="progress" role="progressbar"></div>
     
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
