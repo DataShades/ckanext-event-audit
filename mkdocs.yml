@@ -83,6 +83,7 @@ nav:
   - install.md
   - usage.md
   - interfaces.md
+  - validators.md
   - utils.md
 
   - Configuration:

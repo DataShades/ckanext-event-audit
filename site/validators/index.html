@@ -8,26 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://.github.io/ckanext-event-audit/">
+        <link rel="canonical" href="https://.github.io/ckanext-event-audit/validators/">
       
       
+        <link rel="prev" href="../interfaces/">
       
-        <link rel="next" href="install/">
+      
+        <link rel="next" href="../utils/">
       
       
-      <link rel="icon" href="img/favicon.ico">
+      <link rel="icon" href="../img/favicon.ico">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
     
     
       
-        <title>ckanext-event-audit</title>
+        <title>Validators - ckanext-event-audit</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.0253249f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0253249f.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -46,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ckanext-event-audit" class="md-skip">
+        <a href="#validators" class="md-skip">
           Skip to content
         </a>
       
@@ -90,9 +92,9 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href=".." title="ckanext-event-audit" class="md-header__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="img/logo.png" alt="logo">
+  <img src="../img/logo.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -109,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Validators
             
           </span>
         </div>
@@ -232,9 +234,9 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
+    <a href=".." title="ckanext-event-audit" class="md-nav__button md-logo" aria-label="ckanext-event-audit" data-md-component="logo">
       
-  <img src="img/logo.png" alt="logo">
+  <img src="../img/logo.png" alt="logo">
 
     </a>
     ckanext-event-audit
@@ -258,6 +260,86 @@
       
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../install/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../usage/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Usage
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interfaces/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Interfaces
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
     
   
   
@@ -274,18 +356,18 @@
           
   
   <span class="md-ellipsis">
-    Home
+    Validators
   </span>
   
 
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="." class="md-nav__link md-nav__link--active">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
-    Home
+    Validators
   </span>
   
 
@@ -307,27 +389,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#developer-installation" class="md-nav__link">
+  <a href="#event_audit.logic.validators.audit_repo_exists" class="md-nav__link">
     <span class="md-ellipsis">
-      Developer installation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tests
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      License
+      audit_repo_exists
     </span>
   </a>
   
@@ -348,87 +412,7 @@
   
   
     <li class="md-nav__item">
-      <a href="install/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Installation
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="usage/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Usage
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="interfaces/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Interfaces
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="validators/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Validators
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="utils/" class="md-nav__link">
+      <a href="../utils/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -495,7 +479,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configure/active_repo/" class="md-nav__link">
+      <a href="../configure/active_repo/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -516,7 +500,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configure/cloudwatch/" class="md-nav__link">
+      <a href="../configure/cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -537,7 +521,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configure/ignore/" class="md-nav__link">
+      <a href="../configure/ignore/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -558,7 +542,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configure/tracking/" class="md-nav__link">
+      <a href="../configure/tracking/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -579,7 +563,7 @@
   
   
     <li class="md-nav__item">
-      <a href="configure/async/" class="md-nav__link">
+      <a href="../configure/async/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -654,7 +638,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exporters/basic/" class="md-nav__link">
+      <a href="../exporters/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -675,7 +659,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exporters/csv/" class="md-nav__link">
+      <a href="../exporters/csv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -696,7 +680,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exporters/tsv/" class="md-nav__link">
+      <a href="../exporters/tsv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -717,7 +701,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exporters/json/" class="md-nav__link">
+      <a href="../exporters/json/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -738,7 +722,7 @@
   
   
     <li class="md-nav__item">
-      <a href="exporters/xlsx/" class="md-nav__link">
+      <a href="../exporters/xlsx/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -815,7 +799,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/basic/" class="md-nav__link">
+      <a href="../repositories/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -836,7 +820,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/abstract/" class="md-nav__link">
+      <a href="../repositories/abstract/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -857,7 +841,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/redis/" class="md-nav__link">
+      <a href="../repositories/redis/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -878,7 +862,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/postgres/" class="md-nav__link">
+      <a href="../repositories/postgres/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -899,7 +883,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/cloudwatch/" class="md-nav__link">
+      <a href="../repositories/cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -920,7 +904,7 @@
   
   
     <li class="md-nav__item">
-      <a href="repositories/custom/" class="md-nav__link">
+      <a href="../repositories/custom/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -968,27 +952,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#developer-installation" class="md-nav__link">
+  <a href="#event_audit.logic.validators.audit_repo_exists" class="md-nav__link">
     <span class="md-ellipsis">
-      Developer installation
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#tests" class="md-nav__link">
-    <span class="md-ellipsis">
-      Tests
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#license" class="md-nav__link">
-    <span class="md-ellipsis">
-      License
+      audit_repo_exists
     </span>
   </a>
   
@@ -1012,23 +978,154 @@
   
 
 
-<p><a href="https://github.com/DataShades/ckanext-event-audit/actions/workflows/test.yml"><img alt="Tests" src="https://github.com/DataShades/ckanext-event-audit/actions/workflows/test.yml/badge.svg" /></a></p>
-<h1 id="ckanext-event-audit">ckanext-event-audit</h1>
-<p>This extension will capture and retain a comprehensive record of all changes within a CKAN app.</p>
-<h2 id="developer-installation">Developer installation</h2>
-<p>To install ckanext-event-audit for development, activate your CKAN virtualenv and
-do:</p>
-<div class="highlight"><pre><span></span><code>git clone https://github.com/DataShades/ckanext-event-audit.git
-cd ckanext-event-audit
-pip install -e .
-pip install -r dev-requirements.txt
-</code></pre></div>
-<h2 id="tests">Tests</h2>
-<p>To run the tests, do:</p>
-<div class="highlight"><pre><span></span><code>pytest --ckan-ini=test.ini
-</code></pre></div>
-<h2 id="license">License</h2>
-<p><a href="https://www.gnu.org/licenses/agpl-3.0.en.html">AGPL</a></p>
+<h1 id="validators">Validators</h1>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.logic.validators.audit_repo_exists" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">audit_repo_exists</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents first">
+
+        <p>Check if the repository with the given name is registered.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>value</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The repository name.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Any">Any</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>context</code></td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The CKAN context.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="ckan.types.Context">Context</span></code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>Any</code>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>The repository name if it exists.</p>
+              </div>
+                <p>
+                  <span class="doc-returns-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="typing.Any">Any</span></code>
+                  </span>
+                </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RAISES</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+              <span class="doc-raises-annotation">
+                  <code><span title="ckan.plugins.toolkit.Invalid">Invalid</span></code>
+              </span>
+            </td>
+            <td class="doc-raises-details">
+              <div class="doc-md-description">
+                <p>If the repository does not exist.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+            <details class="quote">
+              <summary>Source code in <code>ckanext/event_audit/logic/validators.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
+<span class="normal">12</span>
+<span class="normal">13</span>
+<span class="normal">14</span>
+<span class="normal">15</span>
+<span class="normal">16</span>
+<span class="normal">17</span>
+<span class="normal">18</span>
+<span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">audit_repo_exists</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="n">Context</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the repository with the given name is registered.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value (Any): The repository name.</span>
+<span class="sd">        context (Context): The CKAN context.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Any: The repository name if it exists.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        tk.Invalid: If the repository does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_available_repos</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="n">tk</span><span class="o">.</span><span class="n">Invalid</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Repository `</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">` is not registered&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">value</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
 
 
 
@@ -1063,15 +1160,31 @@ pip install -r dev-requirements.txt
       
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
+          
+          <a href="../interfaces/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Interfaces">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Interfaces
+              </div>
+            </div>
+          </a>
+        
         
           
-          <a href="install/" class="md-footer__link md-footer__link--next" aria-label="Next: Installation">
+          <a href="../utils/" class="md-footer__link md-footer__link--next" aria-label="Next: Utility Functions">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Installation
+                Utility Functions
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1107,10 +1220,10 @@ pip install -r dev-requirements.txt
       <div class="md-progress" data-md-component="progress" role="progressbar"></div>
     
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
       
     
   </body>
