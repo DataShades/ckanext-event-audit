@@ -38,8 +38,8 @@ def export_data(exporter_name: str, start: dt, end: dt | None, config: str | Non
     Args:
         exporter_name (str): The name of the exporter.
         start (str): The start date string in %Y-%m-%d format.
-        end (str): The end date string in %Y-%m-%d format.
-        config (str): The exporter config in JSON format. See the exporter's
+        end (str | None): The end date string in %Y-%m-%d format.
+        config (str | None): The exporter config in JSON format. See the exporter's
             documentation for args details.
 
     Returns:
