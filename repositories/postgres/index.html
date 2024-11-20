@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
@@ -917,6 +917,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#event_audit.repositories.postgres.PostgresRepository.remove_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event_audit.repositories.postgres.PostgresRepository.test_connection" class="md-nav__link">
     <span class="md-ellipsis">
       test_connection
@@ -1064,6 +1073,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#event_audit.repositories.postgres.PostgresRepository.remove_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event_audit.repositories.postgres.PostgresRepository.test_connection" class="md-nav__link">
     <span class="md-ellipsis">
       test_connection
@@ -1122,6 +1140,11 @@
 
 
 
+
+
+
+
+
   <div class="doc doc-children">
 
 
@@ -1155,7 +1178,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>filters</code></td>
+            <td>
+                <code>filters</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>filters to apply.</p>
@@ -1166,6 +1191,30 @@
                       <code><span title="ckanext.event_audit.types.Filters">Filters</span></code>
                   </span>
               </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><span title="typing.List">List</span>[<span title="ckanext.event_audit.types.Event">Event</span>]</code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>List[types.Event]: list of events.</p>
+              </div>
             </td>
           </tr>
       </tbody>
@@ -1198,7 +1247,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>event_id</code></td>
+            <td>
+                <code>event_id</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>event ID.</p>
@@ -1306,7 +1357,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>event_id</code></td>
+            <td>
+                <code>event_id</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>event ID.</p>
@@ -1320,7 +1373,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>session</code></td>
+            <td>
+                <code>session</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>session to use.</p>
@@ -1338,7 +1393,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>defer_commit</code></td>
+            <td>
+                <code>defer_commit</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>whether to defer the commit.</p>
@@ -1351,6 +1408,75 @@
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
                       <code>False</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><span title="ckanext.event_audit.types.Result">Result</span></code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>types.Result: result of the operation.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.repositories.postgres.PostgresRepository.remove_events" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">remove_events</span><span class="p">(</span><span class="n">filters</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Removes a filtered set of events from the repository.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>filters</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>filters to apply.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="ckanext.event_audit.types.Filters">Filters</span></code>
                   </span>
               </p>
             </td>
@@ -1454,7 +1580,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>event</code></td>
+            <td>
+                <code>event</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>event to write.</p>
@@ -1468,7 +1596,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>session</code></td>
+            <td>
+                <code>session</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>session to use.</p>
@@ -1486,7 +1616,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>defer_commit</code></td>
+            <td>
+                <code>defer_commit</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>whether to defer the commit.</p>
@@ -1557,7 +1689,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>events</code></td>
+            <td>
+                <code>events</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>events to write.</p>

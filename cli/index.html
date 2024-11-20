@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
@@ -432,6 +432,15 @@
   <a href="#event_audit.cli.export_data" class="md-nav__link">
     <span class="md-ellipsis">
       export_data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#event_audit.cli.remove_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_events
     </span>
   </a>
   
@@ -980,6 +989,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#event_audit.cli.remove_events" class="md-nav__link">
+    <span class="md-ellipsis">
+      remove_events
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1007,6 +1025,11 @@
 
 
     <div class="doc doc-contents first">
+
+
+
+
+
 
 
 
@@ -1043,7 +1066,9 @@
       </thead>
       <tbody>
           <tr class="doc-section-item">
-            <td><code>exporter_name</code></td>
+            <td>
+                <code>exporter_name</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The name of the exporter.</p>
@@ -1057,7 +1082,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>start</code></td>
+            <td>
+                <code>start</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The start date string in %Y-%m-%d format.</p>
@@ -1071,7 +1098,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>end</code></td>
+            <td>
+                <code>end</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The end date string in %Y-%m-%d format.</p>
@@ -1085,7 +1114,9 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code>config</code></td>
+            <td>
+                <code>config</code>
+            </td>
             <td class="doc-param-details">
               <div class="doc-md-description">
                 <p>The exporter config in JSON format. See the exporter's
@@ -1128,13 +1159,14 @@ documentation for args details.</p>
 <details class="example" open>
   <summary>Example</summary>
   <p>$ ckan event-audit export-data csv --start=2024-11-11 &gt; report.csv</p>
-<p>$ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] | {id, category, action}]'</p>
-<p>$ ckan event-audit export-data xlsx --start=2024-11-11 --config='{"file_path": "/tmp/test.xlsx"}'</p>
+<p>$ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] |
+    {id, category, action}]'</p>
+<p>$ ckan event-audit export-data xlsx --start=2024-11-11
+    --config='{"file_path": "/tmp/test.xlsx"}'</p>
 </details>
             <details class="quote">
               <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">20</span>
-<span class="normal">21</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
 <span class="normal">22</span>
 <span class="normal">23</span>
 <span class="normal">24</span>
@@ -1184,7 +1216,12 @@ documentation for args details.</p>
 <span class="normal">68</span>
 <span class="normal">69</span>
 <span class="normal">70</span>
-<span class="normal">71</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;exporter_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
     <span class="s2">&quot;--start&quot;</span><span class="p">,</span>
@@ -1215,10 +1252,15 @@ documentation for args details.</p>
 <span class="sd">    Example:</span>
 <span class="sd">        $ ckan event-audit export-data csv --start=2024-11-11 &gt; report.csv</span>
 
-<span class="sd">        $ ckan event-audit export-data json --start=2024-11-11 | jq &#39;[.[] | {id, category, action}]&#39;</span>
+<span class="sd">        $ ckan event-audit export-data json --start=2024-11-11 | jq &#39;[.[] |</span>
+<span class="sd">            {id, category, action}]&#39;</span>
 
-<span class="sd">        $ ckan event-audit export-data xlsx --start=2024-11-11 --config=&#39;{&quot;file_path&quot;: &quot;/tmp/test.xlsx&quot;}&#39;</span>
+<span class="sd">        $ ckan event-audit export-data xlsx --start=2024-11-11</span>
+<span class="sd">            --config=&#39;{&quot;file_path&quot;: &quot;/tmp/test.xlsx&quot;}&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">start</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="k">else</span> <span class="kc">None</span>
+
     <span class="k">try</span><span class="p">:</span>
         <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
@@ -1228,14 +1270,209 @@ documentation for args details.</p>
         <span class="n">exporter</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_exporter</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">)(</span><span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid exporter config: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">exporter</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown exporter: </span><span class="si">{</span><span class="n">exporter_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Start date must be before the end date.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
 
     <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">exporter</span><span class="o">.</span><span class="n">from_filters</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">time_from</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">time_to</span><span class="o">=</span><span class="n">end</span><span class="p">)))</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.cli.remove_events" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">remove_events</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove events from the repository by time range.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>repository</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The repository name. If not provided, the
+active repository will be used.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>start</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The start date string in %Y-%m-%d format.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>end</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The end date string in %Y-%m-%d format.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code>str | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>$ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12</p>
+</details>
+            <details class="quote">
+              <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--repository&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The repository name&quot;</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--start&quot;</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format start date&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">&quot;--end&quot;</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format end date&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span> <span class="nf">remove_events</span><span class="p">(</span><span class="n">repository</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove events from the repository by time range.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        repository (str | None): The repository name. If not provided, the</span>
+<span class="sd">            active repository will be used.</span>
+<span class="sd">        start (str): The start date string in %Y-%m-%d format.</span>
+<span class="sd">        end (str | None): The end date string in %Y-%m-%d format.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        $ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">start</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Start date must be before the end date.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_repo</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span> <span class="k">if</span> <span class="n">repository</span> <span class="k">else</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_active_repo</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown repository: </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">start</span> <span class="ow">or</span> <span class="n">end</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repositories</span><span class="o">.</span><span class="n">RemoveAll</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Repository </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2"> does not support removing events.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repositories</span><span class="o">.</span><span class="n">RemoveFiltered</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">start</span> <span class="ow">or</span> <span class="n">end</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Repository </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2"> does not support removing events &quot;</span>
+                    <span class="s2">&quot;by time range. &quot;</span>
+                    <span class="s2">&quot;Please remove the --start and --end flags to delete all events.&quot;</span>
+                <span class="p">),</span>
+                <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">repo</span><span class="o">.</span><span class="n">remove_all_events</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">repo</span><span class="o">.</span><span class="n">remove_events</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">time_from</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">time_to</span><span class="o">=</span><span class="n">end</span><span class="p">))</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>

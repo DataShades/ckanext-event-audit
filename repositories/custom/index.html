@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
@@ -981,16 +981,22 @@
     <span class="k">def</span> <span class="nf">test_connection</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
-<p>In this version, it doesn't implement the <code>remove_event</code> and <code>remove_events</code> methods, but you can implement them in the same way as the other methods. If the repository able to remove one or multiple events, it must inherits from the respective class - <code>RemoveSingle</code> or <code>RemoveAll</code>. For example:</p>
+<p>In this version, it doesn't implement the <code>remove_event</code>, <code>remove_events</code> and <code>remove_all_events</code> methods, but you can implement them in the same way as the other methods. If the repository able to remove one or multiple events, it must inherits from the respective class - <code>RemoveSingle</code> or <code>RemoveAll</code>. For example:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">ckanext.event_audit.repositories</span> <span class="kn">import</span> <span class="n">AbstractRepository</span><span class="p">,</span> <span class="n">RemoveSingle</span><span class="p">,</span> <span class="n">RemoveAll</span>
+<span class="kn">from</span> <span class="nn">ckanext.event_audit.repositories</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AbstractRepository</span><span class="p">,</span>
+    <span class="n">RemoveSingle</span><span class="p">,</span>
+    <span class="n">RemoveAll</span><span class="p">,</span>
+    <span class="n">RemoveFiltered</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">FileRepository</span><span class="p">(</span><span class="n">AbstractRepository</span><span class="p">,</span> <span class="n">RemoveSingle</span><span class="p">,</span> <span class="n">RemoveAll</span><span class="p">):</span>
+
+<span class="k">class</span> <span class="nc">FileRepository</span><span class="p">(</span><span class="n">AbstractRepository</span><span class="p">,</span> <span class="n">RemoveSingle</span><span class="p">,</span> <span class="n">RemoveAll</span><span class="p">,</span> <span class="n">RemoveFiltered</span><span class="p">):</span>
     <span class="o">...</span>
 
     <span class="k">def</span> <span class="nf">remove_event</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event_id</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">event_id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
@@ -999,9 +1005,25 @@
 
                 <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s1">&#39;Event not found&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Event not found&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">remove_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">_match_filters</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">filters</span><span class="p">):</span>
+                    <span class="k">del</span> <span class="n">data</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_match_filters</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">EventData</span><span class="p">,</span> <span class="n">filters</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">Filters</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span> <span class="o">...</span>
+
+    <span class="k">def</span> <span class="nf">remove_all_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filters</span><span class="p">:</span> <span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">types</span><span class="o">.</span><span class="n">Result</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Removes the file if exists.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_path</span><span class="p">):</span>
