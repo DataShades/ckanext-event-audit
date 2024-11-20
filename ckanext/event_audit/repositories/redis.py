@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime as dt
-from datetime import timezone as tz
 from typing import Any
 
 from ckan.lib.redis import connect_to_redis
@@ -10,8 +9,8 @@ from ckanext.event_audit import types
 from ckanext.event_audit.repositories.base import (
     AbstractRepository,
     RemoveAll,
-    RemoveSingle,
     RemoveFiltered,
+    RemoveSingle,
 )
 
 REDIS_SET_KEY = "event-audit"
@@ -143,7 +142,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         if self.time_from and self.time_to:
             return self.time_from <= event_time <= self.time_to
         if self.time_from:
-            return self.time_from <= event_time <= dt.now(tz.utc)
+            return self.time_from <= event_time
         if self.time_to:
             return event_time <= self.time_to
         return True

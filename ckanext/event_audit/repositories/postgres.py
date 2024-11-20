@@ -100,7 +100,6 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             list[model.EventModel]: list of event models.
         """
-
         query = select(model.EventModel)
 
         filterable_fields = [
@@ -161,7 +160,6 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             types.Result: result of the operation.
         """
-
         events = self._filter_events(filters)
 
         for event in events:

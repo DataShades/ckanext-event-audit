@@ -4,9 +4,9 @@ import json
 from datetime import datetime as dt
 
 import click
+from pytz import UTC
 
-from ckanext.event_audit import types, utils
-from ckanext.event_audit.repositories.base import RemoveFiltered, RemoveAll
+from ckanext.event_audit import repositories, types, utils
 
 __all__ = [
     "event_audit",
@@ -49,10 +49,15 @@ def export_data(exporter_name: str, start: dt, end: dt | None, config: str | Non
     Example:
         $ ckan event-audit export-data csv --start=2024-11-11 > report.csv
 
-        $ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] | {id, category, action}]'
+        $ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] |
+            {id, category, action}]'
 
-        $ ckan event-audit export-data xlsx --start=2024-11-11 --config='{"file_path": "/tmp/test.xlsx"}'
+        $ ckan event-audit export-data xlsx --start=2024-11-11
+            --config='{"file_path": "/tmp/test.xlsx"}'
     """
+    start = UTC.localize(start) if start else None
+    end = UTC.localize(end) if end else None
+
     try:
         config_dict = json.loads(config or "{}")
     except json.JSONDecodeError:
@@ -97,29 +102,32 @@ def remove_events(repository: str | None, start: dt | None, end: dt | None):
     Example:
         $ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12
     """
+    start = UTC.localize(start) if start else None
+    end = UTC.localize(end) if end else None
+
     if start and end and start > end:
         return click.secho("Start date must be before the end date.", fg="red")
 
-    repo = utils.get_repo(repository) if repository else utils.get_active_repo()
-
-    if not repo:
+    try:
+        repo = utils.get_repo(repository) if repository else utils.get_active_repo()
+    except ValueError:
         return click.secho(f"Unknown repository: {repository}", fg="red")
 
-    if not isinstance(repo, (RemoveFiltered, RemoveAll)):
+    if not (start or end) and not isinstance(repo, repositories.RemoveAll):
         return click.secho(
             f"Repository {repository} does not support removing events.", fg="red"
         )
 
-    if not isinstance(repo, RemoveFiltered):
+    if not isinstance(repo, repositories.RemoveFiltered):
         if start or end:
             return click.secho(
                 (
-                    f"Repository {repository} does not support removing events by time range. "
+                    f"Repository {repository} does not support removing events "
+                    "by time range. "
                     "Please remove the --start and --end flags to delete all events."
                 ),
                 fg="red",
             )
-        else:
-            return repo.remove_all_events()
+        return repo.remove_all_events()
 
     return repo.remove_events(types.Filters(time_from=start, time_to=end))
