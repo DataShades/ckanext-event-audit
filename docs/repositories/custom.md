@@ -47,18 +47,24 @@ class FileRepository(AbstractRepository):
         return types.Result(success=True)
 ```
 
-In this version, it doesn't implement the `remove_event` and `remove_events` methods, but you can implement them in the same way as the other methods. If the repository able to remove one or multiple events, it must inherits from the respective class - `RemoveSingle` or `RemoveAll`. For example:
+In this version, it doesn't implement the `remove_event`, `remove_events` and `remove_all_events` methods, but you can implement them in the same way as the other methods. If the repository able to remove one or multiple events, it must inherits from the respective class - `RemoveSingle` or `RemoveAll`. For example:
 
 ```python
 import os
 
-from ckanext.event_audit.repositories import AbstractRepository, RemoveSingle, RemoveAll
+from ckanext.event_audit.repositories import (
+    AbstractRepository,
+    RemoveSingle,
+    RemoveAll,
+    RemoveFiltered,
+)
 
-class FileRepository(AbstractRepository, RemoveSingle, RemoveAll):
+
+class FileRepository(AbstractRepository, RemoveSingle, RemoveAll, RemoveFiltered):
     ...
 
     def remove_event(self, event_id: Any) -> types.Result:
-        with open(self.file_path, 'w') as f:
+        with open(self.file_path, "w") as f:
             data = json.load(f)
 
             if event_id in data:
@@ -67,9 +73,25 @@ class FileRepository(AbstractRepository, RemoveSingle, RemoveAll):
 
                 return types.Result(success=True)
 
-        return types.Result(success=False, message='Event not found')
+        return types.Result(success=False, message="Event not found")
 
     def remove_events(self, filters: types.Filters) -> types.Result:
+        with open(self.file_path, "w") as f:
+            data = json.load(f)
+
+            for event_id, event in data.items():
+                if _match_filters(event, filters):
+                    del data[event_id]
+
+            f.write(json.dumps(data))
+
+        return types.Result(success=True)
+
+    def _match_filters(
+        self, event: types.EventData, filters: types.Filters
+    ) -> bool: ...
+
+    def remove_all_events(self, filters: types.Filters) -> types.Result:
         """Removes the file if exists."""
 
         if os.path.exists(self.file_path):
