@@ -38,7 +38,7 @@ TODO:
 To install ckanext-event-audit for development, activate your CKAN virtualenv and
 do:
 
-    pip install -e '.[dev, xlsx]'
+    pip install -e '.[dev]'
 
 ## Tests
 
