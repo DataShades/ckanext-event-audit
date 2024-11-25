@@ -67,7 +67,7 @@ def get_ignored_models() -> list[str]:
 
 def get_tracked_models() -> list[str]:
     """A list of database models to track when logging events."""
-    return tk.config[CONF_TRACK_MODELS]
+    return tk.config.get(CONF_TRACK_MODELS, [])
 
 
 def is_database_log_enabled() -> bool:
