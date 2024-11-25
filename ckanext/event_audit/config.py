@@ -19,6 +19,8 @@ CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
 CONF_DATABASE_TRACK_ENABLED = "ckanext.event_audit.track.model"
 CONF_API_TRACK_ENABLED = "ckanext.event_audit.track.api"
 
+CONF_STORE_PAYLOAD_AND_RESULT = "ckanext.event_audit.store_payload_and_result"
+
 CONF_BATCH_SIZE = "ckanext.event_audit.batch.size"
 CONF_BATCH_TIMEOUT = "ckanext.event_audit.batch.timeout"
 
@@ -68,6 +70,12 @@ def is_database_log_enabled() -> bool:
 def is_api_log_enabled() -> bool:
     """Returns True if API logging is enabled."""
     return tk.config[CONF_API_TRACK_ENABLED]
+
+
+def should_store_payload_and_result() -> bool:
+    """Check if the payload and result should be stored in the event. Works
+    only for in-built listeners."""
+    return tk.config[CONF_STORE_PAYLOAD_AND_RESULT]
 
 
 def get_batch_size() -> int:

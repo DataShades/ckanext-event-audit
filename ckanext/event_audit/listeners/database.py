@@ -60,6 +60,7 @@ def after_commit(session: SQLAlchemySession):
         return
 
     thread_mode_enabled = config.is_threaded_mode_enabled()
+    should_store_complex_data = config.should_store_payload_and_result()
 
     for action, instances in session._audit_cache.items():  # type: ignore
         for instance in instances:
@@ -72,7 +73,11 @@ def after_commit(session: SQLAlchemySession):
                     action=action,
                     action_object=instance.__class__.__name__,
                     action_object_id=inspect(instance).identity[0],
-                    payload=_filter_payload(instance.__dict__),
+                    payload=(
+                        _filter_payload(instance.__dict__)
+                        if should_store_complex_data
+                        else {}
+                    ),
                 )
             )
 

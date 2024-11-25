@@ -26,8 +26,17 @@ ckanext.event_audit.track.model = false
 
 We can ignore specific models from being tracked by setting the `ckanext.event_audit.ignore.models` configuration option. See the [ignore](ignore.md) section for more details.
 
+## Storing payload and result data
+
+Storing `payload` and `result` data for in-built trackers is disabled by default, as it might be too expensive to store all the data. You can enable it by setting the following configuration options:
+
+```ini
+ckanext.event_audit.store_payload_and_result = true
+```
+
+???+ Warning
+    Enabling this option might have a significant impact on the storage size. Use it with caution.
+
 ## Custom trackers
 
-You can create and write an event anywhere in your codebase.
-
-TODO: add link to usage docs
+You can create and write an event anywhere in your codebase. See the [usage](../usage.md) section for more details.

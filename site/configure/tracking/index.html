@@ -602,6 +602,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#storing-payload-and-result-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing payload and result data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#custom-trackers" class="md-nav__link">
     <span class="md-ellipsis">
       Custom trackers
@@ -1033,6 +1042,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#storing-payload-and-result-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Storing payload and result data
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#custom-trackers" class="md-nav__link">
     <span class="md-ellipsis">
       Custom trackers
@@ -1073,9 +1091,16 @@
 <div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track.model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
 </code></pre></div>
 <p>We can ignore specific models from being tracked by setting the <code>ckanext.event_audit.ignore.models</code> configuration option. See the <a href="../ignore/">ignore</a> section for more details.</p>
+<h2 id="storing-payload-and-result-data">Storing payload and result data</h2>
+<p>Storing <code>payload</code> and <code>result</code> data for in-built trackers is disabled by default, as it might be too expensive to store all the data. You can enable it by setting the following configuration options:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.store_payload_and_result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">true</span>
+</code></pre></div>
+<details class="warning" open="open">
+<summary>Warning</summary>
+<p>Enabling this option might have a significant impact on the storage size. Use it with caution.</p>
+</details>
 <h2 id="custom-trackers">Custom trackers</h2>
-<p>You can create and write an event anywhere in your codebase.</p>
-<p>TODO: add link to usage docs</p>
+<p>You can create and write an event anywhere in your codebase. See the <a href="../../usage/">usage</a> section for more details.</p>
 
 
 

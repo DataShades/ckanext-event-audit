@@ -57,3 +57,22 @@ class TestApiListener:
         events = repo.filter_events(types.Filters())
 
         assert len(events) == 1
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    def test_payload_and_result_arent_stored_by_default(self, repo: repositories.AbstractRepository):
+        call_action("status_show", {})
+        events = repo.filter_events(types.Filters())
+
+        assert events[0].payload == {}
+        assert events[0].result == {}
+
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    @pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
+    def test_store_payload_and_result(self, repo: repositories.AbstractRepository):
+        call_action("status_show", {})
+        events = repo.filter_events(types.Filters())
+
+        assert events[0].result["site_title"] == "CKAN"

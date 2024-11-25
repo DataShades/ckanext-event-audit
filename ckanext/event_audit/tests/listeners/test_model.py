@@ -19,11 +19,13 @@ from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 class TestModelListener:
     @pytest.mark.usefixtures("with_plugins", "clean_redis", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "redis")
+    @pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
     def test_redis(self, user: dict[str, Any], repo: repositories.AbstractRepository):
         self._check_events(user, repo)
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "cloudwatch")
+    @pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
     def test_cloudwatch(
         self,
         user: dict[str, Any],
@@ -108,6 +110,7 @@ class TestModelListener:
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    @pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
     def test_postgres(
         self, user: dict[str, Any], repo: repositories.AbstractRepository
     ):
@@ -144,3 +147,26 @@ class TestModelListener:
         assert events[dashboard].action_object == "Dashboard"
         assert events[dashboard].action_object_id == user["id"]
         assert events[dashboard].payload["user_id"] == user["id"]
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    def test_payload_and_result_arent_stored_by_default(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        events = repo.filter_events(types.Filters())
+
+        user_idx = 1
+
+        assert events[user_idx].payload == {}
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    @pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
+    def test_store_payload_and_result(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        events = repo.filter_events(types.Filters())
+
+        user_idx = 1
+
+        assert events[user_idx].payload["name"] == user["name"]

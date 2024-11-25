@@ -6,13 +6,6 @@ This extension will capture and retain a comprehensive record of all changes wit
 
 Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for a full user guide.
 
-TODO:
-- [ ] add config option to exclude result and payload fields from being stored
-- [ ] allow to restrict a list of available repos (security concern)
-- [X] disable the admin interface by default (security concern)
-- [X] update `remove_events` method to allow removing events by date range
-- [X] add a cli command to remove events by date range
-
 ## Quick start
 
 1. Install the extension from `PyPI`:

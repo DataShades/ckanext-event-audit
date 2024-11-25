@@ -25,6 +25,8 @@ def action_succeeded_subscriber(
         return
 
     thread_mode_enabled = config.is_threaded_mode_enabled()
+    should_store_complex_data = config.should_store_payload_and_result()
+    result = result if isinstance(result, dict) else {"result": result}
 
     event = repo.build_event(
         types.EventData(
@@ -35,8 +37,8 @@ def action_succeeded_subscriber(
                 else ""
             ),
             action=action_name,
-            payload=data_dict,
-            result=result if isinstance(result, dict) else {"result": result},
+            payload=data_dict if should_store_complex_data else {},
+            result=result if should_store_complex_data else {},
         )
     )
 
