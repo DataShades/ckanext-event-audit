@@ -71,6 +71,7 @@ groups:
         description: A list of models to track
         type: list
         editable: true
+        default: ""
 
       - key: ckanext.event_audit.store_payload_and_result
         description: Store the payload and result of the event
