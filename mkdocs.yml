@@ -90,9 +90,9 @@ nav:
   - cli.md
 
   - Configuration:
-    - configure/admin_panel.md
-    - configure/active_repo.md
+    - configure/repository.md
     - configure/cloudwatch.md
+    - configure/admin_panel.md
     - configure/ignore.md
     - configure/tracking.md
     - configure/async.md

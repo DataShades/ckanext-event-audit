@@ -26,7 +26,16 @@ def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
     for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
         plugin_repos.update(plugin.register_repository())
 
-    return plugin_repos
+    restrict_repos = config.get_list_of_available_repos()
+
+    if not restrict_repos:
+        return plugin_repos
+
+    return {
+        name: repo
+        for name, repo in plugin_repos.items()
+        if name in config.get_list_of_available_repos()
+    }
 
 
 def get_active_repo() -> repos.AbstractRepository:

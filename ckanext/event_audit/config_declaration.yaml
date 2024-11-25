@@ -8,6 +8,11 @@ groups:
         validators: audit_repo_exists
         editable: true
 
+      - key: ckanext.event_audit.restrict_available_repos
+        description: The available repositories to store the audit logs
+        type: list
+        editable: false
+
       - key: ckanext.event_audit.cloudwatch.access_key
         description: The access key for the AWS account
         default: ''

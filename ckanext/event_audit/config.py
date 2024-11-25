@@ -6,6 +6,7 @@ from ckanext.event_audit import types
 
 CONF_ACTIVE_REPO = "ckanext.event_audit.active_repo"
 DEF_ACTIVE_REPO = "redis"
+CONF_RESTRICT_AVAILABLE_REPOS = "ckanext.event_audit.restrict_available_repos"
 
 CONF_CLOUDWATCH_KEY = "ckanext.event_audit.cloudwatch.access_key"
 CONF_CLOUDWATCH_SECRET = "ckanext.event_audit.cloudwatch.secret_key"
@@ -30,6 +31,10 @@ DEF_ADMIN_PANEL = True
 def active_repo() -> str:
     """The active repository to store the audit logs."""
     return tk.config.get(CONF_ACTIVE_REPO, DEF_ACTIVE_REPO)
+
+
+def get_list_of_available_repos() -> list[str]:
+    return tk.config[CONF_RESTRICT_AVAILABLE_REPOS]
 
 
 def get_cloudwatch_credentials() -> types.AWSCredentials:

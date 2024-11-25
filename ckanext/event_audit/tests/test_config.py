@@ -4,7 +4,7 @@ import pytest
 
 from ckan.tests.helpers import call_action
 
-from ckanext.event_audit import config, const, types
+from ckanext.event_audit import config, const, types, utils
 
 
 @pytest.mark.usefixtures("with_plugins")
@@ -68,3 +68,24 @@ class TestIgnoreConfig:
         events = repo.filter_events(types.Filters())
 
         assert len(events) == 0
+
+
+@pytest.mark.usefixtures("with_plugins")
+class TestRestrictAvailableRepos:
+    def test_not_restricted_by_default(self):
+        assert config.get_list_of_available_repos() == []
+        assert len(utils.get_available_repos()) == 3
+
+    @pytest.mark.ckan_config(config.CONF_RESTRICT_AVAILABLE_REPOS, "cloudwatch")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "cloudwatch")
+    def test_restrict_to_cloudwatch(self):
+        assert config.get_list_of_available_repos() == ["cloudwatch"]
+
+        repos = utils.get_available_repos()
+
+        assert len(repos) == 1
+        assert "cloudwatch" in repos
+        assert utils.get_repo("cloudwatch").get_name() == "cloudwatch"
+
+        with pytest.raises(ValueError, match="Repository redis not found"):
+            utils.get_repo("redis")
