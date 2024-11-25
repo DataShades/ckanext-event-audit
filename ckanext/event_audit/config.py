@@ -38,7 +38,7 @@ def active_repo() -> str:
 
 
 def get_list_of_available_repos() -> list[str]:
-    return tk.config[CONF_RESTRICT_AVAILABLE_REPOS]
+    return tk.config.get(CONF_RESTRICT_AVAILABLE_REPOS, [])
 
 
 def get_cloudwatch_credentials() -> types.AWSCredentials:
