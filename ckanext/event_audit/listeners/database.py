@@ -3,8 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import event, inspect
-from sqlalchemy.orm import IdentityMap, UOWTransaction
-from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy.orm import IdentityMap, UOWTransaction, Session as SQLAlchemySession
 
 import ckan.plugins as p
 from ckan.model.base import Session
@@ -37,13 +36,44 @@ def before_flush(
 
     session._audit_cache["created"].update(session.new)  # type: ignore
     session._audit_cache["deleted"].update(session.deleted)  # type: ignore
-    session._audit_cache["changed"].update(  # type: ignore
-        [
-            obj
-            for obj in session.dirty
-            if session.is_modified(obj, include_collections=False)
-        ]
-    )
+
+    should_store_prev_state = config.should_store_previous_model_state()
+
+    for obj in session.dirty:
+        if not session.is_modified(obj, include_collections=False):
+            continue
+
+        if should_store_prev_state:
+            obj._previous_data = get_previous_data(obj)
+
+        session._audit_cache["changed"].add(obj)  # type: ignore
+
+
+def get_previous_data(instance) -> dict[str, Any]:
+    """
+    Get a dictionary of attribute changes for a SQLAlchemy model instance.
+
+    Args:
+        instance: The SQLAlchemy model instance to inspect.
+
+    Returns:
+        A dictionary containing old and new values of attributes that have changed.
+    """
+    result = {}
+
+    for attr_state in inspect(instance).attrs:
+        if attr_state.history.empty():
+            result[attr_state.key] = None
+        else:
+            value = (
+                attr_state.history.deleted[0]
+                if attr_state.history.deleted
+                else attr_state.history.unchanged[0]
+            )
+
+            result[attr_state.key] = value
+
+    return result
 
 
 @event.listens_for(Session, "after_commit")
@@ -77,11 +107,7 @@ def after_commit(session: SQLAlchemySession):
                     action=action,
                     action_object=instance.__class__.__name__,
                     action_object_id=inspect(instance).identity[0],
-                    payload=(
-                        _filter_payload(instance.__dict__)
-                        if should_store_complex_data
-                        else {}
-                    ),
+                    result=_prepare_result(instance, should_store_complex_data),
                 )
             )
 
@@ -97,12 +123,30 @@ def after_commit(session: SQLAlchemySession):
     del session._audit_cache  # type: ignore
 
 
+def _prepare_result(instance: Any, should_store_complex_data: bool) -> dict[str, Any]:
+    if not should_store_complex_data:
+        return {}
+
+    new_data = _filter_private_columns(instance.__dict__)
+
+    if hasattr(instance, "_previous_data"):
+        old_data = _filter_private_columns(instance._previous_data)
+        delattr(instance, "_previous_data")
+    else:
+        old_data = {}
+
+    return {
+        "new": new_data,
+        "old": old_data,
+    }
+
+
+def _filter_private_columns(payload: dict[str, Any]) -> dict[str, Any]:
+    return {k: v for k, v in payload.items() if not k.startswith("_")}
+
+
 @event.listens_for(Session, "after_rollback")
 def ckan_after_rollback(session: SQLAlchemySession):
     """Remove our custom attribute after rollback."""
     if hasattr(session, CACHE_ATTR):
         del session._audit_cache  # type: ignore
-
-
-def _filter_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    return {k: v for k, v in payload.items() if not k.startswith("_")}

@@ -79,6 +79,12 @@ groups:
         editable: true
         type: bool
 
+      - key: ckanext.event_audit.track.store_previous_model_state
+        description: Store the previous state of the model
+        default: false
+        editable: true
+        type: bool
+
       - key: ckanext.event_audit.batch.size
         description: The number of events to batch before sending to the repository
         default: 50

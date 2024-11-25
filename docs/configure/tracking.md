@@ -26,6 +26,39 @@ ckanext.event_audit.track_model = false
 
 We can ignore specific models from being tracked by setting the `ckanext.event_audit.ignore.models` configuration option. See the [ignore](ignore.md) section for more details.
 
+### Track only specific models
+
+If you want to track only specific models, you can set the `ckanext.event_audit.track.models` configuration option. This will ignore all the models that are not specified in the list.
+
+```ini
+ckanext.event_audit.track.models = Package Resource User
+```
+
+???+ Warning
+    1. The model names are case-sensitive.
+    2. Tracking specific models have a priority over ignoring specific models. If you specify the models to track, the ignore list will be ignored.
+
+### Track previous model state
+
+By default, the extension doesn't track the previous state of the model. If you want to track the previous state of the model, you can enable it by setting the following configuration option:
+
+```ini
+ckanext.event_audit.track.store_previous_model_state = true
+```
+
+The `event` result field contains two keys: `old` and `new`. If this option is enabled, the `old` key will contain the previous state of the model:
+
+```json
+{
+  "old": {
+    ...
+  },
+  "new": {
+    ...
+  }
+}
+```
+
 ## Storing payload and result data
 
 Storing `payload` and `result` data for in-built trackers is disabled by default, as it might be too expensive to store all the data. You can enable it by setting the following configuration options:
@@ -41,14 +74,4 @@ ckanext.event_audit.store_payload_and_result = true
 
 You can create and write an event anywhere in your codebase. See the [usage](../usage.md) section for more details.
 
-## Track only specific models
 
-If you want to track only specific models, you can set the `ckanext.event_audit.track.models` configuration option. This will ignore all the models that are not specified in the list.
-
-```ini
-ckanext.event_audit.track.models = Package Resource User
-```
-
-???+ Warning
-    1. The model names are case-sensitive.
-    2. Tracking specific models have a priority over ignoring specific models. If you specify the models to track, the ignore list will be ignored.
