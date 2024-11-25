@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://.github.io/ckanext-event-audit/exporters/csv/">
+        <link rel="canonical" href="https://.github.io/ckanext-event-audit/configure/repository/">
       
       
-        <link rel="prev" href="../basic/">
+        <link rel="prev" href="../../cli/">
       
       
-        <link rel="next" href="../tsv/">
+        <link rel="next" href="../cloudwatch/">
       
       
       <link rel="icon" href="../../img/favicon.ico">
@@ -22,7 +22,7 @@
     
     
       
-        <title>CSV exporter - ckanext-event-audit</title>
+        <title>Repository - ckanext-event-audit</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#csv-exporter" class="md-skip">
+        <a href="#active-repository" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +111,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              CSV exporter
+              Repository
             
           </span>
         </div>
@@ -400,8 +400,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -420,11 +422,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
         
           
           <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
@@ -438,7 +440,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_8">
             <span class="md-nav__icon md-icon"></span>
             Configuration
@@ -449,10 +451,28 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../configure/repository/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Repository
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -461,6 +481,42 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#active-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      Active repository
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list-of-available-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      List of available repositories
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -473,7 +529,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configure/cloudwatch/" class="md-nav__link">
+      <a href="../cloudwatch/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -494,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configure/admin_panel/" class="md-nav__link">
+      <a href="../admin_panel/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -515,7 +571,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configure/ignore/" class="md-nav__link">
+      <a href="../ignore/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -536,7 +592,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configure/tracking/" class="md-nav__link">
+      <a href="../tracking/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -557,7 +613,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../configure/async/" class="md-nav__link">
+      <a href="../async/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -582,10 +638,8 @@
       
   
   
-    
   
   
-  
     
     
       
@@ -602,11 +656,11 @@
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
         
           
           <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
@@ -620,7 +674,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_9">
             <span class="md-nav__icon md-icon"></span>
             Exporters
@@ -634,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../basic/" class="md-nav__link">
+      <a href="../../exporters/basic/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -652,30 +706,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    CSV exporter
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../exporters/csv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -684,44 +718,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#event_audit.exporters.csv.CSVExporter.__init__" class="md-nav__link">
-    <span class="md-ellipsis">
-      __init__
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event_audit.exporters.csv.CSVExporter.export" class="md-nav__link">
-    <span class="md-ellipsis">
-      export
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -734,7 +730,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tsv/" class="md-nav__link">
+      <a href="../../exporters/tsv/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -755,7 +751,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../json/" class="md-nav__link">
+      <a href="../../exporters/json/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -776,7 +772,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../xlsx/" class="md-nav__link">
+      <a href="../../exporters/xlsx/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -996,8 +992,6 @@
   
   
   
-    
-  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1006,18 +1000,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#event_audit.exporters.csv.CSVExporter.__init__" class="md-nav__link">
+  <a href="#active-repository" class="md-nav__link">
     <span class="md-ellipsis">
-      __init__
+      Active repository
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#event_audit.exporters.csv.CSVExporter.export" class="md-nav__link">
+  <a href="#list-of-available-repositories" class="md-nav__link">
     <span class="md-ellipsis">
-      export
+      List of available repositories
     </span>
   </a>
   
@@ -1041,206 +1035,34 @@
   
 
 
-<h1 id="csv-exporter">CSV exporter</h1>
+  <h1>Repository</h1>
 
-
-<div class="doc doc-object doc-class">
-
-
-
-
-    <div class="doc doc-contents first">
-
-
-
-
-
-  <div class="doc doc-children">
-
-
-
-
-
-
-
-
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="event_audit.exporters.csv.CSVExporter.__init__" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">quotechar</span><span class="o">=</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">QUOTE_ALL</span><span class="p">,</span> <span class="n">ignore_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>CSV exporter.</p>
-
-
-<table>
-      <thead>
-        <tr>
-          <th><span class="doc-section-title">PARAMETER</span></th>
-          <th><span>DESCRIPTION</span></th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code>delimiter</code></td>
-            <td class="doc-param-details">
-              <div class="doc-md-description">
-                <p>delimiter. Defaults to ",".</p>
-              </div>
-              <p>
-                  <span class="doc-param-annotation">
-                    <b>TYPE:</b>
-                      <code>str</code>
-                  </span>
-                  <span class="doc-param-default">
-                    <b>DEFAULT:</b>
-                      <code>&#39;,&#39;</code>
-                  </span>
-              </p>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code>quotechar</code></td>
-            <td class="doc-param-details">
-              <div class="doc-md-description">
-                <p>quote character. Defaults to '"'.</p>
-              </div>
-              <p>
-                  <span class="doc-param-annotation">
-                    <b>TYPE:</b>
-                      <code>str</code>
-                  </span>
-                  <span class="doc-param-default">
-                    <b>DEFAULT:</b>
-                      <code>&#39;&#34;&#39;</code>
-                  </span>
-              </p>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code>quoting</code></td>
-            <td class="doc-param-details">
-              <div class="doc-md-description">
-                <p>quoting. Defaults to QUOTE_ALL.</p>
-              </div>
-              <p>
-                  <span class="doc-param-annotation">
-                    <b>TYPE:</b>
-                      <code>int</code>
-                  </span>
-                  <span class="doc-param-default">
-                    <b>DEFAULT:</b>
-                      <code><span title="csv.QUOTE_ALL">QUOTE_ALL</span></code>
-                  </span>
-              </p>
-            </td>
-          </tr>
-          <tr class="doc-section-item">
-            <td><code>ignore_fields</code></td>
-            <td class="doc-param-details">
-              <div class="doc-md-description">
-                <p>fields to ignore. By
-default we ignore the "result" and "payload" fields.</p>
-              </div>
-              <p>
-                  <span class="doc-param-annotation">
-                    <b>TYPE:</b>
-                      <code>list[str] | None</code>
-                  </span>
-                  <span class="doc-param-default">
-                    <b>DEFAULT:</b>
-                      <code>None</code>
-                  </span>
-              </p>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-    </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-<h2 id="event_audit.exporters.csv.CSVExporter.export" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-method"></code>            <code class="highlight language-python"><span class="n">export</span><span class="p">(</span><span class="n">events</span><span class="p">)</span></code>
-
-</h2>
-
-
-    <div class="doc doc-contents ">
-
-        <p>Export events to CSV format.</p>
-
-
-<table>
-      <thead>
-        <tr>
-          <th><span class="doc-section-title">PARAMETER</span></th>
-          <th><span>DESCRIPTION</span></th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td><code>events</code></td>
-            <td class="doc-param-details">
-              <div class="doc-md-description">
-                <p>events to export.</p>
-              </div>
-              <p>
-                  <span class="doc-param-annotation">
-                    <b>TYPE:</b>
-                      <code><span title="typing.Iterable">Iterable</span>[<span title="ckanext.event_audit.types.Event">Event</span>]</code>
-                  </span>
-              </p>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-
-<table>
-      <thead>
-        <tr>
-          <th><span class="doc-section-title">RETURNS</span></th>
-          <th><span>DESCRIPTION</span></th>
-        </tr>
-      </thead>
-      <tbody>
-          <tr class="doc-section-item">
-            <td>
-                <span class="doc-returns-annotation">
-                    <code>str | None</code>
-                </span>
-            </td>
-            <td class="doc-returns-details">
-              <div class="doc-md-description">
-                <p>str | None: CSV data.</p>
-              </div>
-            </td>
-          </tr>
-      </tbody>
-    </table>
-
-    </div>
-
-</div>
-
-
-
-  </div>
-
-    </div>
-
-</div>
+<p>The event audit logs are stored in a configurable storages, we call them repositories. To use an extension, you have to choose one of the available repositories.</p>
+<p>The following repositories are available:</p>
+<ol>
+<li><code>redis</code> - the default repository, stores logs in Redis.</li>
+<li><code>postgres</code> - stores logs in a PostgreSQL database.</li>
+<li><code>cloudwatch</code> - stores logs in AWS CloudWatch.</li>
+</ol>
+<details class="note" open="open">
+<summary>Note</summary>
+<p>If the <code>cloudwatch</code> repository is used, the extension will automatically create a log group in CloudWatch. Also, check the <a href="../cloudwatch/">CloudWatch repository documentation</a> for additional configuration options.</p>
+</details>
+<h2 id="active-repository">Active repository</h2>
+<p>The default repository is <code>redis</code>, but it can be changed to a different one. To do this, we have to set the following configuration options in the CKAN configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.active_repo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">postgres</span>
+</code></pre></div>
+<h2 id="list-of-available-repositories">List of available repositories</h2>
+<p>You can restrict a list of available repositories by setting the following configuration option in the CKAN configuration file:</p>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.active_repo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">cloudwatch</span>
+<span class="na">ckanext.event_audit.restrict_available_repos</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">cloudwatch</span>
+</code></pre></div>
+<details class="note" open="open">
+<summary>Note</summary>
+<p>By default, we're not restricting the list of available repositories. It means that all registered repositories are available for use.</p>
+</details>
+<p>This could be useful if you want to limit the available repositories to a specific set of options due to some security concerns.
+This config option won't be available in the admin interface and can't be changed in real time.</p>
 
 
 
@@ -1276,7 +1098,7 @@ default we ignore the "result" and "payload" fields.</p>
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../basic/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Basic">
+          <a href="../../cli/" class="md-footer__link md-footer__link--prev" aria-label="Previous: CLI">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1286,20 +1108,20 @@ default we ignore the "result" and "payload" fields.</p>
                 Previous
               </span>
               <div class="md-ellipsis">
-                Basic
+                CLI
               </div>
             </div>
           </a>
         
         
           
-          <a href="../tsv/" class="md-footer__link md-footer__link--next" aria-label="Next: TSV exporter">
+          <a href="../cloudwatch/" class="md-footer__link md-footer__link--next" aria-label="Next: Cloudwatch">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                TSV exporter
+                Cloudwatch
               </div>
             </div>
             <div class="md-footer__button md-icon">
