@@ -19,6 +19,7 @@ CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
 CONF_TRACK_MODELS = "ckanext.event_audit.track.models"
 
 CONF_STORE_PREVIOUS_MODEL_STATE = "ckanext.event_audit.track.store_previous_model_state"
+DEF_STORE_PREVIOUS_MODEL_STATE = False
 
 CONF_DATABASE_TRACK_ENABLED = "ckanext.event_audit.track_model"
 CONF_API_TRACK_ENABLED = "ckanext.event_audit.track_api"
@@ -91,7 +92,9 @@ def should_store_payload_and_result() -> bool:
 def should_store_previous_model_state() -> bool:
     """Check if the previous state of the model should be stored in the event. Works
     only for in-built database listener."""
-    return tk.config[CONF_STORE_PREVIOUS_MODEL_STATE]
+    return tk.config.get(
+        CONF_STORE_PREVIOUS_MODEL_STATE, DEF_STORE_PREVIOUS_MODEL_STATE
+    )
 
 
 def get_batch_size() -> int:
