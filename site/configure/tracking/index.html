@@ -18,7 +18,7 @@
       
       
       <link rel="icon" href="../../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.42">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.44">
     
     
       
@@ -619,6 +619,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#track-only-specific-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Track only specific models
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1059,6 +1068,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#track-only-specific-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      Track only specific models
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1082,13 +1100,13 @@
 <h2 id="api-tracker">API tracker</h2>
 <p>Captures all events that are triggered by the CKAN API. Everything that is called via <code>tk.get_action</code> will be tracked by this tracker, unless it's explicitly ignored by the configuration. See the <a href="../ignore/">ignore</a> section for more details.</p>
 <p>To disable the API tracker, specify this in the configuration file:</p>
-<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track.api</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track_api</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
 </code></pre></div>
 <p>We can ignore specific actions from being tracked by setting the <code>ckanext.event_audit.ignore.actions</code> configuration option. See the <a href="../ignore/">ignore</a> section for more details.</p>
 <h2 id="database-tracker">Database tracker</h2>
 <p>We're utilising the SQLAlchemy’s event system for tracking database interactions. The audit event creation will be triggered when the model is created, updated, or deleted.</p>
 <p>To disable the Database tracker, specify this in the configuration file:</p>
-<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track.model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">false</span>
 </code></pre></div>
 <p>We can ignore specific models from being tracked by setting the <code>ckanext.event_audit.ignore.models</code> configuration option. See the <a href="../ignore/">ignore</a> section for more details.</p>
 <h2 id="storing-payload-and-result-data">Storing payload and result data</h2>
@@ -1101,6 +1119,17 @@
 </details>
 <h2 id="custom-trackers">Custom trackers</h2>
 <p>You can create and write an event anywhere in your codebase. See the <a href="../../usage/">usage</a> section for more details.</p>
+<h2 id="track-only-specific-models">Track only specific models</h2>
+<p>If you want to track only specific models, you can set the <code>ckanext.event_audit.track.models</code> configuration option. This will ignore all the models that are not specified in the list.</p>
+<div class="highlight"><pre><span></span><code><span class="na">ckanext.event_audit.track.models</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">Package Resource User</span>
+</code></pre></div>
+<details class="warning" open="open">
+<summary>Warning</summary>
+<ol>
+<li>The model names are case-sensitive.</li>
+<li>Tracking specific models have a priority over ignoring specific models. If you specify the models to track, the ignore list will be ignored.</li>
+</ol>
+</details>
 
 
 
