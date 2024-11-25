@@ -49,7 +49,7 @@ fields:
     form_snippet: tom_tags.html
     required: false
 
-  - field_name: ckanext.event_audit.track.model
+  - field_name: ckanext.event_audit.track_model
     label: Track Model
     help_text: Enable logging of database events
     preset: select
@@ -60,7 +60,7 @@ fields:
       - value: false
         label: No
 
-  - field_name: ckanext.event_audit.track.api
+  - field_name: ckanext.event_audit.track_api
     label: Track API
     help_text: Enable logging of API events
     preset: select

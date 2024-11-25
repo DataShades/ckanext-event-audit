@@ -170,3 +170,26 @@ class TestModelListener:
         user_idx = 1
 
         assert events[user_idx].payload["name"] == user["name"]
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    @pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Dashboard"])
+    def test_track_only_specific_models(self, user: dict[str, Any], repo: repositories.AbstractRepository):
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].action_object == "Dashboard"
+
+    @pytest.mark.usefixtures("with_plugins", "clean_db")
+    @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+    @pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Dashboard"])
+    @pytest.mark.ckan_config(config.CONF_IGNORED_MODELS, ["Dashboard"])
+    def test_track_have_priority_over_ignore(self, user: dict[str, Any], repo: repositories.AbstractRepository):
+        assert config.get_tracked_models() == ["Dashboard"]
+        assert config.get_ignored_models() == ["Dashboard"]
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].action_object == "Dashboard"
+

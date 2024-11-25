@@ -16,8 +16,10 @@ CONF_IGNORED_CATEGORIES = "ckanext.event_audit.ignore.categories"
 CONF_IGNORED_ACTIONS = "ckanext.event_audit.ignore.actions"
 CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
 
-CONF_DATABASE_TRACK_ENABLED = "ckanext.event_audit.track.model"
-CONF_API_TRACK_ENABLED = "ckanext.event_audit.track.api"
+CONF_TRACK_MODELS = "ckanext.event_audit.track.models"
+
+CONF_DATABASE_TRACK_ENABLED = "ckanext.event_audit.track_model"
+CONF_API_TRACK_ENABLED = "ckanext.event_audit.track_api"
 
 CONF_STORE_PAYLOAD_AND_RESULT = "ckanext.event_audit.store_payload_and_result"
 
@@ -60,6 +62,11 @@ def get_ignored_actions() -> list[str]:
 def get_ignored_models() -> list[str]:
     """A list of database models to ignore when logging events."""
     return tk.config[CONF_IGNORED_MODELS]
+
+
+def get_tracked_models() -> list[str]:
+    """A list of database models to track when logging events."""
+    return tk.config[CONF_TRACK_MODELS]
 
 
 def is_database_log_enabled() -> bool:

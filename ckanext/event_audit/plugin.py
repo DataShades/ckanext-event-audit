@@ -158,7 +158,14 @@ class EventAuditPlugin(p.SingletonPlugin):
         if event.category in config.get_ignored_categories():
             return True
 
-        return event.action_object in config.get_ignored_models()
+        # track specific models have priority over ignoring specific models
+        if (
+            not config.get_tracked_models()
+            and event.action_object in config.get_ignored_models()
+        ):
+            return True
+
+        return False
 
     # IConfigDeclaration
 

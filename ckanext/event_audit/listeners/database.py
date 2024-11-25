@@ -61,10 +61,14 @@ def after_commit(session: SQLAlchemySession):
 
     thread_mode_enabled = config.is_threaded_mode_enabled()
     should_store_complex_data = config.should_store_payload_and_result()
+    tracked_models = config.get_tracked_models()
 
     for action, instances in session._audit_cache.items():  # type: ignore
         for instance in instances:
             if isinstance(instance, EventModel):
+                continue
+
+            if tracked_models and instance.__class__.__name__ not in tracked_models:
                 continue
 
             event = repo.build_event(
