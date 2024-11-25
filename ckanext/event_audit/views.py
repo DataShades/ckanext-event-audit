@@ -6,11 +6,11 @@ from flask.views import MethodView
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 
-from ckanext.event_audit import utils
+from ckanext.event_audit import utils, config
 
 event_audit = Blueprint("event_audit", __name__, url_prefix="/admin-panel/event_audit")
 
-if p.plugin_loaded("admin_panel"):
+if p.plugin_loaded("admin_panel") and config.is_admin_panel_enabled():
     from ckan.logic import parse_params
 
     from ckanext.ap_main.utils import ap_before_request

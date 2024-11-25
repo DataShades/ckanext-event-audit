@@ -23,6 +23,9 @@ CONF_BATCH_TIMEOUT = "ckanext.event_audit.batch.timeout"
 
 CONF_THREADED = "ckanext.event_audit.threaded_mode"
 
+CONF_ADMIN_PANEL = "ckanext.event_audit.enable_admin_panel"
+DEF_ADMIN_PANEL = True
+
 
 def active_repo() -> str:
     """The active repository to store the audit logs."""
@@ -72,3 +75,7 @@ def get_batch_timeout() -> int:
 
 def is_threaded_mode_enabled() -> bool:
     return tk.config[CONF_THREADED]
+
+
+def is_admin_panel_enabled() -> bool:
+    return tk.config.get(CONF_ADMIN_PANEL, DEF_ADMIN_PANEL)

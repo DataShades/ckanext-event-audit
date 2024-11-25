@@ -98,20 +98,28 @@ class EventAuditPlugin(p.SingletonPlugin):
     # ISignal
 
     def get_signal_subscriptions(self) -> SignalMapping:
-        return {
+        mapping: SignalMapping = {
             tk.signals.action_succeeded: [
                 listeners.api.action_succeeded_subscriber,
             ],
-            tk.signals.ckanext.signal("ap_main:collect_config_sections"): [
-                self.collect_config_sections_subs
-            ],
-            tk.signals.ckanext.signal("ap_main:collect_config_schemas"): [
-                self.collect_config_schemas_subs
-            ],
-            tk.signals.ckanext.signal("collection:register_collections"): [
-                self.get_collection_factories,
-            ],
         }
+
+        if config.is_admin_panel_enabled():
+            mapping.update(
+                {
+                    tk.signals.ckanext.signal("ap_main:collect_config_sections"): [
+                        self.collect_config_sections_subs
+                    ],
+                    tk.signals.ckanext.signal("ap_main:collect_config_schemas"): [
+                        self.collect_config_schemas_subs
+                    ],
+                    tk.signals.ckanext.signal("collection:register_collections"): [
+                        self.get_collection_factories,
+                    ],
+                }
+            )
+
+        return mapping
 
     @staticmethod
     def collect_config_sections_subs(sender: None):

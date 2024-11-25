@@ -79,3 +79,9 @@ groups:
         default: true
         editable: false
         type: bool
+
+      - key: ckanext.event_audit.enable_admin_panel
+        description: Enable the admin panel
+        default: true
+        editable: false
+        type: bool

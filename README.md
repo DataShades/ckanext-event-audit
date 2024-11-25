@@ -9,9 +9,9 @@ Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for 
 TODO:
 - [ ] add config option to exclude result and payload fields from being stored
 - [ ] allow to restrict a list of available repos (security concern)
-- [ ] disable the admin interface by default (security concern)
-- [ ] update `remove_events` method to allow removing events by date range
-- [ ] add a cli command to remove events by date range
+- [X] disable the admin interface by default (security concern)
+- [X] update `remove_events` method to allow removing events by date range
+- [X] add a cli command to remove events by date range
 
 ## Quick start
 
