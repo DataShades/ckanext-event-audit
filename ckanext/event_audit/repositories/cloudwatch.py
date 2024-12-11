@@ -108,6 +108,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             self.client.exceptions.ServiceUnavailableException,
             self.client.exceptions.UnrecognizedClientException,
             self.client.exceptions.ClientError,
+            ClientError,
         ) as e:
             log.error(f"Failed to write event to CloudWatch: {e}")
             return types.Result(status=False, message=str(e))
