@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import json
 from contextlib import suppress
 from datetime import datetime, timezone
@@ -17,6 +18,9 @@ else:
 
 from ckanext.event_audit import config, types
 from ckanext.event_audit.repositories.base import AbstractRepository, RemoveAll
+
+
+log = logging.getLogger(__name__)
 
 
 class CloudWatchEvent(TypedDict):
@@ -103,7 +107,9 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             self.client.exceptions.ResourceNotFoundException,
             self.client.exceptions.ServiceUnavailableException,
             self.client.exceptions.UnrecognizedClientException,
+            self.client.exceptions.ClientError,
         ) as e:
+            log.error(f"Failed to write event to CloudWatch: {e}")
             return types.Result(status=False, message=str(e))
 
     def _create_log_stream_if_not_exists(self, log_stream: str) -> str:
@@ -227,6 +233,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         try:
             self.client.delete_log_group(logGroupName=self.log_group)
         except self.client.exceptions.ResourceNotFoundException as err:
+            log.error(f"Failed to remove all events from CloudWatch: {err}")
             return types.Result(status=False, message=str(err))
 
         return types.Result(status=True, message="All events removed successfully")
