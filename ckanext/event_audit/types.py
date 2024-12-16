@@ -115,13 +115,29 @@ class Event(BaseModel):
 
     @classmethod
     def _ensure_dict_is_serialisable(cls, data: dict[str, Any]) -> dict[str, Any]:
+        """Ensure that all values in the dictionary are serializable.
+
+        This method recursively traverses the dictionary and converts all
+        non-serializable valuse to serializable ones.
+
+        Args:
+            data: The dictionary to be processed.
+
+        Returns:
+            The processed dictionary.
+        """
+
         def make_serializable(value: Any) -> Any:
             if isinstance(value, dict):
-                return {
-                    k: make_serializable(v)
-                    for k, v in value.items()
-                    if not k.startswith("_")
-                }
+                result = {}
+
+                for key, val in value.items():
+                    if isinstance(key, str) and key.startswith("_"):
+                        continue
+
+                    result[key] = make_serializable(val)
+
+                return result
 
             if isinstance(value, list):
                 return [make_serializable(item) for item in value]
@@ -129,17 +145,20 @@ class Event(BaseModel):
             if isinstance(value, datetime):
                 return value.isoformat()
 
-            # TODO: not sure if this is needed, we're doing too much?
-            # For example, the SQLAlchemy has a __dict__ attribute, but do we
-            # need to convert it to a dict?
-            # if hasattr(value, "__dict__"):
-            #     return make_serializable(value.__dict__)
+            if isinstance(value, (str, int, float, bool)):
+                return value
 
             return str(value)
 
-        return {
-            k: make_serializable(v) for k, v in data.items() if not k.startswith("_")
-        }
+        result = {}
+
+        for key, value in data.items():
+            if isinstance(key, str) and key.startswith("_"):
+                continue
+
+            result[key] = make_serializable(value)
+
+        return result
 
 
 class Filters(BaseModel):
