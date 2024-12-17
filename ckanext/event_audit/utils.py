@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ckan.plugins as p
 
-from ckanext.event_audit import config, exporters
+from ckanext.event_audit import config, exporters, types
 from ckanext.event_audit import repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
 
@@ -23,7 +23,7 @@ def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
         repos.CloudWatchRepository.get_name(): repos.CloudWatchRepository,
     }
 
-    for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
+    for plugin in p.PluginImplementations(IEventAudit):
         plugin_repos.update(plugin.register_repository())
 
     restrict_repos = config.get_list_of_available_repos()
@@ -38,7 +38,7 @@ def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
     }
 
 
-def get_active_repo() -> repos.AbstractRepository:
+def get_active_repo(ignore_cache: bool = False) -> repos.AbstractRepository:
     """Get the active repository.
 
     The active repository is the one that is currently configured in the
@@ -47,6 +47,13 @@ def get_active_repo() -> repos.AbstractRepository:
     Returns:
         The active repository.
     """
+    from ckan.plugins import get_plugin
+
+    plugin_instance = get_plugin("event_audit")
+
+    if hasattr(plugin_instance, "repo") and not ignore_cache:
+        return plugin_instance.repo
+
     repos = get_available_repos()
     active_repo_name = config.active_repo()
 
@@ -134,3 +141,20 @@ def get_exporter(exporter_name: str) -> type[exporters.AbstractExporter]:
         raise ValueError(f"Exporter {exporter_name} not found")
 
     return exporters[exporter_name]
+
+
+def skip_event(event: types.Event) -> bool:
+    if event.action in config.get_ignored_actions():
+        return True
+
+    if event.category in config.get_ignored_categories():
+        return True
+
+    # track specific models have priority over ignoring specific models
+    if (
+        not config.get_tracked_models()
+        and event.action_object in config.get_ignored_models()
+    ):
+        return True
+
+    return False

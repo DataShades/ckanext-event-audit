@@ -41,6 +41,8 @@ class IEventAudit(Interface):
     ```
     """
 
+    _reverse_iteration_order = True
+
     def register_repository(self) -> dict[str, type[repos.AbstractRepository]]:
         """Return the repositories provided by this plugin.
 

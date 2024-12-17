@@ -42,7 +42,10 @@ def action_succeeded_subscriber(
         )
     )
 
-    for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
+    if utils.skip_event(event):
+        return
+
+    for plugin in p.PluginImplementations(IEventAudit):
         if plugin.skip_event(event):
             return
 

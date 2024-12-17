@@ -69,7 +69,6 @@ class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurable)
     p.implements(p.IConfigurer)
     p.implements(p.ISignal)
-    p.implements(IEventAudit, inherit=True)
     p.implements(p.IConfigDeclaration)
 
     event_queue = queue.Queue()
@@ -81,11 +80,11 @@ class EventAuditPlugin(p.SingletonPlugin):
     # IConfigurable
 
     def configure(self, config_: CKANConfig) -> None:
-        repo = utils.get_active_repo()
+        self.repo = utils.get_active_repo(True)
 
-        if repo.get_name() == "cloudwatch" and repo._connection is None:
+        if self.repo.get_name() == "cloudwatch" and self.repo._connection is None:
             if config_.get("testing"):
-                repo._connection = True  # type: ignore
+                self.repo._connection = True  # type: ignore
             else:
                 utils.test_active_connection()
 
@@ -149,23 +148,6 @@ class EventAuditPlugin(p.SingletonPlugin):
 
         return {"event-audit-list": EventAuditListCollection}
 
-    # IEventAudit
-
-    def skip_event(self, event: types.Event) -> bool:
-        if event.action in config.get_ignored_actions():
-            return True
-
-        if event.category in config.get_ignored_categories():
-            return True
-
-        # track specific models have priority over ignoring specific models
-        if (
-            not config.get_tracked_models()
-            and event.action_object in config.get_ignored_models()
-        ):
-            return True
-
-        return False
 
     # IConfigDeclaration
 
