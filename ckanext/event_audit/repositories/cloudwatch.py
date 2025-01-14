@@ -32,16 +32,18 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
-        log_group: str = "/ckan/event-audit",
-        log_stream: str = "event-audit-stream",
+        log_group: str | None = None,
+        log_stream: str | None = None,
     ):
         """CloudWatch repository.
 
         Args:
             credentials (types.AWSCredentials | None, optional): AWS credentials.
                 If not provided, the extension configuration will be used.
-            log_group (str, optional): CloudWatch log group name.
-            log_stream (str, optional): CloudWatch log stream name.
+            log_group (str | None, optional): Log group name.
+                If not specified, the configured log group will be used.
+            log_stream (str | None, optional): Log stream name.
+                If not specified, the configured log stream will be used.
         """
         # TODO: check conn?
         if self._connection is not None:
@@ -58,8 +60,8 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
 
         self.client: CloudWatchLogsClient = self.session.client("logs")
 
-        self.log_group = log_group
-        self.log_stream = log_stream
+        self.log_group = log_group or config.get_cloudwatch_log_group()
+        self.log_stream = log_stream or config.get_cloudwatch_log_stream()
 
         try:
             self._create_log_group_if_not_exists()

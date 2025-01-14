@@ -33,7 +33,7 @@ def event_audit():
     help="ISO format end date",
 )
 @click.option("--config", required=False, type=str, help="Custom config in JSON format")
-def export_data(exporter_name: str, start: dt, end: dt | None, config: str | None):
+def export_data(exporter_name: str, start: dt, end: dt | None, config: str | None) -> None:
     """Export data using the specified exporter.
 
     Args:
@@ -44,7 +44,7 @@ def export_data(exporter_name: str, start: dt, end: dt | None, config: str | Non
             documentation for args details.
 
     Returns:
-        str : The exported data
+        The exported data will be printed to the standard output.
 
     Example:
         $ ckan event-audit export-data csv --start=2024-11-11 > report.csv

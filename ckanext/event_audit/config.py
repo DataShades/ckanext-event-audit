@@ -11,6 +11,8 @@ CONF_RESTRICT_AVAILABLE_REPOS = "ckanext.event_audit.restrict_available_repos"
 CONF_CLOUDWATCH_KEY = "ckanext.event_audit.cloudwatch.access_key"
 CONF_CLOUDWATCH_SECRET = "ckanext.event_audit.cloudwatch.secret_key"
 CONF_CLOUDWATCH_REGION = "ckanext.event_audit.cloudwatch.region"
+CONF_CLOUDWATCH_GROUP = "ckanext.event_audit.cloudwatch.group"
+CONF_CLOUDWATCH_STREAM = "ckanext.event_audit.cloudwatch.stream"
 
 CONF_IGNORED_CATEGORIES = "ckanext.event_audit.ignore.categories"
 CONF_IGNORED_ACTIONS = "ckanext.event_audit.ignore.actions"
@@ -51,6 +53,14 @@ def get_cloudwatch_credentials() -> types.AWSCredentials:
         aws_secret_access_key=tk.config[CONF_CLOUDWATCH_SECRET],
         region_name=tk.config[CONF_CLOUDWATCH_REGION],
     )
+
+
+def get_cloudwatch_log_group() -> str:
+    return tk.config[CONF_CLOUDWATCH_GROUP]
+
+
+def get_cloudwatch_log_stream() -> str:
+    return tk.config[CONF_CLOUDWATCH_STREAM]
 
 
 def get_ignored_categories() -> list[str]:

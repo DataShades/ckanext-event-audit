@@ -25,6 +25,16 @@ fields:
     help_text: The region for the AWS account
     required: false
 
+  - field_name: ckanext.event_audit.cloudwatch.group
+    label: Log Group
+    help_text: The log group for the AWS account
+    required: true
+
+  - field_name: ckanext.event_audit.cloudwatch.stream
+    label: Log Stream
+    help_text: The log stream for the AWS account
+    required: true
+
   - field_name: ckanext.event_audit.ignore.categories
     label: Ignored Categories
     help_text: |
