@@ -2,98 +2,98 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://.github.io/ckanext-event-audit/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/cli/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/install/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/interfaces/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/usage/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/utils/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/validators/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/admin_panel/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/async/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/cloudwatch/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/ignore/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/repository/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/configure/tracking/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/exporters/basic/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/exporters/csv/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/exporters/json/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/exporters/tsv/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/exporters/xlsx/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/abstract/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/basic/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/cloudwatch/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/custom/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/postgres/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
     <url>
          <loc>https://.github.io/ckanext-event-audit/repositories/redis/</loc>
-         <lastmod>2024-11-25</lastmod>
+         <lastmod>2025-01-14</lastmod>
     </url>
 </urlset>
