@@ -28,12 +28,12 @@ groups:
         default: ''
         editable: true
 
-      - key: ckanext.event_audit.cloudwatch.group
+      - key: ckanext.event_audit.cloudwatch.log_group
         description: The log group for the AWS Cloudwatch
         default: '/ckan/event-audit'
         editable: false
 
-      - key: ckanext.event_audit.cloudwatch.stream
+      - key: ckanext.event_audit.cloudwatch.log_stream
         description: The log stream for the AWS Cloudwatch
         default: 'event-audit-stream'
         editable: false
