@@ -18,8 +18,24 @@ CONF_CLOUDWATCH_STREAM = "ckanext.event_audit.cloudwatch.log_stream"
 DEF_CLOUDWATCH_STREAM = "event-audit-stream"
 
 CONF_IGNORED_CATEGORIES = "ckanext.event_audit.ignore.categories"
+DEF_IGNORED_CATEGORIES = []
+
 CONF_IGNORED_ACTIONS = "ckanext.event_audit.ignore.actions"
+DEF_IGNORED_ACTIONS = [
+    "resource_view_list",
+    "editable_config_list",
+    "editable_config_change",
+    "get_site_user",
+    "ckanext_pages_list",
+    "user_show",
+    "package_search",
+    "package_show",
+    "task_status_update",
+    "task_status_show"
+]
+
 CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
+DEF_IGNORED_MODELS = ["Option"]
 
 CONF_TRACK_MODELS = "ckanext.event_audit.track.models"
 
@@ -33,9 +49,13 @@ CONF_STORE_PAYLOAD_AND_RESULT = "ckanext.event_audit.store_payload_and_result"
 DEF_STORE_PAYLOAD_AND_RESULT = False
 
 CONF_BATCH_SIZE = "ckanext.event_audit.batch.size"
+DEF_BATCH_SIZE = 50
+
 CONF_BATCH_TIMEOUT = "ckanext.event_audit.batch.timeout"
+DEF_BATCH_TIMEOUT = 3600
 
 CONF_THREADED = "ckanext.event_audit.threaded_mode"
+DEF_THREADED = True
 
 CONF_ADMIN_PANEL = "ckanext.event_audit.enable_admin_panel"
 DEF_ADMIN_PANEL = True
@@ -52,9 +72,9 @@ def get_list_of_available_repos() -> list[str]:
 
 def get_cloudwatch_credentials() -> types.AWSCredentials:
     return types.AWSCredentials(
-        aws_access_key_id=tk.config[CONF_CLOUDWATCH_KEY],
-        aws_secret_access_key=tk.config[CONF_CLOUDWATCH_SECRET],
-        region_name=tk.config[CONF_CLOUDWATCH_REGION],
+        aws_access_key_id=tk.config.get(CONF_CLOUDWATCH_KEY, ""),
+        aws_secret_access_key=tk.config.get(CONF_CLOUDWATCH_SECRET, ""),
+        region_name=tk.config.get(CONF_CLOUDWATCH_REGION, ""),
     )
 
 
@@ -68,17 +88,17 @@ def get_cloudwatch_log_stream() -> str:
 
 def get_ignored_categories() -> list[str]:
     """A list of categories to ignore when logging events."""
-    return tk.config[CONF_IGNORED_CATEGORIES]
+    return tk.config.get(CONF_IGNORED_CATEGORIES, DEF_IGNORED_CATEGORIES)
 
 
 def get_ignored_actions() -> list[str]:
     """A list of actions to ignore when logging events."""
-    return tk.config[CONF_IGNORED_ACTIONS]
+    return tk.config.get(CONF_IGNORED_ACTIONS, DEF_IGNORED_ACTIONS)
 
 
 def get_ignored_models() -> list[str]:
     """A list of database models to ignore when logging events."""
-    return tk.config[CONF_IGNORED_MODELS]
+    return tk.config.get(CONF_IGNORED_MODELS, DEF_IGNORED_MODELS)
 
 
 def get_tracked_models() -> list[str]:
@@ -111,15 +131,15 @@ def should_store_previous_model_state() -> bool:
 
 
 def get_batch_size() -> int:
-    return tk.config[CONF_BATCH_SIZE]
+    return tk.config.get(CONF_BATCH_SIZE, DEF_BATCH_SIZE)
 
 
 def get_batch_timeout() -> int:
-    return tk.config[CONF_BATCH_TIMEOUT]
+    return tk.config.get(CONF_BATCH_TIMEOUT, DEF_BATCH_TIMEOUT)
 
 
 def is_threaded_mode_enabled() -> bool:
-    return tk.config[CONF_THREADED]
+    return tk.config.get(CONF_THREADED, DEF_THREADED)
 
 
 def is_admin_panel_enabled() -> bool:

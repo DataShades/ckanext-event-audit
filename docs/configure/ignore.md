@@ -35,6 +35,11 @@ By default, we're excluding next actions from being stored:
 * `get_site_user`
 * `ckanext_pages_list`
 * `user_show`
+* `resource_view_list`
+* `package_search`
+* `package_show`
+* `task_status_update`
+* `task_status_show`
 
 ## Ignoring models
 
