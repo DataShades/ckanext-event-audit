@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_va
 
 import ckan.plugins.toolkit as tk
 from ckan import model
+from sqlalchemy import exc
 
 
 class ThreadData(TypedDict):
@@ -148,7 +149,12 @@ class Event(BaseModel):
             if isinstance(value, (str, int, float, bool)):
                 return value
 
-            return str(value)
+            try:
+                value = str(value)
+            except TypeError:
+                return ""
+
+            return value
 
         result = {}
 
