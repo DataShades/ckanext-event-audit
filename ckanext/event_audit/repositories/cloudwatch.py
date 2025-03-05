@@ -134,7 +134,6 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         event_dump = event.model_dump_json()
         event_size = len(event_dump)
 
-        import ipdb; ipdb.set_trace()
         if event_size > LOG_EVENT_SIZE_LIMIT:
             log.error(
                 (
