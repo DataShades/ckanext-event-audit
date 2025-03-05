@@ -22,6 +22,8 @@ from ckanext.event_audit.repositories.base import AbstractRepository, RemoveAll
 
 log = logging.getLogger(__name__)
 
+LOG_EVENT_SIZE_LIMIT = 262_144  # 256KB
+
 
 class CloudWatchEvent(TypedDict):
     timestamp: int
@@ -96,7 +98,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 logEvents=[
                     {
                         "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
-                        "message": event.model_dump_json(),
+                        "message": self._get_event_dump(event),
                     }
                 ],
             )
@@ -114,6 +116,39 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         ) as e:
             log.error(f"Failed to write event to CloudWatch: {e}")
             return types.Result(status=False, message=str(e))
+
+    def _get_event_dump(self, event: types.Event) -> str:
+        """Get the event dump.
+
+        The event dump is the event serialized to a JSON string.
+        If the event is too large to be written to CloudWatch,
+        the result and payload are removed from the event, as it's the only
+        part of the event, that might be too large to be written to CloudWatch.
+
+        Args:
+            event (types.Event): event to get the dump.
+
+        Returns:
+            str: event dump.
+        """
+        event_dump = event.model_dump_json()
+        event_size = len(event_dump)
+
+        import ipdb; ipdb.set_trace()
+        if event_size > LOG_EVENT_SIZE_LIMIT:
+            log.error(
+                (
+                    "Event %s, %s, %s is too large to be written to CloudWatch: %s bytes"
+                    "Removing the result and payload from the event"
+                ),
+                event.id,
+                event.category,
+                event.action,
+                event_size,
+            )
+            event_dump = event.model_dump_json(exclude={"result", "payload"})
+
+        return event_dump
 
     def _create_log_stream_if_not_exists(self, log_stream: str) -> str:
         """Creates the log stream if it doesn't already exist."""

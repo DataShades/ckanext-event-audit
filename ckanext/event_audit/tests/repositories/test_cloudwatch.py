@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime as dt
 from datetime import timedelta as td
 from datetime import timezone as tz
-from typing import Any
+from typing import Any, Callable
 
 import pytest
 from botocore.stub import Stubber
@@ -171,3 +171,33 @@ class TestCloudWatchRepository:
 
         with pytest.raises(NotImplementedError):
             repo.remove_events(types.Filters())
+
+    def test_get_event_dump(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
+    ):
+        repo, _ = cloudwatch_repo
+
+        assert repo._get_event_dump(event) == event.model_dump_json()
+
+    def test_get_event_dump_large_event(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        """Test that we throw away large data from the event.
+
+        This is to avoid exceeding the maximum size of a single event in CloudWatch.
+        """
+        repo, _ = cloudwatch_repo
+
+        # generates an event that is about 268897 bytes (262.8 KB)
+        long_data = {f"key_{i}": [f"value_{i}" for _ in range(100)] for i in range(120)}
+
+        event = event_factory(
+            result=long_data,
+            payload=long_data,
+        )
+
+        assert repo._get_event_dump(event) == event.model_dump_json(
+            exclude={"result", "payload"}
+        )
