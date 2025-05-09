@@ -9,7 +9,6 @@ from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_va
 
 import ckan.plugins.toolkit as tk
 from ckan import model
-from sqlalchemy import exc
 
 
 class ThreadData(TypedDict):
@@ -119,7 +118,7 @@ class Event(BaseModel):
         """Ensure that all values in the dictionary are serializable.
 
         This method recursively traverses the dictionary and converts all
-        non-serializable valuse to serializable ones.
+        non-serializable values to serializable ones.
 
         Args:
             data: The dictionary to be processed.
@@ -127,44 +126,42 @@ class Event(BaseModel):
         Returns:
             The processed dictionary.
         """
-
-        def make_serializable(value: Any) -> Any:
-            if isinstance(value, dict):
-                result = {}
-
-                for key, val in value.items():
-                    if isinstance(key, str) and key.startswith("_"):
-                        continue
-
-                    result[key] = make_serializable(val)
-
-                return result
-
-            if isinstance(value, list):
-                return [make_serializable(item) for item in value]
-
-            if isinstance(value, datetime):
-                return value.isoformat()
-
-            if isinstance(value, (str, int, float, bool)):
-                return value
-
-            try:
-                value = str(value)
-            except TypeError:
-                return ""
-
-            return value
-
         result = {}
 
         for key, value in data.items():
             if isinstance(key, str) and key.startswith("_"):
                 continue
 
-            result[key] = make_serializable(value)
+            result[key] = cls._make_value_serializable(value)
 
         return result
+
+    @classmethod
+    def _make_value_serializable(cls, value: Any) -> Any:
+        """Convert a value to a serializable format.
+
+        Args:
+            value: The value to convert.
+
+        Returns:
+            The serialized value.
+        """
+        if isinstance(value, dict):
+            return cls._ensure_dict_is_serialisable(value)
+
+        if isinstance(value, list):
+            return [cls._make_value_serializable(item) for item in value]
+
+        if isinstance(value, datetime):
+            return value.isoformat()
+
+        if isinstance(value, (str, int, float, bool)):
+            return value
+
+        try:
+            return str(value)
+        except TypeError:
+            return ""
 
 
 class Filters(BaseModel):
@@ -173,7 +170,7 @@ class Filters(BaseModel):
     This model is used to filter events based on different criteria.
     """
 
-    id: str = Field(default=None, description="Event ID")
+    id: str | None = Field(default=None, description="Event ID")
 
     category: Optional[str] = Field(
         default=None, description="Event category, e.g., 'api'"

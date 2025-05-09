@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-event-audit"
-version = "1.2.12"
+version = "1.2.13"
 description = ""
 classifiers = [
             "Development Status :: 4 - Beta",
@@ -116,6 +116,13 @@ sqlalchemy = "sa"
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.isort]
+known_ckan = "ckan"
+known_ckanext = "ckanext"
+known_self = "ckanext.event_audit"
+sections = "FUTURE,STDLIB,FIRSTPARTY,THIRDPARTY,CKAN,CKANEXT,SELF,LOCALFOLDER"
+profile = "black"
 
 [tool.ruff.lint.isort]
 section-order = [

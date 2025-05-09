@@ -33,7 +33,9 @@ def event_audit():
     help="ISO format end date",
 )
 @click.option("--config", required=False, type=str, help="Custom config in JSON format")
-def export_data(exporter_name: str, start: dt, end: dt | None, config: str | None) -> None:
+def export_data(
+    exporter_name: str, start: dt, end: dt | None, config: str | None
+) -> None:
     """Export data using the specified exporter.
 
     Args:

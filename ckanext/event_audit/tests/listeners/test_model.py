@@ -3,9 +3,10 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from ckan.tests.helpers import call_action
 import pytest
 from botocore.stub import Stubber
+
+from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, const, repositories, types
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository

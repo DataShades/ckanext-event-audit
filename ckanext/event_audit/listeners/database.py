@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import event, inspect
-from sqlalchemy.orm import IdentityMap, UOWTransaction, Session as SQLAlchemySession
+from sqlalchemy.orm import IdentityMap
+from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy.orm import UOWTransaction
 
 import ckan.plugins as p
 from ckan.model.base import Session
@@ -52,9 +54,8 @@ def before_flush(
         session._audit_cache["changed"].add(obj)  # type: ignore
 
 
-def get_previous_data(instance) -> dict[str, Any]:
-    """
-    Get a dictionary of attribute changes for a SQLAlchemy model instance.
+def get_previous_data(instance: Any) -> dict[str, Any]:
+    """Get a dictionary of attribute changes for a SQLAlchemy model instance.
 
     Args:
         instance: The SQLAlchemy model instance to inspect.
@@ -81,13 +82,7 @@ def get_previous_data(instance) -> dict[str, Any]:
 
 @event.listens_for(Session, "after_commit")
 def after_commit(session: SQLAlchemySession):
-    if not p.plugin_loaded("event_audit"):
-        return
-
-    if not config.is_database_log_enabled():
-        return
-
-    if not hasattr(session, CACHE_ATTR):
+    if not _should_process_commit(session):
         return
 
     repo = utils.get_active_repo()
@@ -95,10 +90,34 @@ def after_commit(session: SQLAlchemySession):
     if repo._connection is False:
         return
 
-    thread_mode_enabled = config.is_threaded_mode_enabled()
-    should_store_complex_data = config.should_store_payload_and_result()
-    tracked_models = config.get_tracked_models()
+    _process_cached_instances(
+        session,
+        repo,
+        config.is_threaded_mode_enabled(),
+        config.should_store_payload_and_result(),
+        config.get_tracked_models(),
+    )
 
+    del session._audit_cache  # type: ignore
+
+
+def _should_process_commit(session: SQLAlchemySession) -> bool:
+    if not p.plugin_loaded("event_audit"):
+        return False
+
+    if not config.is_database_log_enabled():
+        return False
+
+    return hasattr(session, CACHE_ATTR)
+
+
+def _process_cached_instances(
+    session: SQLAlchemySession,
+    repo: Any,
+    thread_mode_enabled: bool,
+    should_store_complex_data: bool,
+    tracked_models: list[str],
+) -> None:
     for action, instances in session._audit_cache.items():  # type: ignore
         for instance in instances:
             if isinstance(instance, EventModel):
@@ -128,8 +147,6 @@ def after_commit(session: SQLAlchemySession):
                 repo.enqueue_event(event)
             else:
                 repo.write_event(event)
-
-    del session._audit_cache  # type: ignore
 
 
 def _prepare_result(instance: Any, should_store_complex_data: bool) -> dict[str, Any]:

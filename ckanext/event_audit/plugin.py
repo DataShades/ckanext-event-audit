@@ -17,7 +17,6 @@ from ckan.logic import clear_validators_cache
 from ckan.types import SignalMapping
 
 from ckanext.event_audit import config, listeners, types, utils
-from ckanext.event_audit.interfaces import IEventAudit
 
 
 class EventWriteThread(threading.Thread):
@@ -147,7 +146,6 @@ class EventAuditPlugin(p.SingletonPlugin):
         from ckanext.event_audit.collection import EventAuditListCollection
 
         return {"event-audit-list": EventAuditListCollection}
-
 
     # IConfigDeclaration
 

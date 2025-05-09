@@ -6,7 +6,7 @@ from flask.views import MethodView
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 
-from ckanext.event_audit import utils, config
+from ckanext.event_audit import config, utils
 
 event_audit = Blueprint("event_audit", __name__, url_prefix="/admin-panel/event_audit")
 
