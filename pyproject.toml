@@ -37,7 +37,7 @@ file = "README.md"
 content-type = "text/markdown"
 
 [project.license]
-text = "AGPL"
+file = "LICENSE"
 
 [project.urls]
 Homepage = "https://github.com/DataShades/ckanext-event-audit"
