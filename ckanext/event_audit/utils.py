@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import ckan.plugins as p
 
-from ckanext.event_audit import config, exporters, types
+from ckanext.event_audit import config, exporters
 from ckanext.event_audit import repositories as repos
+from ckanext.event_audit import types
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -52,7 +53,7 @@ def get_active_repo(ignore_cache: bool = False) -> repos.AbstractRepository:
     plugin_instance = get_plugin("event_audit")
 
     if hasattr(plugin_instance, "repo") and not ignore_cache:
-        return plugin_instance.repo
+        return plugin_instance.repo  # type: ignore
 
     repos = get_available_repos()
     active_repo_name = config.active_repo()
@@ -151,10 +152,7 @@ def skip_event(event: types.Event) -> bool:
         return True
 
     # track specific models have priority over ignoring specific models
-    if (
+    return (
         not config.get_tracked_models()
         and event.action_object in config.get_ignored_models()
-    ):
-        return True
-
-    return False
+    )

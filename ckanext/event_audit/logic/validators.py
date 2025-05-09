@@ -26,6 +26,7 @@ def audit_repo_exists(value: Any, context: Context) -> Any:
 
     return value
 
+
 def add_numbers(a: int, b: int) -> int:
     """Add two numbers.
 

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from ckan.plugins.interfaces import Interface
 
-from ckanext.event_audit import exporters, types
-from ckanext.event_audit import repositories as repos
+if TYPE_CHECKING:
+    from ckanext.event_audit import exporters
+    from ckanext.event_audit import repositories as repos
+    from ckanext.event_audit import types
 
 
 class IEventAudit(Interface):

@@ -31,7 +31,7 @@ DEF_IGNORED_ACTIONS = [
     "package_search",
     "package_show",
     "task_status_update",
-    "task_status_show"
+    "task_status_show",
 ]
 
 CONF_IGNORED_MODELS = "ckanext.event_audit.ignore.models"
@@ -117,14 +117,18 @@ def is_api_log_enabled() -> bool:
 
 
 def should_store_payload_and_result() -> bool:
-    """Check if the payload and result should be stored in the event. Works
-    only for in-built listeners."""
+    """Check if the payload and result should be stored in the event.
+
+    Works only for in-built listeners.
+    """
     return tk.config.get(CONF_STORE_PAYLOAD_AND_RESULT, DEF_STORE_PAYLOAD_AND_RESULT)
 
 
 def should_store_previous_model_state() -> bool:
-    """Check if the previous state of the model should be stored in the event. Works
-    only for in-built database listener."""
+    """Check if the previous state of the model should be stored in the event.
+
+    Works only for in-built database listener.
+    """
     return tk.config.get(
         CONF_STORE_PREVIOUS_MODEL_STATE, DEF_STORE_PREVIOUS_MODEL_STATE
     )

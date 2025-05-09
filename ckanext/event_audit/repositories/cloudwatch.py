@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import logging
 import json
+import logging
 from contextlib import suppress
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional, TypedDict
@@ -18,7 +18,6 @@ else:
 
 from ckanext.event_audit import config, types
 from ckanext.event_audit.repositories.base import AbstractRepository, RemoveAll
-
 
 log = logging.getLogger(__name__)
 
@@ -114,7 +113,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             self.client.exceptions.ClientError,
             ClientError,
         ) as e:
-            log.error(f"Failed to write event to CloudWatch: {e}")
+            log.exception("Failed to write event to CloudWatch")
             return types.Result(status=False, message=str(e))
 
     def _get_event_dump(self, event: types.Event) -> str:
@@ -131,23 +130,27 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         Returns:
             str: event dump.
         """
-        event_dump = event.model_dump_json()
-        event_size = len(event_dump)
+        result_size = (
+            len(json.dumps(event.result).encode("utf-8")) if event.result else 0
+        )
+        payload_size = (
+            len(json.dumps(event.payload).encode("utf-8")) if event.payload else 0
+        )
 
-        if event_size > LOG_EVENT_SIZE_LIMIT:
+        if (result_size + payload_size) > LOG_EVENT_SIZE_LIMIT:
             log.error(
                 (
-                    "Event %s, %s, %s is too large to be written to CloudWatch: %s bytes"
-                    "Removing the result and payload from the event"
+                    "Event %s, %s, %s result/payload too large for CloudWatch: "
+                    "%s bytes. Removing the result and payload from the event"
                 ),
                 event.id,
                 event.category,
                 event.action,
-                event_size,
+                result_size + payload_size,
             )
-            event_dump = event.model_dump_json(exclude={"result", "payload"})
+            return event.model_dump_json(exclude={"result", "payload"})
 
-        return event_dump
+        return event.model_dump_json()
 
     def _create_log_stream_if_not_exists(self, log_stream: str) -> str:
         """Creates the log stream if it doesn't already exist."""
@@ -270,7 +273,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         try:
             self.client.delete_log_group(logGroupName=self.log_group)
         except self.client.exceptions.ResourceNotFoundException as err:
-            log.error(f"Failed to remove all events from CloudWatch: {err}")
+            log.exception("Failed to remove all events from CloudWatch")
             return types.Result(status=False, message=str(err))
 
         return types.Result(status=True, message="All events removed successfully")
