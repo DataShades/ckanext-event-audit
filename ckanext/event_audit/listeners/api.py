@@ -27,6 +27,7 @@ def action_succeeded_subscriber(
     thread_mode_enabled = config.is_threaded_mode_enabled()
     should_store_complex_data = config.should_store_payload_and_result()
     result = result if isinstance(result, dict) else {"result": result}
+    data_dict = data_dict if isinstance(data_dict, dict) else {}
 
     event = repo.build_event(
         types.EventData(
