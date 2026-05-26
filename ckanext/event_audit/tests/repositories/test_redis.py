@@ -95,6 +95,83 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
+    def test_filter_by_payload(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        repo.write_event(event_factory(payload={"visitor": "alice"}))
+        repo.write_event(event_factory(payload={"visitor": "bob"}))
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "alice"}))
+
+        assert len(events) == 1
+        assert events[0].payload == {"visitor": "alice"}
+
+    def test_filter_by_payload_containment(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        """Only the keys named in the filter must match; extras are ignored."""
+        repo.write_event(
+            event_factory(payload={"visitor": "alice", "new_visitor": True})
+        )
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "alice"}))
+
+        assert len(events) == 1
+
+    def test_filter_by_payload_no_match(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        repo.write_event(event_factory(payload={"visitor": "alice"}))
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "carol"}))
+
+        assert len(events) == 0
+
+    def test_filter_by_payload_is_type_aware(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        """Booleans are matched as booleans, not as the string ``'true'``."""
+        repo.write_event(event_factory(payload={"new_visitor": True}))
+        repo.write_event(event_factory(payload={"new_visitor": False}))
+
+        events = repo.filter_events(types.Filters(payload={"new_visitor": True}))
+
+        assert len(events) == 1
+        assert events[0].payload == {"new_visitor": True}
+
+    def test_filter_by_payload_with_time(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        """Payload filtering survives the time-range path (regression guard).
+
+        ``_filter_by_time`` re-scans all events when given an empty list, so the
+        payload filter must run afterwards or it would be undone.
+        """
+        repo.write_event(event_factory(payload={"visitor": "alice"}))
+        repo.write_event(event_factory(payload={"visitor": "bob"}))
+
+        events = repo.filter_events(
+            types.Filters(
+                payload={"visitor": "alice"},
+                time_from=dt.now(tz.utc) - td(days=1),
+                time_to=dt.now(tz.utc) + td(days=1),
+            )
+        )
+
+        assert len(events) == 1
+        assert events[0].payload == {"visitor": "alice"}
+
+    def test_filter_by_result(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        repo.write_event(event_factory(result={"status": "ok"}))
+        repo.write_event(event_factory(result={"status": "error"}))
+
+        events = repo.filter_events(types.Filters(result={"status": "ok"}))
+
+        assert len(events) == 1
+        assert events[0].result == {"status": "ok"}
+
     def test_redis_remove_event(self, event: types.Event, repo: RedisRepository):
         result = repo.write_event(event)
         assert result.status is True

@@ -226,10 +226,31 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             if value
         ]
 
+        # CloudWatch JSON filter patterns address nested members with dotted
+        # selectors, so payload/result key-value matches map onto
+        # ``$.payload.<key>``. Values are rendered type-aware (booleans and
+        # numbers unquoted, strings quoted) to match CloudWatch syntax.
+        for prefix, data in (("payload", filters.payload), ("result", filters.result)):
+            for key, value in (data or {}).items():
+                conditions.append(
+                    f"($.{prefix}.{key} = {self._format_pattern_value(value)})"
+                )
+
         if conditions:
             return f'{{ {" && ".join(conditions)} }}'
 
         return None
+
+    @staticmethod
+    def _format_pattern_value(value: Any) -> str:
+        """Render a value for a CloudWatch JSON filter pattern."""
+        if isinstance(value, bool):
+            return "true" if value else "false"
+
+        if isinstance(value, (int, float)):
+            return str(value)
+
+        return f'"{value}"'
 
     def _get_all_matching_events(
         self, kwargs: dict[str, Any]

@@ -122,6 +122,42 @@ class TestCloudWatchRepository:
 
         assert len(events) == 0
 
+    def test_build_filter_pattern_with_payload(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        pattern = repo._build_filter_pattern(
+            types.Filters(category="visit", payload={"visitor": "alice"})
+        )
+
+        assert pattern == (
+            '{ ($.category = "visit") && ($.payload.visitor = "alice") }'
+        )
+
+    def test_build_filter_pattern_payload_is_type_aware(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        """Booleans and numbers are rendered unquoted, strings quoted."""
+        repo, _ = cloudwatch_repo
+
+        pattern = repo._build_filter_pattern(
+            types.Filters(payload={"new_visitor": True, "count": 3})
+        )
+
+        assert pattern == (
+            "{ ($.payload.new_visitor = true) && ($.payload.count = 3) }"
+        )
+
+    def test_build_filter_pattern_with_result(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        pattern = repo._build_filter_pattern(types.Filters(result={"status": "ok"}))
+
+        assert pattern == '{ ($.result.status = "ok") }'
+
     def test_filter_by_time_range(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
     ):

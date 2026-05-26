@@ -194,6 +194,21 @@ class Filters(BaseModel):
         default=None, description="ID of the target object"
     )
 
+    payload: Optional[Dict[Any, Any]] = Field(
+        default=None,
+        description=(
+            "Match events whose payload contains these key/value pairs. "
+            "Matching is by containment, so unspecified keys are ignored."
+        ),
+    )
+    result: Optional[Dict[Any, Any]] = Field(
+        default=None,
+        description=(
+            "Match events whose result contains these key/value pairs. "
+            "Matching is by containment, so unspecified keys are ignored."
+        ),
+    )
+
     time_from: Optional[datetime] = Field(
         default=None, description="Start time for filtering"
     )

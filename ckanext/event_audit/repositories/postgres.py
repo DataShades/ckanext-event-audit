@@ -117,6 +117,15 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
             if value:
                 query = query.where(getattr(model.EventModel, field) == value)
 
+        # ``payload`` and ``result`` are JSONB columns, so match them with the
+        # containment operator (``@>``). Unlike ``->>`` this is type-aware
+        # (booleans/numbers compare correctly, not just as strings) and can use
+        # a GIN index. Only the given keys must match; others are ignored.
+        if filters.payload:
+            query = query.where(model.EventModel.payload.contains(filters.payload))
+        if filters.result:
+            query = query.where(model.EventModel.result.contains(filters.result))
+
         if filters.time_from:
             query = query.where(model.EventModel.timestamp >= filters.time_from)
         if filters.time_to:

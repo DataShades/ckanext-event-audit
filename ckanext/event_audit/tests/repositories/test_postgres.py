@@ -107,6 +107,76 @@ class TestPostgresRepo:
 
         assert len(events) == 5
 
+    def test_filter_by_payload(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        repo.write_event(event_factory(payload={"visitor": "alice"}))
+        repo.write_event(event_factory(payload={"visitor": "bob"}))
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "alice"}))
+
+        assert len(events) == 1
+        assert events[0].payload == {"visitor": "alice"}
+
+    def test_filter_by_payload_containment(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        """Only the keys named in the filter must match; extras are ignored."""
+        repo.write_event(
+            event_factory(payload={"visitor": "alice", "new_visitor": True})
+        )
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "alice"}))
+
+        assert len(events) == 1
+
+    def test_filter_by_payload_no_match(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        repo.write_event(event_factory(payload={"visitor": "alice"}))
+
+        events = repo.filter_events(types.Filters(payload={"visitor": "carol"}))
+
+        assert len(events) == 0
+
+    def test_filter_by_payload_is_type_aware(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        """Booleans are matched as booleans, not as the string ``'true'``."""
+        repo.write_event(event_factory(payload={"new_visitor": True}))
+        repo.write_event(event_factory(payload={"new_visitor": False}))
+
+        events = repo.filter_events(types.Filters(payload={"new_visitor": True}))
+
+        assert len(events) == 1
+        assert events[0].payload == {"new_visitor": True}
+
+    def test_filter_by_payload_and_category(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        repo.write_event(event_factory(category="visit", payload={"visitor": "alice"}))
+        repo.write_event(
+            event_factory(category="page_view", payload={"visitor": "alice"})
+        )
+
+        events = repo.filter_events(
+            types.Filters(category="visit", payload={"visitor": "alice"})
+        )
+
+        assert len(events) == 1
+        assert events[0].category == "visit"
+
+    def test_filter_by_result(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        repo.write_event(event_factory(result={"status": "ok"}))
+        repo.write_event(event_factory(result={"status": "error"}))
+
+        events = repo.filter_events(types.Filters(result={"status": "ok"}))
+
+        assert len(events) == 1
+        assert events[0].result == {"status": "ok"}
+
     def test_remove_event(self, event: types.Event, repo: PostgresRepository):
         repo.write_event(event)
         assert repo.get_event(event.id) is not None

@@ -84,24 +84,49 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         for _, event_data in self.conn.hscan_iter(REDIS_SET_KEY, match=pattern or None):
             matching_events.append(types.Event.model_validate_json(event_data))
 
-        if not any([filters.time_from, filters.time_to]):
-            matching_events.sort(key=lambda event: event.timestamp)
-            return matching_events
+        if any([filters.time_from, filters.time_to]):
+            matching_events = self._filter_by_time(
+                matching_events, filters.time_from, filters.time_to
+            )
 
-        matching_events = self._filter_by_time(
-            matching_events, filters.time_from, filters.time_to
-        )
+        # ``payload``/``result`` are nested dicts that can't be expressed in the
+        # flat key glob, so match them in Python. Done last, after time
+        # filtering, because ``_filter_by_time`` re-scans everything when handed
+        # an empty list -- which would discard the containment filter.
+        matching_events = self._filter_by_data(matching_events, filters)
 
         matching_events.sort(key=lambda event: event.timestamp)
 
         return matching_events
+
+    @staticmethod
+    def _filter_by_data(
+        events: list[types.Event], filters: types.Filters
+    ) -> list[types.Event]:
+        """Filter events by ``payload``/``result`` key-value containment.
+
+        Only the keys given in the filter must match; any other keys on the
+        event are ignored, mirroring the Postgres ``@>`` behaviour.
+        """
+        if not filters.payload and not filters.result:
+            return events
+
+        def contains(data: dict[str, Any], criteria: dict[str, Any] | None) -> bool:
+            return all((data or {}).get(k) == v for k, v in (criteria or {}).items())
+
+        return [
+            event
+            for event in events
+            if contains(event.payload, filters.payload)
+            and contains(event.result, filters.result)
+        ]
 
     def _build_pattern(self, filters: types.Filters) -> str:
         """Builds a search pattern based on the provided filters."""
         parts = [
             f"{key}:{value}" if value else f"{key}:*"
             for key, value in filters.model_dump().items()
-            if key not in ["time_from", "time_to"] and value
+            if key not in ["time_from", "time_to", "payload", "result"] and value
         ]
 
         if not parts:
