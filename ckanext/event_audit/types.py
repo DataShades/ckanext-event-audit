@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, TypedDict, Union
+from typing import Any, Dict, TypedDict, Union
 
 from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_validator
 
@@ -19,7 +19,7 @@ class ThreadData(TypedDict):
 @dataclass
 class Result:
     status: bool
-    message: Optional[str] = None
+    message: str | None = None
 
 
 @dataclass
@@ -172,36 +172,34 @@ class Filters(BaseModel):
 
     id: str | None = Field(default=None, description="Event ID")
 
-    category: Optional[str] = Field(
+    category: str | None = Field(
         default=None, description="Event category, e.g., 'api'"
     )
-    action: Optional[str] = Field(
+    action: str | None = Field(
         default=None, description="Action performed, e.g., 'created'"
     )
-    actor: Optional[str] = Field(
+    actor: str | None = Field(
         default=None, description="The actor responsible for the event"
     )
-    action_object: Optional[str] = Field(
+    action_object: str | None = Field(
         default=None, description="Object affected by the action"
     )
-    action_object_id: Optional[str] = Field(
+    action_object_id: str | None = Field(
         default=None, description="ID of the action object"
     )
-    target_type: Optional[str] = Field(
+    target_type: str | None = Field(
         default=None, description="Type of the event's target"
     )
-    target_id: Optional[str] = Field(
-        default=None, description="ID of the target object"
-    )
+    target_id: str | None = Field(default=None, description="ID of the target object")
 
-    payload: Optional[Dict[Any, Any]] = Field(
+    payload: Dict[Any, Any] | None = Field(
         default=None,
         description=(
             "Match events whose payload contains these key/value pairs. "
             "Matching is by containment, so unspecified keys are ignored."
         ),
     )
-    result: Optional[Dict[Any, Any]] = Field(
+    result: Dict[Any, Any] | None = Field(
         default=None,
         description=(
             "Match events whose result contains these key/value pairs. "
@@ -209,10 +207,10 @@ class Filters(BaseModel):
         ),
     )
 
-    time_from: Optional[datetime] = Field(
+    time_from: datetime | None = Field(
         default=None, description="Start time for filtering"
     )
-    time_to: Optional[datetime] = Field(
+    time_to: datetime | None = Field(
         default=None, description="End time for filtering (defaults to now)"
     )
 

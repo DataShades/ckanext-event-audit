@@ -68,7 +68,9 @@ class TestEvent:
         """Test that a non-string actor raises a ValidationError."""
         with pytest.raises(ValidationError):
             types.Event(
-                category=const.Category.MODEL.value, action="created", actor=123  # type: ignore
+                category=const.Category.MODEL.value,
+                action="created",
+                actor=123,  # type: ignore
             )
 
     def test_invalid_timestamp_format(self):

@@ -1,33 +1,133 @@
 from __future__ import annotations
 
+from typing import Any
+
+from pydantic import ValidationError
+from sqlalchemy import select
+
 import ckanext.tables.shared as t
 
-from ckanext.event_audit import types, utils
+from ckanext.event_audit import model, types, utils
+
+_REPO_EQUALITY_FIELDS = frozenset(
+    {
+        "id",
+        "category",
+        "action",
+        "actor",
+        "action_object",
+        "action_object_id",
+        "target_type",
+        "target_id",
+    }
+)
 
 
-class EventAuditDataSource(t.ListDataSource):
+class EventAuditDataSource(t.BaseDataSource):
     """Feed the table with events from the currently active repository.
 
-    Events are fetched eagerly when the data source is built (once per
-    request, since the table is instantiated per request). Filtering,
-    sorting and pagination are handled in-memory by ``ListDataSource``.
+    The repository decides how much work we can push down:
 
-    TODO: push filtering/sorting/pagination down to the repository. Right
-    now we fetch every event, which is fine for small datasets but not for
-    large ones.
+    * **Postgres** is backed by a real table, so we delegate to a
+      :class:`~ckanext.tables.shared.DatabaseDataSource` and let SQL handle
+      filtering, sorting and pagination. Nothing is loaded into memory beyond
+      the current page.
+    * **Redis/CloudWatch** can't sort or paginate at the source, so we fall
+      back to :class:`RepositoryDataSource`, which still pushes the filters
+      those backends understand down to ``filter_events`` and only sorts and
+      paginates the (already filtered) result in memory.
+
+    The active repository is resolved per request, because the table is
+    instantiated per request.
     """
 
     def __init__(self):
-        repo = utils.get_active_repo()
-        events = repo.filter_events(types.Filters())
+        from ckanext.event_audit.repositories import PostgresRepository  # noqa: PLC0415
 
-        super().__init__(
-            data=sorted(
-                [event.model_dump() for event in events],
-                key=lambda e: e["timestamp"],
-                reverse=True,
+        repo = utils.get_active_repo()
+
+        if isinstance(repo, PostgresRepository):
+            self._inner: t.BaseDataSource = t.DatabaseDataSource(
+                select(*model.EventModel.__table__.columns).order_by(
+                    model.EventModel.timestamp.desc()
+                )
             )
-        )
+        else:
+            self._inner = RepositoryDataSource(repo)
+
+    def filter(self, filters: list[t.FilterItem]) -> EventAuditDataSource:
+        self._inner.filter(filters)
+        return self
+
+    def sort(self, sort_by: str | None, sort_order: str | None) -> EventAuditDataSource:
+        self._inner.sort(sort_by, sort_order)
+        return self
+
+    def paginate(self, page: int, size: int) -> EventAuditDataSource:
+        self._inner.paginate(page, size)
+        return self
+
+    def all(self) -> list[dict[str, Any]]:
+        return self._inner.all()
+
+    def count(self) -> int:
+        return self._inner.count()
+
+    def get_columns(self) -> list[str]:
+        return self._inner.get_columns()
+
+
+class RepositoryDataSource(t.ListDataSource):
+    """In-memory data source for repositories that can't sort/paginate.
+
+    Equality and time-range filters are translated into ``types.Filters`` and
+    pushed down to ``repo.filter_events`` so we pull as few events into memory
+    as the backend allows. The remaining filters, plus sorting and pagination,
+    are handled by :class:`~ckanext.tables.shared.ListDataSource` on top of the
+    fetched events.
+    """
+
+    def __init__(self, repo: Any):
+        self.repo = repo
+        super().__init__(data=[])
+
+    def filter(self, filters: list[t.FilterItem]) -> RepositoryDataSource:
+        events = self.repo.filter_events(self._to_repo_filters(filters))
+        self.data = [event.model_dump() for event in events]
+
+        # Re-apply every filter in memory: it makes the pushed-down filters
+        # idempotent and covers operators/fields the repository can't express.
+        super().filter(filters)
+        return self
+
+    def sort(self, sort_by: str | None, sort_order: str | None) -> RepositoryDataSource:
+        if not sort_by:
+            sort_by, sort_order = "timestamp", "desc"
+
+        super().sort(sort_by, sort_order)
+        return self
+
+    def get_columns(self) -> list[str]:
+        return list(types.Event.model_fields)
+
+    def _to_repo_filters(self, filters: list[t.FilterItem]) -> types.Filters:
+        """Translate table filters into the subset a repository understands."""
+        data: dict[str, Any] = {}
+
+        for item in filters:
+            if item.field in _REPO_EQUALITY_FIELDS and item.operator == "=":
+                data[item.field] = item.value
+            elif item.field == "timestamp" and item.operator in (">", ">="):
+                data["time_from"] = item.value
+            elif item.field == "timestamp" and item.operator in ("<", "<="):
+                data["time_to"] = item.value
+
+        try:
+            return types.Filters(**data)
+        except ValidationError:
+            # An invalid pushdown value (e.g. an unknown actor) just means we
+            # fetch more and let the in-memory pass narrow it down.
+            return types.Filters()
 
 
 class EventAuditTable(t.TableDefinition):

@@ -3,9 +3,8 @@ from __future__ import annotations
 from typing import Any
 
 from sqlalchemy import event, inspect
-from sqlalchemy.orm import IdentityMap
+from sqlalchemy.orm import IdentityMap, UOWTransaction
 from sqlalchemy.orm import Session as SQLAlchemySession
-from sqlalchemy.orm import UOWTransaction
 
 import ckan.plugins as p
 from ckan.model.base import Session

@@ -4,7 +4,7 @@ import json
 import logging
 from contextlib import suppress
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Optional, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
@@ -162,7 +162,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
 
         return log_stream
 
-    def get_event(self, event_id: str) -> Optional[types.Event]:
+    def get_event(self, event_id: str) -> types.Event | None:
         """Retrieves a single event from the repository.
 
         Args:
@@ -209,7 +209,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             if "message" in e
         ]
 
-    def _build_filter_pattern(self, filters: types.Filters) -> Optional[str]:
+    def _build_filter_pattern(self, filters: types.Filters) -> str | None:
         """Builds the CloudWatch filter pattern for querying logs."""
         conditions = [
             f'($.{field} = "{value}")'
@@ -237,7 +237,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 )
 
         if conditions:
-            return f'{{ {" && ".join(conditions)} }}'
+            return f"{{ {' && '.join(conditions)} }}"
 
         return None
 

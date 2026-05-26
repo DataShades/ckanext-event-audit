@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import ckan.plugins as p
+from ckan.plugins import get_plugin
 
-from ckanext.event_audit import config, exporters
+from ckanext.event_audit import config, exporters, types
 from ckanext.event_audit import repositories as repos
-from ckanext.event_audit import types
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -48,8 +48,6 @@ def get_active_repo(ignore_cache: bool = False) -> repos.AbstractRepository:
     Returns:
         The active repository.
     """
-    from ckan.plugins import get_plugin
-
     plugin_instance = get_plugin("event_audit")
 
     if hasattr(plugin_instance, "repo") and not ignore_cache:
