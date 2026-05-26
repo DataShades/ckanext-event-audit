@@ -1,0 +1,11 @@
+{% extends "tables/base.html" %}
+
+{%- block content %}
+    {% block maintag %}<div class="main">{% endblock %}
+        <div id="content" class="container-fluid">
+            {% block main_content %}
+                {{ super() }}
+            {% endblock %}
+        </div>
+    </div>
+{%- endblock %}

@@ -111,9 +111,6 @@ class EventAuditPlugin(p.SingletonPlugin):
                     tk.signals.ckanext.signal("ap_main:collect_config_schemas"): [
                         self.collect_config_schemas_subs
                     ],
-                    tk.signals.ckanext.signal("collection:register_collections"): [
-                        self.get_collection_factories,
-                    ],
                 }
             )
 
@@ -140,12 +137,6 @@ class EventAuditPlugin(p.SingletonPlugin):
     @staticmethod
     def collect_config_schemas_subs(sender: None):
         return ["ckanext.event_audit:config_schema.yaml"]
-
-    @staticmethod
-    def get_collection_factories(sender: None):
-        from ckanext.event_audit.collection import EventAuditListCollection
-
-        return {"event-audit-list": EventAuditListCollection}
 
     # IConfigDeclaration
 
