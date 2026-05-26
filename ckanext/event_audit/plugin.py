@@ -26,6 +26,8 @@ class EventWriteThread(threading.Thread):
         self.data = types.ThreadData(last_push=datetime.now(tz.utc), events=[])
 
     def run(self):
+        repo = utils.get_active_repo(ignore_cache=True)
+
         while True:
             event: types.Event | Any = self.queue.get()
 
@@ -40,8 +42,6 @@ class EventWriteThread(threading.Thread):
             ) >= config.get_batch_size() or self._is_time_to_push(
                 self.data["last_push"]
             ):
-                repo = utils.get_active_repo()
-
                 repo.write_events(self.data["events"])
 
                 self.data["events"] = []
