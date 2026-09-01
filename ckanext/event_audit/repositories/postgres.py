@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+from contextlib import contextmanager
+from typing import Iterable, Iterator, List
 
+import sqlalchemy as sa
 from sqlalchemy import select
 from sqlalchemy.orm import Session as SQLAlchemySession
 
@@ -15,10 +17,30 @@ from ckanext.event_audit.repositories.base import (
 )
 
 
-class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
-    def __init__(self):
-        self.session = create_local_session()
+@contextmanager
+def _fresh_session() -> Iterator[SQLAlchemySession]:
+    """Yield a short-lived session scoped to a single repository operation.
 
+    The repository is a process-wide singleton (see
+    ``AbstractRepository.__new__``), so it must not keep a long-lived
+    ``Session`` on ``self``
+
+    A fresh session per call also keeps audit writes independent of the
+    request's own transaction (an event stays recorded even if the request
+    that produced it later rolls back). The connection is always returned to
+    the pool via ``close()``.
+    """
+    session = create_local_session()
+    try:
+        yield session
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
+
+
+class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
     @classmethod
     def get_name(cls) -> str:
         return "postgres"
@@ -33,19 +55,28 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
         Args:
             event (types.Event): event to write.
-            session (SQLAlchemySession | None, optional): session to use.
-            defer_commit (bool, optional): whether to defer the commit.
+            session (SQLAlchemySession | None, optional): session to use. When
+                given, the caller owns its lifecycle (commit and close);
+                ``defer_commit`` is honoured. When omitted, a private
+                short-lived session is used and committed immediately.
+            defer_commit (bool, optional): whether to defer the commit. Only
+                meaningful together with an explicit ``session``.
 
         Returns:
             types.Result: result of the operation.
         """
         db_event = model.EventModel(**event.model_dump())
-        db_event.save(session=session or self.session, defer_commit=defer_commit)
+
+        if session is not None:
+            db_event.save(session=session, defer_commit=defer_commit)
+        else:
+            with _fresh_session() as own_session:
+                db_event.save(session=own_session, defer_commit=False)
 
         return types.Result(status=True, message="Event has been added to the queue")
 
     def write_events(self, events: Iterable[types.Event]) -> types.Result:
-        """Write multiple events to the repository.
+        """Write multiple events to the repository in a single transaction.
 
         Args:
             events (Iterable[types.Event]): events to write.
@@ -53,10 +84,11 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             types.Result: result of the operation.
         """
-        for event in events:
-            self.write_event(event, session=self.session, defer_commit=True)
+        with _fresh_session() as session:
+            for event in events:
+                self.write_event(event, session=session, defer_commit=True)
 
-        self.session.commit()
+            session.commit()
 
         return types.Result(status=True)
 
@@ -69,12 +101,13 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             types.Event | None: event object or None if not found.
         """
-        result = self.session.execute(
-            select(model.EventModel).where(model.EventModel.id == event_id)
-        ).scalar_one_or_none()
+        with _fresh_session() as session:
+            result = session.execute(
+                select(model.EventModel).where(model.EventModel.id == event_id)
+            ).scalar_one_or_none()
 
-        if result:
-            return types.Event.model_validate(result)
+            if result:
+                return types.Event.model_validate(result)
 
         return None
 
@@ -87,14 +120,19 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             List[types.Event]: list of events.
         """
-        return [
-            types.Event.model_validate(event) for event in self._filter_events(filters)
-        ]
+        with _fresh_session() as session:
+            return [
+                types.Event.model_validate(event)
+                for event in self._filter_events(session, filters)
+            ]
 
-    def _filter_events(self, filters: types.Filters) -> list[model.EventModel]:
+    def _filter_events(
+        self, session: SQLAlchemySession, filters: types.Filters
+    ) -> list[model.EventModel]:
         """Filters events based on provided filter criteria.
 
         Args:
+            session (SQLAlchemySession): session to run the query in.
             filters (types.Filters): filters to apply.
 
         Returns:
@@ -133,7 +171,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
         query.order_by(model.EventModel.timestamp)
 
-        return self.session.execute(query).scalars().all()
+        return session.execute(query).scalars().all()
 
     def remove_event(
         self,
@@ -145,20 +183,41 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
         Args:
             event_id (str): event ID.
-            session (SQLAlchemySession | None, optional): session to use.
-            defer_commit (bool, optional): whether to defer the commit.
+            session (SQLAlchemySession | None, optional): session to use. When
+                given, the caller owns its lifecycle.
+            defer_commit (bool, optional): whether to defer the commit. Only
+                meaningful together with an explicit ``session``.
 
         Returns:
             types.Result: result of the operation.
         """
-        event = model.EventModel.get(event_id)
+        if session is not None:
+            return self._remove_event(session, event_id, defer_commit=defer_commit)
 
-        if event:
-            event.delete(session=session or self.session, defer_commit=defer_commit)
+        with _fresh_session() as own_session:
+            return self._remove_event(own_session, event_id, defer_commit=False)
 
-            return types.Result(status=True, message="Event removed successfully")
+    def _remove_event(
+        self,
+        session: SQLAlchemySession,
+        event_id: str,
+        defer_commit: bool = False,
+    ) -> types.Result:
+        exists = session.execute(
+            select(model.EventModel.id).where(model.EventModel.id == event_id)
+        ).scalar_one_or_none()
 
-        return types.Result(status=False, message="Event not found")
+        if exists is None:
+            return types.Result(status=False, message="Event not found")
+
+        session.execute(
+            sa.delete(model.EventModel).where(model.EventModel.id == event_id)
+        )
+
+        if not defer_commit:
+            session.commit()
+
+        return types.Result(status=True, message="Event removed successfully")
 
     def remove_events(self, filters: types.Filters) -> types.Result:
         """Removes a filtered set of events from the repository.
@@ -169,12 +228,17 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             types.Result: result of the operation.
         """
-        events = self._filter_events(filters)
+        with _fresh_session() as session:
+            events = self._filter_events(session, filters)
 
-        for event in events:
-            event.delete(defer_commit=True)
+            for event in events:
+                session.execute(
+                    sa.delete(model.EventModel).where(
+                        model.EventModel.id == event.id
+                    )
+                )
 
-        self.session.commit()
+            session.commit()
 
         return types.Result(
             status=True, message=f"{len(events)} event(s) removed successfully"
@@ -186,8 +250,10 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             types.Result: result of the operation.
         """
-        self.session.query(model.EventModel).delete()
-        self.session.commit()
+        with _fresh_session() as session:
+            session.execute(sa.delete(model.EventModel))
+            session.commit()
+
         return types.Result(status=True, message="All events removed successfully")
 
     def test_connection(self) -> bool:
