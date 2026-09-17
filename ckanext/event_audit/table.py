@@ -160,7 +160,10 @@ class EventAuditTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="result",
                     title="Result",
-                    formatters=[(t.formatters.JsonDisplayFormatter, {})],
+                    formatters=[
+                        (t.formatters.JsonStringFormatter, {}),
+                        (t.formatters.DialogModalFormatter, {"modal_title": "Result"}),
+                    ],
                     tabulator_formatter="html",
                     filterable=False,
                     sortable=False,
@@ -168,7 +171,10 @@ class EventAuditTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="payload",
                     title="Payload",
-                    formatters=[(t.formatters.JsonDisplayFormatter, {})],
+                    formatters=[
+                        (t.formatters.JsonStringFormatter, {}),
+                        (t.formatters.DialogModalFormatter, {"modal_title": "Payload"}),
+                    ],
                     tabulator_formatter="html",
                     filterable=False,
                     sortable=False,

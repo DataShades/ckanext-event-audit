@@ -1,0 +1,13 @@
+{% ckan_extends %}
+
+{% block header_account_logged %}
+    {% if g.userobj.sysadmin %}
+        <li>
+            <a href="{{ h.url_for('event_audit_dashboard.dashboard') }}" title="{{ _('Event Audit') }}">
+                <i class="fa fa-list-check" aria-hidden="true"></i>
+            </a>
+        </li>
+    {% endif %}
+
+    {{ super() }}
+{% endblock %}

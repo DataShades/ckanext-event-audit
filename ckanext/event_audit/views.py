@@ -11,10 +11,12 @@ import ckanext.tables.shared as t
 from ckanext.event_audit import config, utils
 from ckanext.event_audit.table import EventAuditTable
 
-event_audit = Blueprint("event_audit", __name__, url_prefix="/admin-panel/event_audit")
-event_audit.before_request(before_request)
+event_audit_dashboard = Blueprint(
+    "event_audit_dashboard", __name__, url_prefix="/event_audit"
+)
+event_audit_dashboard.before_request(before_request)
 
-event_audit.add_url_rule(
+event_audit_dashboard.add_url_rule(
     "/dashboard",
     view_func=t.GenericTableView.as_view(
         "dashboard",
@@ -26,6 +28,11 @@ event_audit.add_url_rule(
 
 if p.plugin_loaded("admin_panel") and config.is_admin_panel_enabled():
     from ckanext.ap_main.views.generics import ApConfigurationPageView
+
+    event_audit = Blueprint(
+        "event_audit", __name__, url_prefix="/admin-panel/event_audit"
+    )
+    event_audit.before_request(before_request)
 
     event_audit.add_url_rule(
         "/config",

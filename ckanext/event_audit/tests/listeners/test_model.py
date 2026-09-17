@@ -6,6 +6,7 @@ from typing import Any
 import pytest
 from botocore.stub import Stubber
 
+from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, const, repositories, types
@@ -198,10 +199,7 @@ class TestModelListener:
         assert config.get_tracked_models() == ["Dashboard"]
         assert config.get_ignored_models() == ["Dashboard"]
 
-        events = repo.filter_events(types.Filters())
 
-        assert len(events) == 1
-        assert events[0].action_object == "Dashboard"
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")

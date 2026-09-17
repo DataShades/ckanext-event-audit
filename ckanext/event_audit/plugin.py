@@ -128,7 +128,7 @@ class EventAuditPlugin(p.SingletonPlugin):
                 },
                 {
                     "name": "Events dashboard",
-                    "blueprint": "event_audit.dashboard",
+                    "blueprint": "event_audit_dashboard.dashboard",
                     "info": "A list of all events",
                 },
             ],

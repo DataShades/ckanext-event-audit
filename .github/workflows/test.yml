@@ -3,13 +3,20 @@ on: [push, pull_request]
 jobs:
   test:
     strategy:
-      matrix:
-        ckan-version: ["2.11", "2.10"]
       fail-fast: false
+      matrix:
+        include:
+          # ckan-image: see https://github.com/ckan/ckan-docker-base
+          - ckan-version: "2.12"
+            ckan-image: "2.12-py3.14"
+          - ckan-version: "2.11"
+            ckan-image: "2.11"
+          - ckan-version: "2.10"
+            ckan-image: "2.10"
 
     runs-on: ubuntu-latest
     container:
-      image: ckan/ckan-dev:${{ matrix.ckan-version }}
+      image: ckan/ckan-dev:${{ matrix.ckan-image }}
       options: --user root
     services:
       solr:

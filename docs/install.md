@@ -18,9 +18,12 @@ Compatibility with core CKAN versions:
     pip install ckanext-event-audit
     ```
 
-2. Enable the plugin in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`):
+2. Enable the plugin in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`). The
+   events dashboard is built on [ckanext-tables](https://github.com/DataShades/ckanext-tables),
+   so `tables` must be enabled as well, or the dashboard page will fail with a
+   `TemplateNotFound` error:
     ```sh
-    ckan.plugins = ... event_audit ...
+    ckan.plugins = ... tables event_audit ...
     ```
 
 3. Run DB migrations:

@@ -56,6 +56,13 @@ def before_flush(
 def get_previous_data(instance: Any) -> dict[str, Any]:
     """Get a dictionary of attribute changes for a SQLAlchemy model instance.
 
+    Only plain columns are inspected. Relationship attributes are skipped,
+    because their history tracks added/removed related objects rather than
+    a single previous scalar value, and a relationship whose history has
+    only ``added`` entries (e.g. items appended to a previously empty
+    collection) has no ``deleted``/``unchanged`` entry to read as "the
+    previous value".
+
     Args:
         instance: The SQLAlchemy model instance to inspect.
 
@@ -63,18 +70,21 @@ def get_previous_data(instance: Any) -> dict[str, Any]:
         A dictionary containing old and new values of attributes that have changed.
     """
     result = {}
+    state = inspect(instance)
+    column_keys = set(state.mapper.column_attrs.keys())
 
-    for attr_state in inspect(instance).attrs:
+    for attr_state in state.attrs:
+        if attr_state.key not in column_keys:
+            continue
+
         if attr_state.history.empty():
             result[attr_state.key] = None
+        elif attr_state.history.deleted:
+            result[attr_state.key] = attr_state.history.deleted[0]
+        elif attr_state.history.unchanged:
+            result[attr_state.key] = attr_state.history.unchanged[0]
         else:
-            value = (
-                attr_state.history.deleted[0]
-                if attr_state.history.deleted
-                else attr_state.history.unchanged[0]
-            )
-
-            result[attr_state.key] = value
+            result[attr_state.key] = None
 
     return result
 
