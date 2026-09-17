@@ -4,7 +4,7 @@ import json
 import logging
 from contextlib import suppress
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, TypedDict
+from typing import TYPE_CHECKING, Any, Iterable, TypedDict
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
@@ -22,6 +22,13 @@ from ckanext.event_audit.repositories.base import AbstractRepository, RemoveAll
 log = logging.getLogger(__name__)
 
 LOG_EVENT_SIZE_LIMIT = 262_144  # 256KB
+
+# CloudWatch's PutLogEvents limits: at most 10,000 events per call, and the
+# call's total payload (message bytes + a fixed per-event overhead) must not
+# exceed 1 MB. See the boto3/CloudWatch Logs docs for PutLogEvents.
+MAX_EVENTS_PER_PUT = 10_000
+MAX_PUT_SIZE_BYTES = 1_048_576
+PER_EVENT_OVERHEAD_BYTES = 26
 
 
 class CloudWatchEvent(TypedDict):
@@ -46,6 +53,15 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             log_stream (str | None, optional): Log stream name.
                 If not specified, the configured log stream will be used.
         """
+        # Reset on every call to the constructor (not just a "real" init),
+        # since the singleton pattern below means `CloudWatchRepository()`
+        # can return an already-initialized instance: whatever is calling
+        # the constructor again (thread startup, CLI, shutdown flush) should
+        # not assume a stream from a previous incarnation still exists.
+        # `write_event`/`write_events` never call the constructor again, so
+        # this doesn't reintroduce a per-event check.
+        self._log_stream_ready = False
+
         # TODO: check conn?
         if self._connection is not None:
             return
@@ -90,17 +106,47 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         Returns:
             types.Result: result of the operation.
         """
+        return self.write_events([event])
+
+    def write_events(self, events: Iterable[types.Event]) -> types.Result:
+        """Writes multiple events to the repository.
+
+        Events are batched into as few ``put_log_events`` calls as possible
+        (CloudWatch caps a single call at 10,000 events / 1 MB), instead of
+        one ``put_log_events`` (plus a redundant ``create_log_stream``) per
+        event.
+
+        Args:
+            events (Iterable[types.Event]): events to write.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+        events = list(events)
+
+        if not events:
+            return types.Result(status=True)
+
         try:
-            self.client.put_log_events(
-                logGroupName=self.log_group,
-                logStreamName=self._create_log_stream_if_not_exists(self.log_stream),
-                logEvents=[
+            self._ensure_log_stream()
+
+            log_events: list[CloudWatchEvent] = sorted(
+                (
                     {
-                        "timestamp": int(datetime.now(timezone.utc).timestamp() * 1000),
+                        "timestamp": self._event_timestamp_ms(event),
                         "message": self._get_event_dump(event),
                     }
-                ],
+                    for event in events
+                ),
+                key=lambda log_event: log_event["timestamp"],
             )
+
+            for batch in self._chunk_log_events(log_events):
+                self.client.put_log_events(
+                    logGroupName=self.log_group,
+                    logStreamName=self.log_stream,
+                    logEvents=batch,
+                )
 
             return types.Result(status=True)
         except (
@@ -113,8 +159,67 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             self.client.exceptions.ClientError,
             ClientError,
         ) as e:
-            log.exception("Failed to write event to CloudWatch")
+            log.exception("Failed to write %d event(s) to CloudWatch", len(events))
             return types.Result(status=False, message=str(e))
+
+    def _ensure_log_stream(self) -> None:
+        """Make sure the configured log stream exists, at most once.
+
+        ``create_log_stream`` used to be called on every single write. It's
+        now created once per repository instance (or once again after
+        ``remove_all_events`` deletes the log group, see there) and cached.
+        """
+        if self._log_stream_ready:
+            return
+
+        self._create_log_stream_if_not_exists(self.log_stream)
+        self._log_stream_ready = True
+
+    @staticmethod
+    def _event_timestamp_ms(event: types.Event) -> int:
+        """Convert an event's own timestamp to CloudWatch's epoch-ms format.
+
+        Using the event's timestamp (rather than the time it happens to be
+        written) matters because writes can lag well behind the event in
+        threaded mode - up to ``batch.timeout`` - which would otherwise put
+        events outside the time range CloudWatch queries (`filter_events`)
+        expect them in.
+        """
+        value = event.timestamp
+
+        dt = datetime.fromisoformat(value) if isinstance(value, str) else value
+
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+
+        return int(dt.timestamp() * 1000)
+
+    @classmethod
+    def _chunk_log_events(
+        cls, log_events: list[CloudWatchEvent]
+    ) -> Iterable[list[CloudWatchEvent]]:
+        """Split log events into batches respecting CloudWatch's limits."""
+        batch: list[CloudWatchEvent] = []
+        batch_size = 0
+
+        for log_event in log_events:
+            event_size = (
+                len(log_event["message"].encode("utf-8")) + PER_EVENT_OVERHEAD_BYTES
+            )
+
+            if batch and (
+                len(batch) >= MAX_EVENTS_PER_PUT
+                or batch_size + event_size > MAX_PUT_SIZE_BYTES
+            ):
+                yield batch
+                batch = []
+                batch_size = 0
+
+            batch.append(log_event)
+            batch_size += event_size
+
+        if batch:
+            yield batch
 
     def _get_event_dump(self, event: types.Event) -> str:
         """Get the event dump.
@@ -288,6 +393,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.
 
+        Deleting the log group also deletes its log stream, so the group is
+        recreated immediately (empty) and the cached "stream exists" state
+        is reset. Without this, every subsequent write would fail with
+        ``ResourceNotFoundException`` until the process restarts.
+
         Returns:
             types.Result: result of the operation.
         """
@@ -296,6 +406,9 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         except self.client.exceptions.ResourceNotFoundException as err:
             log.exception("Failed to remove all events from CloudWatch")
             return types.Result(status=False, message=str(err))
+
+        self._create_log_group_if_not_exists()
+        self._log_stream_ready = False
 
         return types.Result(status=True, message="All events removed successfully")
 

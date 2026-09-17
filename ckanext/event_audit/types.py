@@ -8,7 +8,6 @@ from typing import Any, Dict, TypedDict, Union
 from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_validator
 
 import ckan.plugins.toolkit as tk
-from ckan import model
 
 
 class ThreadData(TypedDict):
@@ -78,17 +77,6 @@ class Event(BaseModel):
     def validate_action(cls, v: str) -> str:
         if not v:
             raise ValueError("The `action` field must be a non-empty string.")
-
-        return v
-
-    @field_validator("actor")
-    @classmethod
-    def validate_actor(cls, v: str) -> str:
-        if not v:
-            return v
-
-        if not model.Session.query(model.User).get(v):
-            raise ValueError("{}: {}".format(tk._("Not found"), tk._("User")))
 
         return v
 
@@ -213,17 +201,6 @@ class Filters(BaseModel):
     time_to: datetime | None = Field(
         default=None, description="End time for filtering (defaults to now)"
     )
-
-    @field_validator("actor")
-    @classmethod
-    def validate_actor(cls, v: str) -> str:
-        if not v:
-            return v
-
-        if not model.Session.query(model.User).get(v):
-            raise ValueError("{}: {}".format(tk._("Not found"), tk._("User")))
-
-        return v
 
     @field_validator("time_to")
     @classmethod

@@ -7,6 +7,7 @@ from sqlalchemy.orm import IdentityMap, UOWTransaction
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 import ckan.plugins as p
+import ckan.plugins.toolkit as tk
 from ckan.model.base import Session
 
 from ckanext.event_audit import config, const, types, utils
@@ -99,12 +100,19 @@ def after_commit(session: SQLAlchemySession):
     if repo._connection is False:
         return
 
+    actor = (
+        tk.current_user.id
+        if tk.current_user and not tk.current_user.is_anonymous
+        else ""
+    )
+
     _process_cached_instances(
         session,
         repo,
         config.is_threaded_mode_enabled(),
         config.should_store_payload_and_result(),
         config.get_tracked_models(),
+        actor,
     )
 
     del session._audit_cache  # type: ignore
@@ -120,12 +128,13 @@ def _should_process_commit(session: SQLAlchemySession) -> bool:
     return hasattr(session, CACHE_ATTR)
 
 
-def _process_cached_instances(
+def _process_cached_instances( # noqa: PLR0913 PLR0917
     session: SQLAlchemySession,
     repo: Any,
     thread_mode_enabled: bool,
     should_store_complex_data: bool,
     tracked_models: list[str],
+    actor: str = "",
 ) -> None:
     for action, instances in session._audit_cache.items():  # type: ignore
         for instance in instances:
@@ -138,6 +147,7 @@ def _process_cached_instances(
             event = repo.build_event(
                 types.EventData(
                     category=const.Category.MODEL.value,
+                    actor=actor,
                     action=action,
                     action_object=instance.__class__.__name__,
                     action_object_id=inspect(instance).identity[0],

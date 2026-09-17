@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import atexit
+import logging
 import queue
 import threading
 from datetime import datetime, timedelta
@@ -18,36 +20,98 @@ from ckan.types import SignalMapping
 
 from ckanext.event_audit import config, listeners, types, utils
 
+log = logging.getLogger(__name__)
+
 
 class EventWriteThread(threading.Thread):
     def __init__(self, queue: queue.Queue[types.Event]):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name="event-audit-writer")
         self.queue = queue
         self.data = types.ThreadData(last_push=datetime.now(tz.utc), events=[])
+        self._lock = threading.Lock()
 
     def run(self):
         repo = utils.get_active_repo(ignore_cache=True)
 
         while True:
-            event: types.Event | Any = self.queue.get()
-
-            if not isinstance(event, types.Event):
+            try:
+                event: types.Event | Any = self.queue.get(
+                    timeout=config.get_batch_timeout()
+                )
+            except queue.Empty:
+                # Nothing arrived within the batch timeout.
+                # flush whatever is already buffered instead of waiting
+                # indefinitely for the next event.
+                self._flush(repo)
                 continue
 
-            self.data["events"].append(event)
+            if isinstance(event, types.Event):
+                with self._lock:
+                    self.data["events"].append(event)
 
-            # TODO: should batch size be runtime configurable?
+            self.queue.task_done()
+
             if len(
                 self.data["events"]
             ) >= config.get_batch_size() or self._is_time_to_push(
                 self.data["last_push"]
             ):
-                repo.write_events(self.data["events"])
+                self._flush(repo)
 
-                self.data["events"] = []
-                self.data["last_push"] = datetime.now(tz.utc)
+    def _flush(self, repo: Any) -> None:
+        """Write out whatever is currently buffered, if anything."""
+        with self._lock:
+            events, self.data["events"] = self.data["events"], []
 
-            self.queue.task_done()
+        if events:
+            try:
+                repo.write_events(events)
+            except Exception:
+                log.exception(
+                    "Failed to write %d event(s) to the event-audit "
+                    "repository; dropping the batch",
+                    len(events),
+                )
+
+        self.data["last_push"] = datetime.now(tz.utc)
+
+    def flush_on_exit(self) -> None:
+        """Best-effort flush for normal interpreter shutdown.
+
+        Drains whatever is still sitting in the queue (not yet picked up by
+        the loop in ``run``) in addition to the current buffer. This runs in
+        the main thread via ``atexit`` and cannot help against a hard kill
+        (e.g. SIGKILL, or a worker manager that doesn't wait for shutdown
+        hooks) - that is a fundamental limitation of an in-process thread.
+        """
+        drained: list[types.Event] = []
+
+        while True:
+            try:
+                item = self.queue.get_nowait()
+            except queue.Empty:
+                break
+
+            if isinstance(item, types.Event):
+                drained.append(item)
+
+        with self._lock:
+            events, self.data["events"] = self.data["events"], []
+
+        events = events + drained
+
+        if not events:
+            return
+
+        try:
+            repo = utils.get_active_repo(ignore_cache=True)
+            repo.write_events(events)
+        except Exception:
+            log.exception(
+                "Failed to flush %d event(s) to the event-audit repository "
+                "on shutdown; dropping them",
+                len(events),
+            )
 
     def _is_time_to_push(self, last_push: datetime) -> bool:
         """Decide if it's time to push the events to the repository.
@@ -70,7 +134,8 @@ class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.ISignal)
     p.implements(p.IConfigDeclaration)
 
-    event_queue = queue.Queue()
+    event_queue: queue.Queue[types.Event] = queue.Queue()
+    _write_thread: EventWriteThread | None = None
 
     # IConfigurer
     def update_config(self, config_: CKANConfig):
@@ -87,11 +152,20 @@ class EventAuditPlugin(p.SingletonPlugin):
             else:
                 utils.test_active_connection()
 
-        if config.is_threaded_mode_enabled():
-            # spawn a thread, and pass it queue instance
+        if config.is_threaded_mode_enabled() and EventAuditPlugin._write_thread is None:
+            # `configure` can run more than once per process (e.g. tests,
+            # `load_all`); only ever start one writer thread, bound to a
+            # queue sized from config so a stuck/slow repository can't grow
+            # it without limit.
+            EventAuditPlugin.event_queue = queue.Queue(maxsize=config.get_queue_size())
+
             t = EventWriteThread(self.event_queue)
-            t.setDaemon(True)
+            t.daemon = True
             t.start()
+
+            atexit.register(t.flush_on_exit)
+
+            EventAuditPlugin._write_thread = t
 
     # ISignal
 

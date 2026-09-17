@@ -277,3 +277,56 @@ class TestIgnoredInstanceDoesNotAbortCommit:
         assert len(events) == 1
         assert events[0].action_object == "User"
         assert events[0].action_object_id == user["id"]
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+class TestModelListenerRecordsActor:
+    def test_actor_is_recorded_for_model_events(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        """Model events must record who made the change."""
+        repo.remove_all_events()
+
+        tracked_instance = model.User.get(user["id"])
+
+        class FakeSession:
+            _audit_cache = {"created": [tracked_instance], "deleted": [], "changed": []}
+
+        listener_database._process_cached_instances(
+            FakeSession(),
+            repo,
+            thread_mode_enabled=False,
+            should_store_complex_data=False,
+            tracked_models=[],
+            actor=user["id"],
+        )
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].actor == user["id"]
+
+    def test_actor_defaults_to_empty_string(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        """No actor was passed in (e.g. no logged-in user) -> stays empty."""
+        repo.remove_all_events()
+
+        tracked_instance = model.User.get(user["id"])
+
+        class FakeSession:
+            _audit_cache = {"created": [tracked_instance], "deleted": [], "changed": []}
+
+        listener_database._process_cached_instances(
+            FakeSession(),
+            repo,
+            thread_mode_enabled=False,
+            should_store_complex_data=False,
+            tracked_models=[],
+        )
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].actor == ""

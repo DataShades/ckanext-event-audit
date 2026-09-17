@@ -31,6 +31,10 @@ class EventModel(tk.BaseModel):
         Column("result", MutableDict.as_mutable(JSONB), default="{}"),
         Column("payload", MutableDict.as_mutable(JSONB), default="{}"),
         Index("ix_event_actor_action", "actor", "action"),
+        # `payload`/`result` are filtered with the JSONB containment
+        # operator (`@>`) in `postgres.py`, which a GIN index can serve.
+        Index("ix_event_payload_gin", "payload", postgresql_using="gin"),
+        Index("ix_event_result_gin", "result", postgresql_using="gin"),
     )
 
     id: Mapped[str]

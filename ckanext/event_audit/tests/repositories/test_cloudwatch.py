@@ -194,11 +194,32 @@ class TestCloudWatchRepository:
         repo, stubber = cloudwatch_repo
 
         stubber.add_response("delete_log_group", {})
+        # Deleting the log group also deletes its stream, so the group is
+        # recreated right away to keep the repository usable.
+        stubber.add_response("create_log_group", {})
 
         with stubber:
             result = repo.remove_all_events()
 
         assert result.status
+
+    def test_write_event_after_remove_all_events(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
+    ):
+        """A write right after clearing the repo must not 404."""
+        repo, stubber = cloudwatch_repo
+
+        stubber.add_response("delete_log_group", {})
+        stubber.add_response("create_log_group", {})
+        stubber.add_response("create_log_stream", {})
+        stubber.add_response("put_log_events", put_log_events_response)
+
+        with stubber:
+            remove_result = repo.remove_all_events()
+            write_result = repo.write_event(event)
+
+        assert remove_result.status
+        assert write_result.status
 
     def test_remove_filtered_events(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
@@ -214,6 +235,101 @@ class TestCloudWatchRepository:
         repo, _ = cloudwatch_repo
 
         assert repo._get_event_dump(event) == event.model_dump_json()
+
+    def test_event_timestamp_ms_uses_event_timestamp_not_wall_clock(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        """The CloudWatch timestamp must be the event's own, not now()."""
+        repo, _ = cloudwatch_repo
+
+        old_timestamp = (dt.now(tz.utc) - td(days=30)).isoformat()
+        event = event_factory(timestamp=old_timestamp)
+
+        assert repo._event_timestamp_ms(event) == int(
+            dt.fromisoformat(old_timestamp).timestamp() * 1000
+        )
+
+    def test_event_timestamp_ms_naive_datetime_treated_as_utc(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        naive = dt(2024, 1, 1, 12, 0, 0, tzinfo=tz.utc)
+        event = event_factory(timestamp=naive)
+        repo, _ = cloudwatch_repo
+
+        assert repo._event_timestamp_ms(event) == int(
+            naive.replace(tzinfo=tz.utc).timestamp() * 1000
+        )
+
+    def test_write_events_batches_into_one_put_log_events_call(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        """Many events should turn into a single `put_log_events` call."""
+        repo, stubber = cloudwatch_repo
+
+        events = [event_factory(action_object_id=str(i)) for i in range(5)]
+
+        stubber.add_response("create_log_stream", {})
+        stubber.add_response("put_log_events", put_log_events_response)
+
+        with stubber:
+            result = repo.write_events(events)
+
+        assert result.status
+        # A second batch on the same (already-initialized) repo instance
+        # must not create the stream again.
+        stubber.add_response("put_log_events", put_log_events_response)
+
+        with stubber:
+            result = repo.write_events(events)
+
+        assert result.status
+
+    def test_write_events_empty_is_a_noop(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, stubber = cloudwatch_repo
+
+        with stubber:
+            result = repo.write_events([])
+
+        assert result.status
+
+    def test_chunk_log_events_respects_count_limit(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        log_events = [
+            {"timestamp": i, "message": "x"} for i in range(25_000)
+        ]
+
+        chunks = list(repo._chunk_log_events(log_events))
+
+        assert len(chunks) == 3
+        assert [len(c) for c in chunks] == [10_000, 10_000, 5_000]
+
+    def test_chunk_log_events_respects_size_limit(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        # Each message is ~100KB, so ~10 of them exceed the 1MB cap and must
+        # split into two chunks well before the 10,000-event count limit.
+        big_message = "x" * 100_000
+        log_events = [
+            {"timestamp": i, "message": big_message} for i in range(11)
+        ]
+
+        chunks = list(repo._chunk_log_events(log_events))
+
+        assert len(chunks) == 2
+        assert sum(len(c) for c in chunks) == 11
 
     def test_get_event_dump_large_event(
         self,

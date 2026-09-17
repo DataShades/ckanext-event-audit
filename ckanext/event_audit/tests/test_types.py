@@ -106,14 +106,24 @@ class TestEvent:
         assert event.result == {}
         assert event.payload == {}
 
-    def test_user_doesnt_exist(self):
-        """Test that invalid actor reference raises a ValidationError."""
-        with pytest.raises(ValidationError, match="Not found: User"):
-            types.Event(
-                category=const.Category.MODEL.value,
-                action="created",
-                actor="non-existent-user",
-            )
+    def test_actor_is_not_validated_against_the_database(self):
+        """Actor is trusted as-is, not looked up on construction.
+
+        Building an ``Event`` happens on both the write path (a fresh event)
+        and the read path (rehydrating a stored one via
+        ``model_validate``/``model_validate_json`` in every repository's
+        ``filter_events``). A DB round-trip here used to mean a purged
+        user's past events could never be read back - `filter_events` would
+        raise and the dashboard/export would break for good. Construction
+        must always succeed regardless of whether the actor still exists.
+        """
+        event = types.Event(
+            category=const.Category.MODEL.value,
+            action="created",
+            actor="non-existent-user",
+        )
+
+        assert event.actor == "non-existent-user"
 
     def test_custom_id_generation(self):
         """Test that a custom id can be provided."""
@@ -202,7 +212,8 @@ class TestFilters:
         with pytest.raises(ValueError, match="Input should be a valid string"):
             types.Filters(actor=123)  # type: ignore
 
-    def test_actor_doesnt_exist(self):
-        """Test that an invalid actor reference raises a ValidationError."""
-        with pytest.raises(ValidationError, match="Not found: User"):
-            types.Filters(actor="non-existent-user")
+    def test_actor_is_not_validated_against_the_database(self):
+        """Filtering by a since-purged actor id should not require it to still exist."""
+        filters = types.Filters(actor="non-existent-user")
+
+        assert filters.actor == "non-existent-user"

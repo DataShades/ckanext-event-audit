@@ -54,6 +54,9 @@ DEF_BATCH_SIZE = 50
 CONF_BATCH_TIMEOUT = "ckanext.event_audit.batch.timeout"
 DEF_BATCH_TIMEOUT = 3600
 
+CONF_QUEUE_SIZE = "ckanext.event_audit.batch.queue_size"
+DEF_QUEUE_SIZE = 10_000
+
 CONF_THREADED = "ckanext.event_audit.threaded_mode"
 DEF_THREADED = True
 
@@ -140,6 +143,15 @@ def get_batch_size() -> int:
 
 def get_batch_timeout() -> int:
     return tk.config.get(CONF_BATCH_TIMEOUT, DEF_BATCH_TIMEOUT)
+
+
+def get_queue_size() -> int:
+    """Max number of not-yet-written events buffered in threaded mode.
+
+    Once full, new events are dropped (and logged) rather than accumulated
+    without bound, to keep a stuck/slow repository from leaking memory.
+    """
+    return tk.config.get(CONF_QUEUE_SIZE, DEF_QUEUE_SIZE)
 
 
 def is_threaded_mode_enabled() -> bool:

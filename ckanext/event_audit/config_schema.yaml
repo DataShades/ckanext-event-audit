@@ -104,3 +104,10 @@ fields:
     form_snippet: text.html
     input_type: number
     required: true
+
+  - field_name: ckanext.event_audit.batch.queue_size
+    help_text: Max number of not-yet-written events buffered before new ones get dropped. Actual only for threaded mode
+    label: Queue Size
+    form_snippet: text.html
+    input_type: number
+    required: true

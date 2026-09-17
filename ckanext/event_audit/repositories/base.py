@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import logging
+import queue
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
 from ckanext.event_audit import plugin, types
+
+log = logging.getLogger(__name__)
 
 
 class AbstractRepository(ABC):
@@ -119,7 +123,16 @@ class AbstractRepository(ABC):
         Returns:
             types.Result: result of the operation.
         """
-        plugin.EventAuditPlugin.event_queue.put(event)  # type: ignore
+        try:
+            plugin.EventAuditPlugin.event_queue.put_nowait(event)  # type: ignore
+        except queue.Full:
+            log.exception(
+                "Event-audit write queue is full; dropping event %s (%s/%s)",
+                event.id,
+                event.category,
+                event.action,
+            )
+            return types.Result(status=False, message="Event queue is full; event dropped")
 
         return types.Result(status=True, message="Event has been added to the queue")
 
