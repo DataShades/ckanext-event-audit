@@ -55,6 +55,15 @@ class TestEventAuditPlugin(p.SingletonPlugin):
             and event.action_object == "Dashboard"
         )
 
+    def modify_event(self, event: types.Event) -> types.Event:
+        event.target_type = "modified-by-plugin"
+
+        return event
+
+
+def test_modify_event_default_returns_event_unchanged(event: types.Event):
+    assert IEventAudit().modify_event(event) is event
+
 
 @pytest.mark.usefixtures("clean_redis", "with_plugins")
 @pytest.mark.ckan_config("ckan.plugins", "event_audit test_event_audit")
@@ -101,3 +110,17 @@ class TestEventAuditInterace:
 
         # user_create action, User object, skipping Dashboard model
         assert len(events) == 2
+
+    def test_modify_api_event(self, repo: AbstractRepository):
+        call_action("package_search", {})
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].target_type == "modified-by-plugin"
+
+    def test_modify_model_event(self, user, repo: AbstractRepository):
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 2
+        assert all(event.target_type == "modified-by-plugin" for event in events)

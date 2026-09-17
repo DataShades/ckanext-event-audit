@@ -6,10 +6,12 @@ from typing import Any
 import pytest
 from botocore.stub import Stubber
 
+from ckan import model
 from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, const, repositories, types
+from ckanext.event_audit.listeners import database as listener_database
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -244,3 +246,34 @@ class TestModelListener:
 
         assert events[0].result["old"]["about"] == sysadmin["about"]
         assert events[0].result["new"]["about"] == result["about"]
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_IGNORED_MODELS, ["Group"])
+class TestIgnoredInstanceDoesNotAbortCommit:
+    def test_tracked_instance_recorded_when_ignored_instance_comes_first(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        group = factories.Group()
+        ignored_instance = model.Group.get(group["id"])
+        tracked_instance = model.User.get(user["id"])
+
+        class FakeSession:
+            _audit_cache = {"created": [ignored_instance, tracked_instance]}
+
+        listener_database._process_cached_instances(
+            FakeSession(),
+            repo,
+            thread_mode_enabled=False,
+            should_store_complex_data=False,
+            tracked_models=[],
+        )
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].action_object == "User"
+        assert events[0].action_object_id == user["id"]

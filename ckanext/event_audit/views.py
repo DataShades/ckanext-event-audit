@@ -49,7 +49,8 @@ if p.plugin_loaded("admin_panel") and config.is_admin_panel_enabled():
         try:
             result = utils.get_active_repo().remove_all_events()
         except NotImplementedError:
-            return tk.h.flash_error(tk._("Repository does not support this operation"))
+            tk.h.flash_error(tk._("Repository does not support this operation"))
+            return tk.h.redirect_to("event_audit.config")
 
         tk.h.flash_success(result.message)
 

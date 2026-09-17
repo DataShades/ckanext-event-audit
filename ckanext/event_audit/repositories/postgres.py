@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
 from contextlib import contextmanager
 from typing import Iterable, Iterator, List
 
@@ -128,7 +129,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
 
     def _filter_events(
         self, session: SQLAlchemySession, filters: types.Filters
-    ) -> list[model.EventModel]:
+    ) -> Sequence[model.EventModel]:
         """Filters events based on provided filter criteria.
 
         Args:
@@ -169,7 +170,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         if filters.time_to:
             query = query.where(model.EventModel.timestamp <= filters.time_to)
 
-        query.order_by(model.EventModel.timestamp)
+        query = query.order_by(model.EventModel.timestamp)
 
         return session.execute(query).scalars().all()
 

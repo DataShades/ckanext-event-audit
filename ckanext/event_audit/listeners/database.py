@@ -146,11 +146,16 @@ def _process_cached_instances(
             )
 
             if utils.skip_event(event):
-                return
+                continue
 
-            for plugin in reversed(list(p.PluginImplementations(IEventAudit))):
-                if plugin.skip_event(event):
-                    return
+            if any(
+                plugin.skip_event(event)
+                for plugin in reversed(list(p.PluginImplementations(IEventAudit)))
+            ):
+                continue
+
+            for plugin in p.PluginImplementations(IEventAudit):
+                event = plugin.modify_event(event)
 
             if thread_mode_enabled:
                 repo.enqueue_event(event)

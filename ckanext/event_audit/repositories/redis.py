@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime as dt
 from typing import Any
 
@@ -14,6 +15,13 @@ from ckanext.event_audit.repositories.base import (
 )
 
 REDIS_SET_KEY = "event-audit"
+
+_GLOB_METACHARACTERS = re.compile(r"([*?\[\]\\])")
+
+
+def _escape_glob(value: Any) -> str:
+    """Escape Redis ``MATCH`` glob metacharacters in a filter value."""
+    return _GLOB_METACHARACTERS.sub(r"\\\1", str(value))
 
 
 class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltered):
@@ -62,10 +70,12 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         Args:
             event_id (float): event ID.
         """
-        _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
+        pattern = f"id:{_escape_glob(event_id)}|*"
 
-        for event_data in result.values():
+        for _, event_data in self.conn.hscan_iter(REDIS_SET_KEY, match=pattern):
             return types.Event.model_validate_json(event_data)
+
+        return None
 
     def filter_events(self, filters: types.Filters | Any) -> list[types.Event]:
         """Filters events based on patterns generated from the provided filters.
@@ -90,9 +100,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
             )
 
         # ``payload``/``result`` are nested dicts that can't be expressed in the
-        # flat key glob, so match them in Python. Done last, after time
-        # filtering, because ``_filter_by_time`` re-scans everything when handed
-        # an empty list -- which would discard the containment filter.
+        # flat key glob, so match them in Python.
         matching_events = self._filter_by_data(matching_events, filters)
 
         matching_events.sort(key=lambda event: event.timestamp)
@@ -122,9 +130,16 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         ]
 
     def _build_pattern(self, filters: types.Filters) -> str:
-        """Builds a search pattern based on the provided filters."""
+        """Builds a search pattern based on the provided filters.
+
+        Each part is terminated with the same ``|`` separator used in
+        ``_build_event_key``, so e.g. filtering by action ``package_create``
+        doesn't also match ``package_create_default_resource_views``. Values
+        are glob-escaped so a value containing ``*``/``?``/``[`` can't widen
+        the match either.
+        """
         parts = [
-            f"{key}:{value}" if value else f"{key}:*"
+            f"{key}:{_escape_glob(value)}|"
             for key, value in filters.model_dump().items()
             if key not in ["time_from", "time_to", "payload", "result"] and value
         ]
@@ -137,31 +152,23 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
     def _filter_by_time(
         self, events: list[types.Event], time_from: dt | None, time_to: dt | None
     ) -> list[types.Event]:
-        """Filters events based on the provided time range."""
+        """Filters events based on the provided time range.
+
+        Only narrows down the events it is given -- it must never fall back
+        to rescanning the whole hash, or the category/action/actor filters
+        that produced ``events`` would be silently discarded.
+        """
         if not time_from and not time_to:
             return events
 
         self.time_from = time_from
         self.time_to = time_to
 
-        if events:
-            return [
-                event
-                for event in events
-                if self._is_within_time_range(dt.fromisoformat(event.timestamp))
-            ]
-
-        filtered_events: list[types.Event] = []
-
-        if not events:
-            for _, event_data in self.conn.hscan_iter(REDIS_SET_KEY):
-                event = types.Event.model_validate_json(event_data)
-                event_time = dt.fromisoformat(event.timestamp)
-
-                if self._is_within_time_range(event_time):
-                    filtered_events.append(event)
-
-        return filtered_events
+        return [
+            event
+            for event in events
+            if self._is_within_time_range(dt.fromisoformat(event.timestamp))
+        ]
 
     def _is_within_time_range(self, event_time: dt) -> bool:
         if self.time_from and self.time_to:
@@ -181,12 +188,14 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         Returns:
             types.Result: result of the operation.
         """
-        _, result = self.conn.hscan(REDIS_SET_KEY, match=f"id:{event_id}|*")  # type: ignore
+        pattern = f"id:{_escape_glob(event_id)}|*"
 
-        if not result:
+        keys = [key for key, _ in self.conn.hscan_iter(REDIS_SET_KEY, match=pattern)]
+
+        if not keys:
             return types.Result(status=False, message="Event not found")
 
-        for key in result:
+        for key in keys:
             self.conn.hdel(REDIS_SET_KEY, key)
 
         return types.Result(status=True, message="Event removed successfully")

@@ -132,11 +132,27 @@ class TestRemoveEventsCLI:
         assert "Unknown repository: xxx" in result.output
 
     def test_remove_all(self, cli):
-        result = cli.invoke(remove_events, ["--repository", "cloudwatch"])
+        result = cli.invoke(remove_events, ["--repository", "cloudwatch", "--yes"])
 
         # we're trying to call the remove_all_events method
 
         assert "calling the DeleteLogGroup" in str(result.exception)
+
+    def test_remove_all_requires_confirmation(self, cli):
+        result = cli.invoke(
+            remove_events, ["--repository", "redis"], input="n\n"
+        )
+
+        assert "Aborted" in result.output
+
+    def test_remove_all_confirmed_interactively(
+        self, cli, event: types.Event, repo: RedisRepository
+    ):
+        repo.write_event(event)
+
+        cli.invoke(remove_events, ["--repository", "redis"], input="y\n")
+
+        assert repo.get_event(event.id) is None
 
     def test_remove_filtered_not_supported(self, cli):
         result = cli.invoke(

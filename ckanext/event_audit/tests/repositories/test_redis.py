@@ -5,6 +5,8 @@ from typing import Callable
 
 import pytest
 
+from ckan.tests import factories
+
 from ckanext.event_audit import config, const, types
 from ckanext.event_audit.repositories import RedisRepository
 
@@ -40,6 +42,17 @@ class TestRedisRepo:
         events = repo.filter_events(types.Filters(action="created"))
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
+
+    def test_filter_by_action_is_not_a_prefix_match(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        repo.write_event(event_factory(action="package_create"))
+        repo.write_event(event_factory(action="package_create_default_resource_views"))
+
+        events = repo.filter_events(types.Filters(action="package_create"))
+
+        assert len(events) == 1
+        assert events[0].action == "package_create"
 
     def test_filter_by_action_and_action_object(
         self, event: types.Event, repo: RedisRepository
@@ -142,11 +155,7 @@ class TestRedisRepo:
     def test_filter_by_payload_with_time(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository
     ):
-        """Payload filtering survives the time-range path (regression guard).
-
-        ``_filter_by_time`` re-scans all events when given an empty list, so the
-        payload filter must run afterwards or it would be undone.
-        """
+        """Payload filtering combines correctly with the time-range filter."""
         repo.write_event(event_factory(payload={"visitor": "alice"}))
         repo.write_event(event_factory(payload={"visitor": "bob"}))
 
@@ -160,6 +169,27 @@ class TestRedisRepo:
 
         assert len(events) == 1
         assert events[0].payload == {"visitor": "alice"}
+
+    def test_time_range_with_no_pattern_match_does_not_leak_other_events(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        now = dt.now(tz.utc)
+        actor_with_events = factories.User()["id"]
+        actor_without_events = factories.User()["id"]
+
+        repo.write_event(
+            event_factory(actor=actor_with_events, timestamp=now.isoformat())
+        )
+
+        events = repo.filter_events(
+            types.Filters(
+                actor=actor_without_events,
+                time_from=now - td(days=1),
+                time_to=now + td(days=1),
+            )
+        )
+
+        assert events == []
 
     def test_filter_by_result(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository

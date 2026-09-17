@@ -110,6 +110,19 @@ class TestPostgresRepo:
         assert len(events) == 1
         assert_event_matches(events[0], event)
 
+    def test_filter_events_ordered_by_timestamp(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        newer = event_factory(timestamp=dt.now(tz.utc).isoformat())
+        older = event_factory(timestamp=(dt.now(tz.utc) - td(days=1)).isoformat())
+
+        repo.write_event(newer)
+        repo.write_event(older)
+
+        events = repo.filter_events(types.Filters())
+
+        assert [e.id for e in events] == [older.id, newer.id]
+
     def test_filter_by_multiple(
         self, event_factory: Callable[..., types.Event], repo: PostgresRepository
     ):

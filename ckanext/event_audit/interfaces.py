@@ -41,6 +41,11 @@ class IEventAudit(Interface):
                 return True
 
             return False
+
+        def modify_event(self, event: types.Event) -> types.Event:
+            event.payload.pop("password", None)
+
+            return event
     ```
     """
 
@@ -98,4 +103,27 @@ class IEventAudit(Interface):
         Returns:
             True if the event should be skipped, False otherwise
         """
-        return True
+        return False
+
+    def modify_event(self, event: types.Event) -> types.Event:
+        """Modify an event before it's written to the repository.
+
+        Called once per event, after ``skip_event`` decided it should not be
+        skipped, and before it's written (or enqueued in threaded mode).
+        Plugins are applied in whatever order CKAN yields
+        ``PluginImplementations``, each one seeing the previous plugin's
+        result.
+
+        Example:
+            ```
+            def modify_event(self, event: types.Event) -> types.Event:
+                event.payload.pop("password", None)
+
+                return event
+            ```
+
+        Returns:
+            the event to write, which may be the same object mutated in
+            place or a new one
+        """
+        return event
