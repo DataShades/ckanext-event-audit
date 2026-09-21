@@ -42,11 +42,10 @@ class TestEventAuditUtils:
 
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "redis")
     def test_active_connection(self, repo: repositories.RedisRepository):
-        assert repo._connection is None
-
         result = utils.test_active_connection()
 
         assert result is True
+        assert repo.is_available() is True
 
 
 def _write_old_and_recent(

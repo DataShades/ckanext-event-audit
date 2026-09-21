@@ -8,8 +8,10 @@ Read the [documentation](https://datashades.github.io/ckanext-event-audit/) for 
 
 ## Quick start
 
-1. Install the extension from `PyPI`.
-    `pip install -e .`
+1. Install the extension from `PyPI`. The events dashboard is optional and needs
+   [ckanext-tables](https://github.com/DataShades/ckanext-tables), which the `dashboard` extra
+   installs.
+    `pip install -e '.[dashboard]'`
 
 2. Enable the plugin in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`). The
    events dashboard is built on [ckanext-tables](https://github.com/DataShades/ckanext-tables),

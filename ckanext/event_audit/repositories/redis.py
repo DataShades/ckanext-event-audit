@@ -4,6 +4,8 @@ import re
 from datetime import datetime as dt
 from typing import Any
 
+from redis.exceptions import RedisError
+
 from ckan.lib.redis import connect_to_redis
 
 from ckanext.event_audit import types
@@ -160,8 +162,8 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         that produced ``events`` would be silently discarded.
 
         The bounds are passed along rather than stored on the repository: it
-        is a process-wide singleton shared by request and writer threads, so
-        it must not carry per-call state.
+        is shared by request and writer threads, so it must not carry per-call
+        state.
         """
         if not time_from and not time_to:
             return events
@@ -242,4 +244,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         Returns:
             bool: whether the connection was successful.
         """
-        return True
+        try:
+            return bool(self.conn.ping())
+        except RedisError:
+            return False

@@ -5,7 +5,7 @@ import ckan.plugins.toolkit as tk
 from ckanext.event_audit import types
 
 CONF_ACTIVE_REPO = "ckanext.event_audit.active_repo"
-DEF_ACTIVE_REPO = "redis"
+DEF_ACTIVE_REPO = "postgres"
 CONF_RESTRICT_AVAILABLE_REPOS = "ckanext.event_audit.restrict_available_repos"
 
 CONF_CLOUDWATCH_KEY = "ckanext.event_audit.cloudwatch.access_key"

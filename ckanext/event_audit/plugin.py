@@ -17,6 +17,7 @@ from ckanext.event_audit import config, listeners, utils, worker
 @tk.blanket.validators
 @tk.blanket.cli
 @tk.blanket.blueprints
+@tk.blanket.helpers
 class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurable)
     p.implements(p.IConfigurer)
@@ -31,12 +32,6 @@ class EventAuditPlugin(p.SingletonPlugin):
 
     def configure(self, config_: CKANConfig) -> None:
         self.repo = utils.get_active_repo(True)
-
-        if self.repo.get_name() == "cloudwatch" and self.repo._connection is None:
-            if config_.get("testing"):
-                self.repo._connection = True  # type: ignore
-            else:
-                utils.test_active_connection()
 
         if config.is_threaded_mode_enabled():
             worker.start_writer_thread()
@@ -66,21 +61,24 @@ class EventAuditPlugin(p.SingletonPlugin):
 
     @staticmethod
     def collect_config_sections_subs(sender: None):
-        return {
-            "name": "Event Audit",
-            "configs": [
-                {
-                    "name": "Configuration",
-                    "blueprint": "event_audit.config",
-                    "info": "Event Audit",
-                },
+        configs = [
+            {
+                "name": "Configuration",
+                "blueprint": "event_audit.config",
+                "info": "Event Audit",
+            },
+        ]
+
+        if utils.is_dashboard_available():
+            configs.append(
                 {
                     "name": "Events dashboard",
                     "blueprint": "event_audit_dashboard.dashboard",
                     "info": "A list of all events",
-                },
-            ],
-        }
+                }
+            )
+
+        return {"name": "Event Audit", "configs": configs}
 
     @staticmethod
     def collect_config_schemas_subs(sender: None):

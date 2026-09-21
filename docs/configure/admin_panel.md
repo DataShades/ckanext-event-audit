@@ -6,8 +6,10 @@ The extension ships a dashboard listing the recorded events, with filtering, sor
 delete actions. It is available at `/event_audit/dashboard`, for `sysadmin` users only, who also get a link to it
 in the header.
 
-The dashboard is built on [ckanext-tables](https://github.com/DataShades/ckanext-tables), so the
-`tables` plugin must be enabled as well, or the page fails with a `TemplateNotFound` error:
+The dashboard is built on [ckanext-tables](https://github.com/DataShades/ckanext-tables), which
+is optional: install the extension with the `dashboard` extra to get it. Without it, there's no
+dashboard, and no link to it. With it, the `tables` plugin must be enabled as well, or the page
+fails with a `TemplateNotFound` error:
 
 ```ini
 ckan.plugins = ... tables event_audit ...

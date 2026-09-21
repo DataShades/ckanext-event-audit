@@ -31,11 +31,11 @@ def event() -> types.Event:
 
 @pytest.fixture
 def event_factory():
-    def factory(**kwargs: types.EventData) -> types.Event:
-        kwargs.setdefault("category", const.Category.MODEL.value)  # type: ignore
-        kwargs.setdefault("action", "created")  # type: ignore
+    def factory(**kwargs: Any) -> types.Event:
+        kwargs.setdefault("category", const.Category.MODEL.value)
+        kwargs.setdefault("action", "created")
 
-        return types.Event(**kwargs)  # type: ignore
+        return types.Event(**kwargs)
 
     return factory
 
@@ -43,7 +43,12 @@ def event_factory():
 @pytest.fixture
 def cloudwatch_repo() -> tuple[CloudWatchRepository, Stubber]:
     """Fixture to initialize the CloudWatchRepository with a stubbed client."""
-    repo = CloudWatchRepository()
+    repo = cast(CloudWatchRepository, utils.get_repo_instance(CloudWatchRepository))
+
+    # the instance is shared between the tests: start each one from scratch.
+    # There's no AWS to check against, the client is stubbed.
+    repo._available = True
+    repo._log_stream_ready = False
 
     stubber = Stubber(repo.client)
 

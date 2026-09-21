@@ -23,9 +23,9 @@ from ckanext.event_audit.repositories.base import (
 def _fresh_session() -> Iterator[SQLAlchemySession]:
     """Yield a short-lived session scoped to a single repository operation.
 
-    The repository is a process-wide singleton (see
-    ``AbstractRepository.__new__``), so it must not keep a long-lived
-    ``Session`` on ``self``
+    The repository is shared by every request and by the writer thread (see
+    ``utils.get_repo``), so it must not keep a long-lived ``Session`` on
+    ``self``.
 
     A fresh session per call also keeps audit writes independent of the
     request's own transaction (an event stays recorded even if the request
@@ -281,4 +281,10 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFilt
         Returns:
             bool: whether the connection was successful.
         """
+        try:
+            with _fresh_session() as session:
+                session.execute(select(1))
+        except sa.exc.SQLAlchemyError:
+            return False
+
         return True

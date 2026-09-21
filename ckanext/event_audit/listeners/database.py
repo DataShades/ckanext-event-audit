@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session as SQLAlchemySession
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 from ckan.model.base import Session
+from ckan.model.meta import create_local_session
 
 from ckanext.event_audit import config, const, types, utils, worker
 from ckanext.event_audit import repositories as repos
@@ -17,8 +18,24 @@ from ckanext.event_audit.model import EventModel
 
 CACHE_ATTR = "_audit_cache"
 
+# CKAN's scoped ``Session`` and ``create_local_session`` are separate session
+# factories, and a listener registered on one doesn't see the other's sessions.
+# Local sessions are what code outside of the request cycle, including other
+# extensions, uses to write to the database, so both are listened to.
+SESSION_FACTORIES = (Session, create_local_session)
 
-@event.listens_for(Session, "before_flush")
+
+def _listen(identifier: str):
+    def register(fn: Any) -> Any:
+        for factory in SESSION_FACTORIES:
+            event.listen(factory, identifier, fn)
+
+        return fn
+
+    return register
+
+
+@_listen("before_flush")
 def before_flush(
     session: SQLAlchemySession, flush_context: UOWTransaction, instances: IdentityMap
 ):
@@ -98,14 +115,14 @@ def get_previous_data(instance: Any) -> dict[str, Any]:
     return result
 
 
-@event.listens_for(Session, "after_commit")
+@_listen("after_commit")
 def after_commit(session: SQLAlchemySession):
     if not _should_process_commit(session):
         return
 
     repo = utils.get_active_repo()
 
-    if repo._connection is False:
+    if not repo.is_available():
         return
 
     actor = (
@@ -154,14 +171,14 @@ def _process_cached_instances(  # noqa: PLR0913 PLR0917
                 continue
 
             event = repo.build_event(
-                types.EventData(
-                    category=const.Category.MODEL.value,
-                    actor=actor,
-                    action=action,
-                    action_object=instance.__class__.__name__,
-                    action_object_id=inspect(instance).identity[0],
-                    result=_prepare_result(instance, should_store_complex_data),
-                )
+                {
+                    "category": const.Category.MODEL.value,
+                    "actor": actor,
+                    "action": action,
+                    "action_object": instance.__class__.__name__,
+                    "action_object_id": inspect(instance).identity[0],
+                    "result": _prepare_result(instance, should_store_complex_data),
+                }
             )
 
             if utils.skip_event(event):
@@ -204,7 +221,7 @@ def _filter_private_columns(payload: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in payload.items() if not k.startswith("_")}
 
 
-@event.listens_for(Session, "after_rollback")
+@_listen("after_rollback")
 def ckan_after_rollback(session: SQLAlchemySession):
     """Remove our custom attribute after rollback."""
     if hasattr(session, CACHE_ATTR) and p.plugin_loaded("event_audit"):

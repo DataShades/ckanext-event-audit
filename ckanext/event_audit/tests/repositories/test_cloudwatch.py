@@ -8,7 +8,7 @@ from typing import Any, Callable
 import pytest
 from botocore.stub import Stubber
 
-from ckanext.event_audit import const, types
+from ckanext.event_audit import const, types, utils
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 put_log_events_response: dict[str, Any] = {
@@ -463,35 +463,42 @@ class TestCloudWatchRepository:
 
 
 class TestCloudWatchInit:
-    """The repository is a singleton whose constructor runs on every call."""
+    """Every call sets up a client of its own, the shared one is in ``utils``."""
 
-    def test_repeated_calls_reuse_the_client(
+    def test_shared_instance_reuses_the_client(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
     ):
         repo, _ = cloudwatch_repo
         client = repo.client
 
-        assert CloudWatchRepository() is repo
+        assert utils.get_repo_instance(CloudWatchRepository) is repo
         assert repo.client is client
 
-    def test_explicit_arguments_set_the_repository_up_again(
-        self,
-        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
-        monkeypatch: pytest.MonkeyPatch,
-    ):
-        repo, _ = cloudwatch_repo
-
-        # the repository is shared with the other tests: put everything back
-        for attr in ("session", "client", "log_group", "log_stream"):
-            monkeypatch.setattr(repo, attr, getattr(repo, attr))
-
+    def test_explicit_arguments_are_used(self, monkeypatch: pytest.MonkeyPatch):
         # don't reach out to AWS
         monkeypatch.setattr(
             CloudWatchRepository, "_create_log_group_if_not_exists", lambda self: None
         )
 
-        again = CloudWatchRepository(log_group="/other/group", log_stream="other")
+        repo = CloudWatchRepository(log_group="/other/group", log_stream="other")
 
-        assert again is repo
         assert repo.log_group == "/other/group"
         assert repo.log_stream == "other"
+        assert repo is not utils.get_repo_instance(CloudWatchRepository)
+
+    def test_unavailable_repository_is_checked_again(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, stubber = cloudwatch_repo
+        repo._available = None
+        repo.recheck_interval = 0
+
+        stubber.add_client_error("describe_log_groups", "AccessDeniedException")
+        stubber.add_response("describe_log_groups", {"logGroups": []})
+
+        try:
+            with stubber:
+                assert repo.is_available() is False
+                assert repo.is_available() is True
+        finally:
+            repo.recheck_interval = CloudWatchRepository.recheck_interval

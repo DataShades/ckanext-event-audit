@@ -1,38 +1,42 @@
 from __future__ import annotations
 
-import threading
+import time
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
 from ckanext.event_audit import types
 
-_instance_lock = threading.Lock()
-
 
 class AbstractRepository(ABC):
-    _connection = None
+    #: How long, in seconds, to wait before checking again a repository that
+    #: was found unavailable.
+    recheck_interval: float = 30.0
 
-    def __new__(cls, *args: Any, **kwargs: Any):
-        """Singleton pattern implementation.
+    _available: bool | None = None
+    _checked_at: float = 0.0
 
-        Every concrete repository class gets its own instance. The lookup goes
-        through ``cls.__dict__`` rather than ``hasattr``, otherwise a subclass
-        of another repository would find the parent's instance and receive it
-        instead of one of its own type.
+    def is_available(self) -> bool:
+        """Whether events can be written to the repository right now.
 
-        Note that ``__init__`` runs on every instantiation, so it has to be
-        cheap and safe to repeat.
+        The listeners skip events while this is ``False``. The answer comes from
+        ``test_connection``: a successful check is remembered, so this is cheap
+        to call for every event, and a failed one is repeated once
+        ``recheck_interval`` has passed, so a temporary outage doesn't disable
+        the audit for the lifetime of the process.
+
+        Returns:
+            bool: whether the repository is available.
         """
-        instance = cls.__dict__.get("_instance")
+        available = self._available
 
-        if instance is None:
-            with _instance_lock:
-                instance = cls.__dict__.get("_instance")
+        if available is None or (
+            not available
+            and time.monotonic() - self._checked_at >= self.recheck_interval
+        ):
+            available = self._available = self.test_connection()
+            self._checked_at = time.monotonic()
 
-                if instance is None:
-                    instance = cls._instance = super().__new__(cls)
-
-        return instance
+        return available
 
     @classmethod
     @abstractmethod
@@ -68,16 +72,16 @@ class AbstractRepository(ABC):
 
         return types.Result(status=True)
 
-    def build_event(self, event_data: types.EventData) -> types.Event:
+    def build_event(self, event_data: dict[str, Any]) -> types.Event:
         """Build an event object from the provided data.
 
         Args:
-            event_data (types.EventData): event data.
+            event_data (dict[str, Any]): the event fields, see `types.Event`.
 
         Returns:
             types.Event: event object.
         """
-        return types.Event(**event_data)
+        return types.Event.model_validate(event_data)
 
     @abstractmethod
     def get_event(self, event_id: Any) -> types.Event | None:
@@ -131,6 +135,9 @@ class AbstractRepository(ABC):
     @abstractmethod
     def test_connection(self) -> bool:
         """Test the connection to the repository.
+
+        This must really reach the storage and never raise: ``is_available``
+        relies on it.
 
         Returns:
             bool: whether the connection was successful.

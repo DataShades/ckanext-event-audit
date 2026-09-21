@@ -1,6 +1,6 @@
 # Redis repository
 
-The default repository. It is the simplest to set up, and has some limits you should know about:
+It is the simplest repository to set up, and it has some limits you should know about:
 
 * All the events live in a single Redis hash, `event-audit`, and the fields of an event are packed
   into the hash key.

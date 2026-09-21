@@ -18,6 +18,8 @@ We can ignore specific actions from being tracked by setting the `ckanext.event_
 
 We're utilising the SQLAlchemy’s event system for tracking database interactions. The audit event creation will be triggered when the model is created, updated, or deleted.
 
+Changes are tracked in the sessions CKAN hands out: the regular `model.Session` and the ones from `ckan.model.meta.create_local_session`, which is what code running outside of a request, including other extensions, usually writes with. A session you build yourself, e.g. with `sqlalchemy.orm.Session(bind=engine)`, isn't tracked, and neither are changes made with plain SQL.
+
 To disable the Database tracker, specify this in the configuration file:
 
 ```ini

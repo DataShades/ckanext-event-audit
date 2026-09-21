@@ -8,6 +8,7 @@ from botocore.stub import Stubber
 from sqlalchemy import inspect
 
 from ckan import model
+from ckan.model.meta import create_local_session
 from ckan.tests import factories
 from ckan.tests.helpers import call_action
 
@@ -349,6 +350,52 @@ class TestPreviousStateWithoutStoredResult:
         assert len(events) == 1
         assert events[0].result == {}
         assert not hasattr(instance, "_previous_data")
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["User"])
+class TestLocalSessions:
+    def test_changes_made_in_a_local_session_are_recorded(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            instance = session.get(model.User, user["id"])
+            instance.about = "changed in a local session"
+            session.commit()
+        finally:
+            session.close()
+
+        events = repo.filter_events(types.Filters())
+
+        # the events the repository writes with its own local sessions aren't
+        # audited, so there's nothing but the change itself
+        assert len(events) == 1
+        assert events[0].action == "changed"
+        assert events[0].action_object == "User"
+        assert events[0].action_object_id == user["id"]
+
+    def test_rolled_back_changes_are_not_recorded(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            instance = session.get(model.User, user["id"])
+            instance.about = "never saved"
+            session.flush()
+            session.rollback()
+        finally:
+            session.close()
+
+        assert repo.filter_events(types.Filters()) == []
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")

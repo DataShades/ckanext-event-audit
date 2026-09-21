@@ -6,24 +6,26 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 from ckan.views.admin import before_request
 
-import ckanext.tables.shared as t
-
 from ckanext.event_audit import config, utils
-from ckanext.event_audit.table import EventAuditTable
 
-event_audit_dashboard = Blueprint(
-    "event_audit_dashboard", __name__, url_prefix="/event_audit"
-)
-event_audit_dashboard.before_request(before_request)
+if utils.is_dashboard_available():
+    import ckanext.tables.shared as t
 
-event_audit_dashboard.add_url_rule(
-    "/dashboard",
-    view_func=t.GenericTableView.as_view(
-        "dashboard",
-        table=EventAuditTable,
-        breadcrumb_label=tk._("Event Audit list"),
-    ),
-)
+    from ckanext.event_audit.table import EventAuditTable
+
+    event_audit_dashboard = Blueprint(
+        "event_audit_dashboard", __name__, url_prefix="/event_audit"
+    )
+    event_audit_dashboard.before_request(before_request)
+
+    event_audit_dashboard.add_url_rule(
+        "/dashboard",
+        view_func=t.GenericTableView.as_view(
+            "dashboard",
+            table=EventAuditTable,
+            breadcrumb_label=tk._("Event Audit list"),
+        ),
+    )
 
 
 if p.plugin_loaded("admin_panel") and config.is_admin_panel_enabled():

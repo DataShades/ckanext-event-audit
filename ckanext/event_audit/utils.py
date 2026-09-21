@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib.util
+import threading
 from datetime import datetime, timedelta, timezone
 
 import ckan.plugins as p
@@ -8,6 +10,21 @@ from ckan.plugins import get_plugin
 from ckanext.event_audit import config, exporters, types
 from ckanext.event_audit import repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
+
+_repo_instances: dict[type[repos.AbstractRepository], repos.AbstractRepository] = {}
+_repo_instances_lock = threading.Lock()
+
+
+def is_dashboard_available() -> bool:
+    """Whether the events dashboard can be used.
+
+    The dashboard is built on ``ckanext-tables``, which is optional: without it,
+    the rest of the extension works, and the dashboard isn't registered.
+
+    Returns:
+        whether ``ckanext-tables`` is installed.
+    """
+    return importlib.util.find_spec("ckanext.tables") is not None
 
 
 def get_available_repos() -> dict[str, type[repos.AbstractRepository]]:
@@ -58,47 +75,66 @@ def get_active_repo(ignore_cache: bool = False) -> repos.AbstractRepository:
     repos = get_available_repos()
     active_repo_name = config.active_repo()
 
-    return repos[active_repo_name]()
+    return get_repo_instance(repos[active_repo_name])
 
 
 def get_repo(repo_name: str) -> repos.AbstractRepository:
-    """Retrieve a repository class by name.
+    """Retrieve a repository by name.
 
-    This function retrieves a repository class by name. If the repository
-    is not found, a ValueError is raised.
+    This function retrieves the shared instance of a repository by name. If the
+    repository is not found, a ValueError is raised.
 
     Args:
         repo_name: The name of the repository to retrieve.
 
     Returns:
-        The repository class.
+        The repository.
     """
     repos = get_available_repos()
 
     if repo_name not in repos:
         raise ValueError(f"Repository {repo_name} not found")
 
-    return repos[repo_name]()
+    return get_repo_instance(repos[repo_name])
+
+
+def get_repo_instance(
+    repo_class: type[repos.AbstractRepository],
+) -> repos.AbstractRepository:
+    """Retrieve the shared instance of a repository class.
+
+    The instance is created on first use and then reused, so a repository holds
+    its state (clients, availability) for the lifetime of the process. The
+    class is not instantiated again, so nothing here runs on every call.
+
+    Args:
+        repo_class: The repository class.
+
+    Returns:
+        The instance of the class.
+    """
+    instance = _repo_instances.get(repo_class)
+
+    if instance is None:
+        with _repo_instances_lock:
+            instance = _repo_instances.get(repo_class)
+
+            if instance is None:
+                instance = _repo_instances[repo_class] = repo_class()
+
+    return instance
 
 
 def test_active_connection() -> bool:
-    """Test the connection to the active repository.
+    """Check whether the active repository is available.
 
-    When we test the connection, we store the result in the repository
-    object, so we can reuse it later.
-
+    The answer is remembered by the repository, and a failed check is repeated
+    after a while, see `AbstractRepository.is_available`.
 
     Returns:
         whether the connection is active
     """
-    repo = get_active_repo()
-
-    if repo._connection is not None:
-        return repo._connection
-
-    repo._connection = repo.test_connection()  # type: ignore
-
-    return repo._connection  # type: ignore
+    return get_active_repo().is_available()
 
 
 def get_available_exporters() -> dict[str, type[exporters.AbstractExporter]]:

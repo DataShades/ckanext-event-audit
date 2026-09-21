@@ -29,11 +29,11 @@ LOG_EVENT_SIZE_LIMIT = 262_144  # 256KB
 # exceed 1 MB. See the boto3/CloudWatch Logs docs for PutLogEvents.
 MAX_EVENTS_PER_PUT = 10_000
 MAX_PUT_SIZE_BYTES = 1_048_576
+PER_EVENT_OVERHEAD_BYTES = 26
 
 # What a ``payload``/``result`` key may look like to be used in a JSON filter
 # pattern selector. Dots are allowed, as they address nested members.
 PATTERN_KEY_RE = re.compile(r"[A-Za-z0-9_.-]+")
-PER_EVENT_OVERHEAD_BYTES = 26
 
 
 class CloudWatchEvent(TypedDict):
@@ -42,8 +42,6 @@ class CloudWatchEvent(TypedDict):
 
 
 class CloudWatchRepository(AbstractRepository, RemoveAll):
-    _initialised = False
-
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
@@ -61,26 +59,10 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 If not specified, the configured log stream will be used.
 
         Note:
-            The repository is a singleton, so this runs on every
-            ``CloudWatchRepository()`` call. Once the client is set up, calls
-            without arguments reuse it; passing any argument sets the
-            repository up again with the given values.
+            Every call sets up its own client. Use ``utils.get_repo`` to get
+            the shared instance instead of creating one.
         """
-        # Reset on every call to the constructor (not just a "real" init),
-        # since the singleton pattern below means `CloudWatchRepository()`
-        # can return an already-initialized instance: whatever is calling
-        # the constructor again (thread startup, CLI, shutdown flush) should
-        # not assume a stream from a previous incarnation still exists.
-        # `write_event`/`write_events` never call the constructor again, so
-        # this doesn't reintroduce a per-event check.
         self._log_stream_ready = False
-
-        explicit_args = any(
-            arg is not None for arg in (credentials, log_group, log_stream)
-        )
-
-        if self._initialised and not explicit_args:
-            return
 
         if not credentials:
             credentials = config.get_cloudwatch_credentials()
@@ -103,8 +85,6 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 "AWS credentials are not configured. "
                 "Please, check the extension configuration."
             ) from e
-
-        self._initialised = True
 
     @classmethod
     def get_name(cls) -> str:
@@ -449,14 +429,9 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         Returns:
             bool: whether the connection was successful.
         """
-        if self._connection is not None:
-            return self._connection
-
         try:
             self.client.describe_log_groups()
         except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError):
-            self._connection = False
-        else:
-            self._connection = True
+            return False
 
-        return self._connection
+        return True

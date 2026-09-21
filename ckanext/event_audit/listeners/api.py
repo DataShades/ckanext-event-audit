@@ -6,7 +6,7 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 import ckan.types as ckan_types
 
-from ckanext.event_audit import config, const, types, utils, worker
+from ckanext.event_audit import config, const, utils, worker
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -21,7 +21,7 @@ def action_succeeded_subscriber(
 
     repo = utils.get_active_repo()
 
-    if repo._connection is False:
+    if not repo.is_available():
         return
 
     thread_mode_enabled = config.is_threaded_mode_enabled()
@@ -30,17 +30,17 @@ def action_succeeded_subscriber(
     data_dict = data_dict if isinstance(data_dict, dict) else {}
 
     event = repo.build_event(
-        types.EventData(
-            category=const.Category.API.value,
-            actor=(
+        {
+            "category": const.Category.API.value,
+            "actor": (
                 tk.current_user.id
                 if tk.current_user and not tk.current_user.is_anonymous
                 else ""
             ),
-            action=action_name,
-            payload=data_dict if should_store_complex_data else {},
-            result=result if should_store_complex_data else {},
-        )
+            "action": action_name,
+            "payload": data_dict if should_store_complex_data else {},
+            "result": result if should_store_complex_data else {},
+        }
     )
 
     if utils.skip_event(event):

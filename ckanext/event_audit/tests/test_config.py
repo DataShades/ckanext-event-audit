@@ -33,8 +33,8 @@ def _config_defaults() -> list[tuple[str, Any]]:
 
 @pytest.mark.usefixtures("with_plugins")
 class TestEventAuditConfig:
-    def test_get_active_repo_default(self):
-        assert config.active_repo() == "redis"
+    def test_postgres_is_the_default_repository(self):
+        assert config.DEF_ACTIVE_REPO == "postgres"
 
     def test_retention_is_disabled_by_default(self):
         assert config.get_retention_days() == 0

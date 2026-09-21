@@ -1,7 +1,7 @@
 Repositories are the storages where the event audit logs are stored. There are a few basic repositories, that you can use out of the box:
 
-1. `redis` - the default repository, stores logs in Redis.
-2. `postgres` - stores logs in a PostgreSQL database.
+1. `postgres` - the default repository, stores logs in a PostgreSQL database.
+2. `redis` - stores logs in Redis.
 3. `cloudwatch` - stores logs in AWS CloudWatch.
 
 See [how to choose one](../configure/repository.md).

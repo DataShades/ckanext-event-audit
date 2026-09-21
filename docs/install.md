@@ -12,25 +12,26 @@ Compatibility with core CKAN versions:
 | 2.12         | yes         |
 | master       | yes         |
 
-The extension needs Python 3.10 or newer, and
-[ckanext-tables](https://github.com/DataShades/ckanext-tables) 2.0.1 or newer, which renders the
-events dashboard.
+The extension needs Python 3.10 or newer. The events dashboard is optional, and needs
+[ckanext-tables](https://github.com/DataShades/ckanext-tables) 2.0.1 or newer to render.
 
 ## Installation
 
-1. Install [ckanext-tables](https://github.com/DataShades/ckanext-tables). If your package index
+1. Optional, for the events dashboard: install
+   [ckanext-tables](https://github.com/DataShades/ckanext-tables). If your package index
    doesn't offer version 2 yet, install it from GitHub:
     ```sh
     pip install https://github.com/DataShades/ckanext-tables/archive/refs/tags/v2.0.1.tar.gz
     ```
 
-2. Install the extension from `PyPI`:
+2. Install the extension from `PyPI`, with the `dashboard` extra if you use the dashboard:
     ```sh
-    pip install -e .
+    pip install -e '.[dashboard]'
     ```
 
 3. Enable the plugins in your CKAN configuration file (e.g. `ckan.ini` or `production.ini`). The
-   events dashboard is built on ckanext-tables, so `tables` must be enabled as well:
+   events dashboard is built on ckanext-tables, so `tables` must be enabled as well. Without
+   ckanext-tables installed, the dashboard is left out and everything else works:
     ```ini
     ckan.plugins = ... tables event_audit ...
     ```

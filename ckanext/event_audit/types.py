@@ -28,20 +28,6 @@ class AWSCredentials:
     region_name: str
 
 
-class EventData(TypedDict, total=False):
-    id: Any
-    category: str
-    action: str
-    actor: str
-    action_object: str
-    action_object_id: str
-    target_type: str
-    target_id: str
-    timestamp: Union[str, datetime]
-    result: Dict[Any, Any]
-    payload: Dict[Any, Any]
-
-
 class Event(BaseModel):
     """Event model.
 

@@ -12,7 +12,7 @@ through the [`IEventAudit`](../interfaces.md) interface.
 | `write_event(event)` | Store one event and return a `types.Result`. |
 | `get_event(event_id)` | Return the event, or `None` if there's no such event. |
 | `filter_events(filters)` | Return the events matching a [`types.Filters`](../types.md) object. |
-| `test_connection()` | Return a `bool`: whether the storage is reachable. |
+| `test_connection()` | Return a `bool`: whether the storage is really reachable. It must not raise. |
 
 `write_events(events)` is optional. It receives a whole batch in threaded mode, and by default
 it calls `write_event` once per event, so override it if your storage can write in bulk.
@@ -57,12 +57,11 @@ from ckanext.event_audit.repositories import (
 class FileRepository(AbstractRepository, RemoveSingle, RemoveFiltered, RemoveAll):
     """Keep all the events in a single JSON file."""
 
-    # The repository is a singleton shared by the request threads and by the
-    # writer thread, so guard the file.
+    # The instance is shared by the request threads and by the writer thread,
+    # so guard the file.
     _lock = threading.RLock()
 
     def __init__(self, file_path: str = "/tmp/event_audit.json") -> None:
-        # Runs on every `FileRepository()` call, so keep it cheap.
         self.file_path = Path(file_path)
 
     @classmethod
@@ -181,9 +180,10 @@ class FileRepository(AbstractRepository, RemoveSingle, RemoveFiltered, RemoveAll
 
 ## Things to keep in mind
 
-* **The repository is a singleton.** `FileRepository()` always returns the same instance, and
-  its `__init__` runs again on every call, so keep `__init__` cheap and safe to repeat. Every
-  class gets its own instance, including subclasses of another repository.
+* **There is one instance.** The extension creates the repository once, the first time it needs
+  it, and shares that instance, so `__init__` runs once per process. Get it with
+  `utils.get_repo("file")` rather than calling `FileRepository()`, which would create another
+  one.
 * **It's used from several threads.** The request threads read from it and, in
   [threaded mode](../configure/async.md), a separate writer thread writes to it, so don't keep
   per-call state on `self` and guard any shared resource, like the file in the example.
@@ -191,8 +191,10 @@ class FileRepository(AbstractRepository, RemoveSingle, RemoveFiltered, RemoveAll
   from the CLI are aware too.
 * `payload` and `result` filters match by containment: an event matches if it contains the given
   keys with the given values, and any other keys are ignored.
-* The extension calls `test_connection` on startup only for the CloudWatch repository, but
-  implement it anyway.
+* `test_connection` must really reach the storage and never raise. The extension asks
+  `is_available()` before every event, which remembers a successful check and repeats a failed
+  one every `recheck_interval` seconds (30 by default), so a temporary outage doesn't switch the
+  audit off until the next restart. While the repository is unavailable, events are skipped.
 
 ## Registering the repository
 

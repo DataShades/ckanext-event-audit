@@ -19,7 +19,7 @@ do:
     cd ckanext-event-audit
     pip install -e '.[dev]'
 
-The extension depends on [ckanext-tables](https://github.com/DataShades/ckanext-tables) for the dashboard.
+The dashboard uses [ckanext-tables](https://github.com/DataShades/ckanext-tables), which `.[dev]` installs through the `dashboard` extra.
 
 ## Tests
 
