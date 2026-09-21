@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime as dt
+from typing import Any
 
 import click
 from pytz import UTC
@@ -13,6 +14,28 @@ __all__ = [
 ]
 
 
+class JsonObject(click.ParamType):
+    """A command line value that must be a JSON object, e.g. `{"id": "abc"}`."""
+
+    name = "json"
+
+    def convert(
+        self, value: Any, param: click.Parameter | None, ctx: click.Context | None
+    ) -> dict[str, Any]:
+        if isinstance(value, dict):
+            return value
+
+        try:
+            data = json.loads(value)
+        except json.JSONDecodeError:
+            self.fail(f"{value!r} is not valid JSON.", param, ctx)
+
+        if not isinstance(data, dict):
+            self.fail(f"{value!r} is not a JSON object.", param, ctx)
+
+        return data
+
+
 @click.group()
 def event_audit():
     pass
@@ -22,37 +45,85 @@ def event_audit():
 @click.argument("exporter_name", type=str)
 @click.option(
     "--start",
-    required=True,
+    required=False,
     type=click.DateTime(formats=["%Y-%m-%d"]),
-    help="ISO format start date",
+    help="Only export events from this date on (ISO format).",
 )
 @click.option(
     "--end",
     required=False,
     type=click.DateTime(formats=["%Y-%m-%d"]),
-    help="ISO format end date",
+    help="Only export events up to this date (ISO format).",
+)
+@click.option("--category", required=False, type=str, help="Event category")
+@click.option("--action", required=False, type=str, help="Action performed")
+@click.option("--actor", required=False, type=str, help="The actor of the event")
+@click.option(
+    "--action-object", required=False, type=str, help="Object affected by the action"
+)
+@click.option(
+    "--action-object-id", required=False, type=str, help="ID of the action object"
+)
+@click.option(
+    "--target-type", required=False, type=str, help="Type of the event's target"
+)
+@click.option("--target-id", required=False, type=str, help="ID of the target object")
+@click.option(
+    "--payload",
+    required=False,
+    type=JsonObject(),
+    help="JSON object. Only export events whose payload contains its key/value pairs.",
+)
+@click.option(
+    "--result",
+    required=False,
+    type=JsonObject(),
+    help="JSON object. Only export events whose result contains its key/value pairs.",
 )
 @click.option("--config", required=False, type=str, help="Custom config in JSON format")
 def export_data(
-    exporter_name: str, start: dt, end: dt | None, config: str | None
+    exporter_name: str,
+    start: dt | None,
+    end: dt | None,
+    config: str | None,
+    **filters: Any,
 ) -> None:
     """Export data using the specified exporter.
 
+    Without any filter all the events are exported. Filters are combined, so
+    only the events matching all of them are exported.
+
     Args:
         exporter_name (str): The name of the exporter.
-        start (str): The start date string in %Y-%m-%d format.
+        start (str | None): The start date string in %Y-%m-%d format.
         end (str | None): The end date string in %Y-%m-%d format.
         config (str | None): The exporter config in JSON format. See the exporter's
             documentation for args details.
+        **filters (Any): Only export the events matching all of these options,
+            which are the `Filters` fields:
+
+            - `category` (str): the event category.
+            - `action` (str): the action performed.
+            - `actor` (str): the actor of the event.
+            - `action_object` (str): the object type the action was performed on.
+            - `action_object_id` (str): the ID of that object.
+            - `target_type` (str): the type of the event's target.
+            - `target_id` (str): the ID of the event's target.
+            - `payload` (dict): a JSON object the event's payload must contain.
+            - `result` (dict): a JSON object the event's result must contain.
 
     Returns:
         The exported data will be printed to the standard output.
 
     Example:
+        $ ckan event-audit export-data csv > report.csv
+
         $ ckan event-audit export-data csv --start=2024-11-11 > report.csv
 
-        $ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] |
-            {id, category, action}]'
+        $ ckan event-audit export-data json --category=api --action=package_create
+
+        $ ckan event-audit export-data json --payload='{"id": "my-dataset"}' | jq
+            '[.[] | {id, category, action}]'
 
         $ ckan event-audit export-data xlsx --start=2024-11-11
             --config='{"file_path": "/tmp/test.xlsx"}'
@@ -70,12 +141,16 @@ def export_data(
     except TypeError as e:
         return click.secho(f"Invalid exporter config: {config}. Error: {e}", fg="red")
     except ValueError as e:
-        return click.secho(e, fg="red")
+        return click.secho(str(e), fg="red")
 
     if start and end and start > end:
         return click.secho("Start date must be before the end date.", fg="red")
 
-    click.echo(exporter.from_filters(types.Filters(time_from=start, time_to=end)))
+    filters = {name: value for name, value in filters.items() if value is not None}
+
+    click.echo(
+        exporter.from_filters(types.Filters(time_from=start, time_to=end, **filters))
+    )
 
 
 @event_audit.command()

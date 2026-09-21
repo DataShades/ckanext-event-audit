@@ -36,7 +36,7 @@ for example daily from cron. Without it the log grows for ever.
 To take a copy of the events out of any repository, use the [exporters](exporters/basic.md), e.g.
 
 ```sh
-ckan event-audit export-data json --start=2024-01-01 > events.json
+ckan event-audit export-data json > events.json
 ```
 
 ## Deployment

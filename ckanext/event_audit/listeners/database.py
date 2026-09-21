@@ -11,7 +11,7 @@ import ckan.plugins.toolkit as tk
 from ckan.model.base import Session
 from ckan.model.meta import create_local_session
 
-from ckanext.event_audit import config, const, types, utils, worker
+from ckanext.event_audit import config, const, utils, worker
 from ckanext.event_audit import repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel

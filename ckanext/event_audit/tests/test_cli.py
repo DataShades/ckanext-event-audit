@@ -99,6 +99,129 @@ class TestExportDataCLI:
         assert recent.id in result.output
         assert future.id in result.output
 
+    def test_export_without_dates_exports_everything(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        old = event_factory(timestamp="2001-06-01T00:00:00+00:00")
+        recent = event_factory(timestamp="2024-06-01T00:00:00+00:00")
+        repo.write_events([old, recent])
+
+        result = cli.invoke(export_data, ["csv"])
+
+        assert result.exit_code == 0
+        assert old.id in result.output
+        assert recent.id in result.output
+
+    def test_export_with_end_date_only(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        old = event_factory(timestamp="2001-06-01T00:00:00+00:00")
+        recent = event_factory(timestamp="2024-06-01T00:00:00+00:00")
+        repo.write_events([old, recent])
+
+        result = cli.invoke(export_data, ["csv", "--end", "2020-1-1"])
+
+        assert old.id in result.output
+        assert recent.id not in result.output
+
+    def test_filter_by_category_and_action(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        wanted = event_factory(category="api", action="package_create")
+        other_action = event_factory(category="api", action="package_delete")
+        other_category = event_factory(category="model", action="package_create")
+        repo.write_events([wanted, other_action, other_category])
+
+        result = cli.invoke(
+            export_data,
+            ["csv", "--category", "api", "--action", "package_create"],
+        )
+
+        assert wanted.id in result.output
+        assert other_action.id not in result.output
+        assert other_category.id not in result.output
+
+    @pytest.mark.parametrize(
+        ("option", "field"),
+        [
+            ("--actor", "actor"),
+            ("--action-object", "action_object"),
+            ("--action-object-id", "action_object_id"),
+            ("--target-type", "target_type"),
+            ("--target-id", "target_id"),
+        ],
+    )
+    def test_filter_by_event_field(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+        option: str,
+        field: str,
+    ):
+        wanted = event_factory(**{field: "wanted"})
+        other = event_factory(**{field: "other"})
+        repo.write_events([wanted, other])
+
+        result = cli.invoke(export_data, ["csv", option, "wanted"])
+
+        assert wanted.id in result.output
+        assert other.id not in result.output
+
+    def test_filter_by_payload_and_result(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        wanted = event_factory(payload={"id": "wanted"}, result={"ok": True})
+        wrong_payload = event_factory(payload={"id": "other"}, result={"ok": True})
+        wrong_result = event_factory(payload={"id": "wanted"}, result={"ok": False})
+        repo.write_events([wanted, wrong_payload, wrong_result])
+
+        result = cli.invoke(
+            export_data,
+            ["csv", "--payload", '{"id": "wanted"}', "--result", '{"ok": true}'],
+        )
+
+        assert wanted.id in result.output
+        assert wrong_payload.id not in result.output
+        assert wrong_result.id not in result.output
+
+    def test_filters_are_combined_with_dates(
+        self,
+        cli,
+        repo: RedisRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        wanted = event_factory(category="api", timestamp="2024-06-01T00:00:00+00:00")
+        too_old = event_factory(category="api", timestamp="2023-06-01T00:00:00+00:00")
+        repo.write_events([wanted, too_old])
+
+        result = cli.invoke(
+            export_data, ["csv", "--start", "2024-1-1", "--category", "api"]
+        )
+
+        assert wanted.id in result.output
+        assert too_old.id not in result.output
+
+    @pytest.mark.parametrize("option", ["--payload", "--result"])
+    @pytest.mark.parametrize("value", ["xxx", "[1, 2]", '"text"'])
+    def test_json_filters_must_be_json_objects(self, cli, option: str, value: str):
+        result = cli.invoke(export_data, ["csv", option, value])
+
+        assert result.exit_code != 0
+        assert f"Invalid value for '{option}'" in result.output
+
     def test_xlsx_no_file_path(self, cli):
         result = cli.invoke(export_data, ["xlsx", "--start", "2024-1-1"])
 
