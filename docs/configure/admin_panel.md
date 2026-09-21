@@ -55,6 +55,7 @@ is read again after the application has started:
 | `ignore.categories`, `ignore.actions`, `ignore.models` | immediately |
 | `track_model`, `track_api` | immediately |
 | `batch.size`, `batch.timeout` | immediately (the writer thread reads them on each round) |
+| `anonymous.rate_limit` | immediately |
 | `retention_days` | the next time the retention command runs |
 | `cloudwatch.region` | after a restart: the client is created once |
 | `batch.queue_size` | after a restart: the queue is created once, when the writer thread starts |

@@ -9,6 +9,7 @@ from ckan.lib.redis import connect_to_redis
 from ckan.tests.factories import User
 
 from ckanext.event_audit import const, types, utils
+from ckanext.event_audit.rate_limit import RateLimiter
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -38,6 +39,13 @@ def event_factory():
         return types.Event(**kwargs)
 
     return factory
+
+
+@pytest.fixture
+def anonymous_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make the code believe it runs in a request, with a fresh rate limit."""
+    monkeypatch.setattr(utils, "has_request_context", lambda: True)
+    monkeypatch.setattr(utils, "_anonymous_limiter", RateLimiter())
 
 
 @pytest.fixture

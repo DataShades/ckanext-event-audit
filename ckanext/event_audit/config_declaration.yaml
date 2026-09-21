@@ -126,6 +126,15 @@ groups:
         editable: true
         type: int
 
+      - key: ckanext.event_audit.anonymous.rate_limit
+        description: |
+          Max number of events per minute, in each process, that requests of anonymous users
+          can cause. The surplus is dropped, so that a flood of anonymous requests can't fill
+          the repository or crowd out the events of signed-in users. 0 means no limit.
+        default: 1000
+        editable: true
+        type: int
+
       - key: ckanext.event_audit.threaded_mode
         description: Enable threaded mode for pushing events to the repository
         default: true

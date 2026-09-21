@@ -60,6 +60,9 @@ DEF_QUEUE_SIZE = 10_000
 CONF_RETENTION_DAYS = "ckanext.event_audit.retention_days"
 DEF_RETENTION_DAYS = 0
 
+CONF_ANONYMOUS_RATE_LIMIT = "ckanext.event_audit.anonymous.rate_limit"
+DEF_ANONYMOUS_RATE_LIMIT = 1000
+
 CONF_THREADED = "ckanext.event_audit.threaded_mode"
 DEF_THREADED = True
 
@@ -161,6 +164,16 @@ def get_queue_size() -> int:
 def get_retention_days() -> int:
     """Number of days to keep events for, 0 to keep them forever."""
     return max(int(tk.config.get(CONF_RETENTION_DAYS, DEF_RETENTION_DAYS)), 0)
+
+
+def get_anonymous_rate_limit() -> int:
+    """Max number of events per minute and process caused by anonymous users.
+
+    0 means no limit.
+    """
+    return max(
+        int(tk.config.get(CONF_ANONYMOUS_RATE_LIMIT, DEF_ANONYMOUS_RATE_LIMIT)), 0
+    )
 
 
 def is_threaded_mode_enabled() -> bool:

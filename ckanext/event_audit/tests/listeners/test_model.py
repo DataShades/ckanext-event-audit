@@ -655,3 +655,24 @@ class TestGetObjectId:
 
     def test_instance_without_an_identity_yet(self):
         assert listener_database.get_object_id(model.Tag(name="transient")) == ""
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "anonymous_request")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_THREADED, False)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Tag"])
+@pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 2)
+class TestModelListenerRateLimit:
+    def test_anonymous_events_over_the_limit_are_dropped(
+        self, repo: repositories.AbstractRepository
+    ):
+        session = create_local_session()
+
+        try:
+            session.add_all([model.Tag(name=f"tag-{i}") for i in range(5)])
+            session.commit()
+        finally:
+            session.close()
+
+        assert len(repo.filter_events(types.Filters())) == 2

@@ -130,3 +130,47 @@ class TestEnforceRetentionUnsupported:
 
         assert result.status is False
         assert "does not support removing events by time range" in str(result.message)
+
+
+@pytest.mark.usefixtures("with_plugins", "anonymous_request")
+class TestIsRateLimited:
+    @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 2)
+    def test_anonymous_events_over_the_limit_are_limited(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        results = [utils.is_rate_limited(event_factory(actor="")) for _ in range(4)]
+
+        assert results == [False, False, True, True]
+
+    @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 1)
+    def test_events_of_signed_in_users_are_never_limited(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        assert not any(
+            utils.is_rate_limited(event_factory(actor="a-user")) for _ in range(5)
+        )
+
+    @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 1)
+    def test_signed_in_events_dont_use_up_the_anonymous_limit(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        for _ in range(5):
+            utils.is_rate_limited(event_factory(actor="a-user"))
+
+        assert not utils.is_rate_limited(event_factory(actor=""))
+
+    @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 1)
+    def test_events_outside_of_a_request_are_never_limited(
+        self, monkeypatch: pytest.MonkeyPatch, event_factory: Callable[..., types.Event]
+    ):
+        """The command line and background jobs have no actor either."""
+        monkeypatch.setattr(utils, "has_request_context", lambda: False)
+
+        assert not any(utils.is_rate_limited(event_factory()) for _ in range(5))
+
+    @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 0)
+    def test_zero_means_no_limit(self, event_factory: Callable[..., types.Event]):
+        assert not any(utils.is_rate_limited(event_factory()) for _ in range(50))
+
+    def test_limit_is_on_by_default(self):
+        assert config.get_anonymous_rate_limit() == config.DEF_ANONYMOUS_RATE_LIMIT

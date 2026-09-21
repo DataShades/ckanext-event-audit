@@ -222,6 +222,9 @@ def _process_cached_instances(  # noqa: PLR0913 PLR0917
             ):
                 continue
 
+            if utils.is_rate_limited(event):
+                continue
+
             for plugin in p.PluginImplementations(IEventAudit):
                 event = plugin.modify_event(event)
 

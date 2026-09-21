@@ -50,6 +50,9 @@ def action_succeeded_subscriber(
         if plugin.skip_event(event):
             return
 
+    if utils.is_rate_limited(event):
+        return
+
     for plugin in p.PluginImplementations(IEventAudit):
         event = plugin.modify_event(event)
 

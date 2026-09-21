@@ -83,8 +83,30 @@ ckanext.event_audit.store_payload_and_result = true
     the password hash, the reset key and the email address. Nothing is redacted by default, and with the CloudWatch
     repository the data leaves your server. Read [Security](../security.md) before enabling this option.
 
+## Limiting anonymous events
+
+Every recorded event is a write, and anyone can send requests. To keep a flood of anonymous requests
+from filling up the repository, or from crowding the events of signed-in users out of the
+[write queue](async.md#queue-size), the events that anonymous users cause are limited:
+
+```ini
+ckanext.event_audit.anonymous.rate_limit = 1000
+```
+
+This is the number of events per minute that are recorded for anonymous users. The surplus is
+**dropped**, and a warning is logged, once a minute at most. By default, it is 1000.
+Set it to `0` to remove the limit.
+
+A few things to keep in mind:
+
+* Only events caused by requests of anonymous users count. Signed-in users, the command line and
+  background jobs are never limited.
+* The limit is per process: with 4 workers, up to 4 times the number is recorded.
+* Events that are [ignored](ignore.md) don't count, so ignoring the actions that anonymous
+  visitors call most often is still the best way to keep the volume down.
+* The dropped events are gone. On a busy public site that must record every anonymous call,
+  raise the limit rather than remove it, and size the repository for it.
+
 ## Custom trackers
 
 You can create and write an event anywhere in your codebase. See the [usage](../usage.md) section for more details.
-
-

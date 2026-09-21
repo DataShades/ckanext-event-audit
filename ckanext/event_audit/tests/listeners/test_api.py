@@ -77,3 +77,31 @@ class TestApiListener:
         events = repo.filter_events(types.Filters())
 
         assert events[0].result["site_title"] == "CKAN"
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db", "anonymous_request")
+@pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_THREADED, False)
+@pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 2)
+class TestApiListenerRateLimit:
+    def test_anonymous_events_over_the_limit_are_dropped(
+        self, repo: repositories.AbstractRepository
+    ):
+        for _ in range(5):
+            call_action("status_show", {})
+
+        assert len(repo.filter_events(types.Filters())) == 2
+
+    @pytest.mark.ckan_config(config.CONF_IGNORED_ACTIONS, ["package_search"])
+    def test_ignored_actions_dont_use_up_the_limit(
+        self, repo: repositories.AbstractRepository
+    ):
+        for _ in range(5):
+            call_action("package_search", {})
+
+        call_action("status_show", {})
+
+        actions = [event.action for event in repo.filter_events(types.Filters())]
+
+        assert actions == ["status_show"]

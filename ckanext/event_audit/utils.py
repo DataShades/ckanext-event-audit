@@ -4,15 +4,19 @@ import importlib.util
 import threading
 from datetime import datetime, timedelta, timezone
 
+from flask import has_request_context
+
 import ckan.plugins as p
 from ckan.plugins import get_plugin
 
 from ckanext.event_audit import config, exporters, types
 from ckanext.event_audit import repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
+from ckanext.event_audit.rate_limit import RateLimiter
 
 _repo_instances: dict[type[repos.AbstractRepository], repos.AbstractRepository] = {}
 _repo_instances_lock = threading.Lock()
+_anonymous_limiter = RateLimiter()
 
 
 def is_dashboard_available() -> bool:
@@ -192,6 +196,34 @@ def skip_event(event: types.Event) -> bool:
         not config.get_tracked_models()
         and event.action_object in config.get_ignored_models()
     )
+
+
+def is_rate_limited(event: types.Event) -> bool:
+    """Check if an event caused by an anonymous user is over the allowed rate.
+
+    Anyone can trigger events by sending requests, and every event is a write.
+    A flood of anonymous requests could fill up the repository, and, in
+    threaded mode, the queue, so that the events of signed-in users get dropped
+    with them. Only the events an anonymous user causes in a request count
+    towards the ``ckanext.event_audit.anonymous.rate_limit`` option: actions
+    of signed-in users, and of the command line and background jobs, which have
+    no actor too but aren't requests, are never limited.
+
+    Call it for the events that are about to be stored, after checking whether
+    they should be skipped, so that skipped events don't use up the limit.
+
+    Args:
+        event: The event to check.
+
+    Returns:
+        Whether the event must be dropped.
+    """
+    limit = config.get_anonymous_rate_limit()
+
+    if not limit or event.actor or not has_request_context():
+        return False
+
+    return not _anonymous_limiter.allow(limit)
 
 
 def enforce_retention(

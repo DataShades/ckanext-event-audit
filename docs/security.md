@@ -101,6 +101,12 @@ records an event, and anonymous visitors and crawlers can trigger read actions l
 `package_show` and `package_search`. The default [ignore list](configure/ignore.md) leaves those
 out, but **setting `ignore.actions` replaces the list**, so keep the defaults you still want.
 
+The events that anonymous users cause are also
+[rate limited](configure/tracking.md#limiting-anonymous-events): by default, up to 1000 a minute
+in each process are recorded, and the surplus is dropped. Signed-in users, the command line and
+background jobs aren't affected, so a flood of anonymous requests can't push their events out.
+Sending requests as a signed-in user is not limited, but it's attributed to that user.
+
 In [threaded mode](configure/async.md) the write queue is bounded, so a flood can't exhaust memory:
 the surplus events are dropped and an error is logged. Set a [retention](configure/retention.md)
 period so that the log doesn't grow forever.

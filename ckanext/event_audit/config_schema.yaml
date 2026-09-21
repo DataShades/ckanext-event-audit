@@ -80,3 +80,10 @@ fields:
     form_snippet: text.html
     input_type: number
     required: true
+
+  - field_name: ckanext.event_audit.anonymous.rate_limit
+    help_text: Max number of events per minute, in each process, that requests of anonymous users can cause. The surplus is dropped. 0 means no limit
+    label: Anonymous Rate Limit
+    form_snippet: text.html
+    input_type: number
+    required: true
