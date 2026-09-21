@@ -43,7 +43,11 @@ def before_flush(
     session._audit_cache["created"].update(session.new)  # type: ignore
     session._audit_cache["deleted"].update(session.deleted)  # type: ignore
 
-    should_store_prev_state = config.should_store_previous_model_state()
+    # the previous state is only ever reported as part of the stored result
+    should_store_prev_state = (
+        config.should_store_previous_model_state()
+        and config.should_store_payload_and_result()
+    )
 
     for obj in session.dirty:
         if not session.is_modified(obj, include_collections=False):

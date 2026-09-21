@@ -316,6 +316,43 @@ class TestPreviousStateAcrossFlushes:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["User"])
+@pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, False)
+@pytest.mark.ckan_config(config.CONF_STORE_PREVIOUS_MODEL_STATE, True)
+class TestPreviousStateWithoutStoredResult:
+    def test_previous_state_isnt_computed(self, user: dict[str, Any]):
+        """The snapshot ends up in the result, which isn't stored here."""
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        instance.about = "new info"
+        model.Session.flush()
+
+        try:
+            assert not hasattr(instance, "_previous_data")
+        finally:
+            model.Session.rollback()
+
+    def test_nothing_is_left_on_the_instance_after_commit(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+        repo.remove_all_events()
+
+        instance.about = "new info"
+        model.Session.commit()
+
+        events = repo.filter_events(types.Filters(action="changed"))
+
+        assert len(events) == 1
+        assert events[0].result == {}
+        assert not hasattr(instance, "_previous_data")
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
 @pytest.mark.ckan_config(config.CONF_IGNORED_MODELS, ["Group"])
 class TestIgnoredInstanceDoesNotAbortCommit:
     def test_tracked_instance_recorded_when_ignored_instance_comes_first(

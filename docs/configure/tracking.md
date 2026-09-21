@@ -49,7 +49,7 @@ ckanext.event_audit.track.store_previous_model_state = true
 ???+ Warning
     The previous state is stored in the `result` of the event, so this option only has an effect
     together with [`store_payload_and_result`](#storing-payload-and-result-data). On its own, it
-    only makes the extension do extra work on every database flush.
+    does nothing.
 
 The `event` result field contains two keys: `old` and `new`. If this option is enabled, the `old` key will contain the previous state of the model:
 

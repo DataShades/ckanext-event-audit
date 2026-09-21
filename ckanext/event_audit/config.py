@@ -133,7 +133,8 @@ def should_store_payload_and_result() -> bool:
 def should_store_previous_model_state() -> bool:
     """Check if the previous state of the model should be stored in the event.
 
-    Works only for in-built database listener.
+    Works only for in-built database listener, and only together with
+    `should_store_payload_and_result`.
     """
     return tk.config.get(
         CONF_STORE_PREVIOUS_MODEL_STATE, DEF_STORE_PREVIOUS_MODEL_STATE
