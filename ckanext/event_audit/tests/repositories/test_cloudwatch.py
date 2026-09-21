@@ -158,6 +158,44 @@ class TestCloudWatchRepository:
 
         assert pattern == '{ ($.result.status = "ok") }'
 
+    def test_build_filter_pattern_escapes_quotes_in_values(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        """A value mustn't be able to end its own string and add conditions."""
+        repo, _ = cloudwatch_repo
+
+        pattern = repo._build_filter_pattern(
+            types.Filters(
+                actor='x") || ($.actor = "y',
+                payload={"note": 'say "hi" \\ bye'},
+            )
+        )
+
+        assert pattern == (
+            '{ ($.actor = "x\\") || ($.actor = \\"y") '
+            '&& ($.payload.note = "say \\"hi\\" \\\\ bye") }'
+        )
+
+    @pytest.mark.parametrize("key", ['x" || $.id', "a b", "a&&b", "", "a{b}"])
+    def test_build_filter_pattern_rejects_unsafe_payload_keys(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], key: str
+    ):
+        repo, _ = cloudwatch_repo
+
+        with pytest.raises(ValueError, match="Can't filter by payload key"):
+            repo._build_filter_pattern(types.Filters(payload={key: "value"}))
+
+    def test_build_filter_pattern_allows_nested_payload_keys(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        pattern = repo._build_filter_pattern(
+            types.Filters(payload={"user.first-name": "alice"})
+        )
+
+        assert pattern == '{ ($.payload.user.first-name = "alice") }'
+
     def test_filter_by_time_range(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
     ):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from contextlib import suppress
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Iterable, TypedDict
@@ -28,6 +29,10 @@ LOG_EVENT_SIZE_LIMIT = 262_144  # 256KB
 # exceed 1 MB. See the boto3/CloudWatch Logs docs for PutLogEvents.
 MAX_EVENTS_PER_PUT = 10_000
 MAX_PUT_SIZE_BYTES = 1_048_576
+
+# What a ``payload``/``result`` key may look like to be used in a JSON filter
+# pattern selector. Dots are allowed, as they address nested members.
+PATTERN_KEY_RE = re.compile(r"[A-Za-z0-9_.-]+")
 PER_EVENT_OVERHEAD_BYTES = 26
 
 
@@ -330,7 +335,7 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
     def _build_filter_pattern(self, filters: types.Filters) -> str | None:
         """Builds the CloudWatch filter pattern for querying logs."""
         conditions = [
-            f'($.{field} = "{value}")'
+            f"($.{field} = {self._quote_pattern_string(value)})"
             for field, value in [
                 ("id", filters.id),
                 ("category", filters.category),
@@ -350,6 +355,12 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         # numbers unquoted, strings quoted) to match CloudWatch syntax.
         for prefix, data in (("payload", filters.payload), ("result", filters.result)):
             for key, value in (data or {}).items():
+                if not PATTERN_KEY_RE.fullmatch(str(key)):
+                    raise ValueError(
+                        f"Can't filter by {prefix} key {key!r}: only letters, "
+                        "digits, '_', '-' and '.' are allowed"
+                    )
+
                 conditions.append(
                     f"($.{prefix}.{key} = {self._format_pattern_value(value)})"
                 )
@@ -368,7 +379,14 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         if isinstance(value, (int, float)):
             return str(value)
 
-        return f'"{value}"'
+        return CloudWatchRepository._quote_pattern_string(value)
+
+    @staticmethod
+    def _quote_pattern_string(value: Any) -> str:
+        """Quote a string for a filter pattern, so it can't end the string early."""
+        escaped = str(value).replace("\\", "\\\\").replace('"', '\\"')
+
+        return f'"{escaped}"'
 
     def _get_all_matching_events(
         self, kwargs: dict[str, Any]
