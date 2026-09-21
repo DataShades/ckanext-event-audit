@@ -255,6 +255,67 @@ class TestModelListener:
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
 @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["User"])
+@pytest.mark.ckan_config(config.CONF_STORE_PAYLOAD_AND_RESULT, True)
+@pytest.mark.ckan_config(config.CONF_STORE_PREVIOUS_MODEL_STATE, True)
+class TestPreviousStateAcrossFlushes:
+    def test_previous_state_is_the_one_from_before_the_transaction(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        """A mid-transaction flush must not replace the pre-transaction state."""
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+        repo.remove_all_events()
+
+        instance.about = "intermediate"
+        model.Session.flush()
+        instance.about = "final"
+        model.Session.commit()
+
+        events = repo.filter_events(types.Filters(action="changed"))
+
+        assert len(events) == 1
+        assert events[0].result["old"]["about"] == user["about"]
+        assert events[0].result["new"]["about"] == "final"
+
+    def test_previous_state_is_discarded_on_rollback(self, user: dict[str, Any]):
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        instance.about = "rolled back"
+        model.Session.flush()
+
+        assert hasattr(instance, "_previous_data")
+
+        model.Session.rollback()
+
+        assert not hasattr(instance, "_previous_data")
+
+    def test_previous_state_does_not_leak_into_the_next_transaction(
+        self, user: dict[str, Any], repo: repositories.AbstractRepository
+    ):
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        instance.about = "rolled back"
+        model.Session.flush()
+        model.Session.rollback()
+
+        repo.remove_all_events()
+
+        model.Session.refresh(instance)
+        instance.about = "committed"
+        model.Session.commit()
+
+        events = repo.filter_events(types.Filters(action="changed"))
+
+        assert len(events) == 1
+        assert events[0].result["old"]["about"] == user["about"]
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
 @pytest.mark.ckan_config(config.CONF_IGNORED_MODELS, ["Group"])
 class TestIgnoredInstanceDoesNotAbortCommit:
     def test_tracked_instance_recorded_when_ignored_instance_comes_first(

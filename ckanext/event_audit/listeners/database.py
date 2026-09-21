@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterable
 
 from sqlalchemy import event, inspect
 from sqlalchemy.orm import IdentityMap, UOWTransaction
@@ -49,7 +49,10 @@ def before_flush(
         if not session.is_modified(obj, include_collections=False):
             continue
 
-        if should_store_prev_state:
+        # SQLAlchemy resets attribute history after every flush, so a later
+        # flush in the same transaction only sees the intermediate state. Keep
+        # the snapshot taken by the first flush: that's the pre-transaction one.
+        if should_store_prev_state and not hasattr(obj, "_previous_data"):
             obj._previous_data = get_previous_data(obj)
 
         session._audit_cache["changed"].add(obj)  # type: ignore
@@ -116,6 +119,7 @@ def after_commit(session: SQLAlchemySession):
         actor,
     )
 
+    _discard_previous_data(session._audit_cache["changed"])  # type: ignore
     del session._audit_cache  # type: ignore
 
 
@@ -200,4 +204,15 @@ def _filter_private_columns(payload: dict[str, Any]) -> dict[str, Any]:
 def ckan_after_rollback(session: SQLAlchemySession):
     """Remove our custom attribute after rollback."""
     if hasattr(session, CACHE_ATTR) and p.plugin_loaded("event_audit"):
+        _discard_previous_data(session._audit_cache["changed"])  # type: ignore
         del session._audit_cache  # type: ignore
+
+
+def _discard_previous_data(instances: Iterable[Any]) -> None:
+    """Drop the stored snapshots, so they can't leak into a later transaction.
+
+    The snapshot lives on the instance, which outlives a rolled back
+    transaction, and ``before_flush`` never overwrites an existing one.
+    """
+    for instance in instances:
+        instance.__dict__.pop("_previous_data", None)
