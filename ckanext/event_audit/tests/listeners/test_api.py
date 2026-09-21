@@ -6,6 +6,7 @@ from botocore.stub import Stubber
 from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, repositories, types
+from ckanext.event_audit.listeners.api import action_succeeded_subscriber
 from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
@@ -77,6 +78,20 @@ class TestApiListener:
         events = repo.filter_events(types.Filters())
 
         assert events[0].result["site_title"] == "CKAN"
+
+
+@pytest.mark.usefixtures("with_plugins")
+@pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_IGNORED_ACTIONS, ["package_show"])
+def test_ignored_actions_arent_built_into_events(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    def fail(*args: object, **kwargs: object) -> None:
+        raise AssertionError("the event of an ignored action was built")
+
+    monkeypatch.setattr(repositories.AbstractRepository, "build_event", fail)
+
+    action_succeeded_subscriber("package_show", {}, {}, {"title": "large"})
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db", "anonymous_request")

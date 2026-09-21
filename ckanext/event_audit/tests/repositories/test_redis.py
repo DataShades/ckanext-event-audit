@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 from datetime import timedelta as td
 from datetime import timezone as tz
-from typing import Callable
+from typing import Any, Callable
 
 import pytest
 
@@ -92,6 +92,37 @@ class TestRedisRepo:
         events = repo.filter_events(types.Filters(time_to=dt.now(tz.utc)))
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
+
+    def test_events_out_of_the_time_range_arent_decoded(
+        self,
+        event_factory: Callable[..., types.Event],
+        repo: RedisRepository,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        now = dt.now(tz.utc)
+        repo.write_events(
+            [
+                event_factory(timestamp=(now - td(days=days)).isoformat())
+                for days in (1, 10, 100)
+            ]
+        )
+
+        decoded: list[str] = []
+        validate = types.Event.model_validate_json
+
+        def counting_validate(cls: type[types.Event], *args: Any, **kwargs: Any):
+            decoded.append("event")
+
+            return validate(*args, **kwargs)
+
+        monkeypatch.setattr(
+            types.Event, "model_validate_json", classmethod(counting_validate)
+        )
+
+        events = repo.filter_events(types.Filters(time_from=now - td(days=20)))
+
+        assert len(events) == 2
+        assert len(decoded) == 2
 
     def test_filter_by_time_between(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository
@@ -271,6 +302,32 @@ class TestRedisRepo:
 
         assert result.status is False
         assert result.message == "Event not found"
+
+    def test_redis_remove_events_by_ids(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        first, second, kept = event_factory(), event_factory(), event_factory()
+        repo.write_events([first, second, kept])
+
+        result = repo.remove_events_by_ids([first.id, second.id, "unknown"])
+
+        assert result.status is True
+        assert result.message == "2 event(s) removed successfully"
+        assert repo.get_event(first.id) is None
+        assert repo.get_event(second.id) is None
+        assert repo.get_event(kept.id) is not None
+
+    def test_redis_remove_events_by_ids_needs_the_whole_id(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        event = event_factory(id="abc")
+        longer = event_factory(id="abcd")
+        repo.write_events([event, longer])
+
+        repo.remove_events_by_ids(["abc"])
+
+        assert repo.get_event("abc") is None
+        assert repo.get_event("abcd") is not None
 
     def test_redis_remove_all_events(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository

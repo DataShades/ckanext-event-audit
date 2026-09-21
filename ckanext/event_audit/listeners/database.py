@@ -71,13 +71,18 @@ def before_flush(
         else:
             audit_cache["deleted"].add(obj)
 
+    dirty = session.dirty
+
+    if not dirty:
+        return
+
     # the previous state is only ever reported as part of the stored result
     should_store_prev_state = (
         config.should_store_previous_model_state()
         and config.should_store_payload_and_result()
     )
 
-    for obj in session.dirty:
+    for obj in dirty:
         if not session.is_modified(obj, include_collections=False):
             continue
 
@@ -108,20 +113,21 @@ def get_previous_data(instance: Any) -> dict[str, Any]:
     """
     result = {}
     state = inspect(instance)
-    column_keys = set(state.mapper.column_attrs.keys())
 
-    for attr_state in state.attrs:
-        if attr_state.key not in column_keys:
-            continue
+    # iterating the mapper's attributes gives the properties, not their names
+    for prop in state.mapper.column_attrs:
+        key = prop.key
+        # ``history`` is computed on every access
+        history = state.attrs[key].history
 
-        if attr_state.history.empty():
-            result[attr_state.key] = None
-        elif attr_state.history.deleted:
-            result[attr_state.key] = attr_state.history.deleted[0]
-        elif attr_state.history.unchanged:
-            result[attr_state.key] = attr_state.history.unchanged[0]
+        if history.empty():
+            result[key] = None
+        elif history.deleted:
+            result[key] = history.deleted[0]
+        elif history.unchanged:
+            result[key] = history.unchanged[0]
         else:
-            result[attr_state.key] = None
+            result[key] = None
 
     return result
 
@@ -177,13 +183,15 @@ def after_commit(session: SQLAlchemySession):
 
 
 def _should_process_commit(session: SQLAlchemySession) -> bool:
+    # every commit of every session gets here, and most of them, e.g. of the
+    # requests that only read, have nothing cached: check that first
+    if not hasattr(session, CACHE_ATTR):
+        return False
+
     if not p.plugin_loaded("event_audit"):
         return False
 
-    if not config.is_database_log_enabled():
-        return False
-
-    return hasattr(session, CACHE_ATTR)
+    return config.is_database_log_enabled()
 
 
 def _process_cached_instances(  # noqa: PLR0913 PLR0917
@@ -194,12 +202,20 @@ def _process_cached_instances(  # noqa: PLR0913 PLR0917
     tracked_models: list[str],
     actor: str = "",
 ) -> None:
+    plugins = list(p.PluginImplementations(IEventAudit))
+
     for action, instances in session._audit_cache.items():  # type: ignore
         for instance in instances:
             if isinstance(instance, EventModel):
                 continue
 
-            if tracked_models and instance.__class__.__name__ not in tracked_models:
+            model_name = instance.__class__.__name__
+
+            if tracked_models and model_name not in tracked_models:
+                continue
+
+            # ignored models are dropped before their data is serialised
+            if utils.is_ignored(const.Category.MODEL.value, action, model_name):
                 continue
 
             event = repo.build_event(
@@ -207,25 +223,19 @@ def _process_cached_instances(  # noqa: PLR0913 PLR0917
                     "category": const.Category.MODEL.value,
                     "actor": actor,
                     "action": action,
-                    "action_object": instance.__class__.__name__,
+                    "action_object": model_name,
                     "action_object_id": get_object_id(instance),
                     "result": _prepare_result(instance, should_store_complex_data),
                 }
             )
 
-            if utils.skip_event(event):
-                continue
-
-            if any(
-                plugin.skip_event(event)
-                for plugin in reversed(list(p.PluginImplementations(IEventAudit)))
-            ):
+            if any(plugin.skip_event(event) for plugin in reversed(plugins)):
                 continue
 
             if utils.is_rate_limited(event):
                 continue
 
-            for plugin in p.PluginImplementations(IEventAudit):
+            for plugin in plugins:
                 event = plugin.modify_event(event)
 
             if thread_mode_enabled:

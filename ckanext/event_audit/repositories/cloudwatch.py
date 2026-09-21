@@ -227,33 +227,32 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         the result and payload are removed from the event, as it's the only
         part of the event, that might be too large to be written to CloudWatch.
 
+        The event is serialized once, and that dump is what is measured, so a
+        large ``payload``/``result`` isn't walked again just to find out its size.
+
         Args:
             event (types.Event): event to get the dump.
 
         Returns:
             str: event dump.
         """
-        result_size = (
-            len(json.dumps(event.result).encode("utf-8")) if event.result else 0
-        )
-        payload_size = (
-            len(json.dumps(event.payload).encode("utf-8")) if event.payload else 0
-        )
+        dump = event.model_dump_json()
+        size = len(dump.encode("utf-8"))
 
-        if (result_size + payload_size) > LOG_EVENT_SIZE_LIMIT:
-            log.error(
-                (
-                    "Event %s, %s, %s result/payload too large for CloudWatch: "
-                    "%s bytes. Removing the result and payload from the event"
-                ),
-                event.id,
-                event.category,
-                event.action,
-                result_size + payload_size,
-            )
-            return event.model_dump_json(exclude={"result", "payload"})
+        if size <= LOG_EVENT_SIZE_LIMIT:
+            return dump
 
-        return event.model_dump_json()
+        log.error(
+            (
+                "Event %s, %s, %s too large for CloudWatch: "
+                "%s bytes. Removing the result and payload from the event"
+            ),
+            event.id,
+            event.category,
+            event.action,
+            size,
+        )
+        return event.model_dump_json(exclude={"result", "payload"})
 
     def _create_log_stream_if_not_exists(self, log_stream: str) -> str:
         """Creates the log stream if it doesn't already exist."""
@@ -430,7 +429,9 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             bool: whether the connection was successful.
         """
         try:
-            self.client.describe_log_groups()
+            # only the configured group is of interest: without a prefix,
+            # CloudWatch looks up all the groups of the account
+            self.client.describe_log_groups(logGroupNamePrefix=self.log_group, limit=1)
         except (NoCredentialsError, PartialCredentialsError, ClientError, ValueError):
             return False
 

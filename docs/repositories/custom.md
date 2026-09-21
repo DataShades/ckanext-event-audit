@@ -27,6 +27,10 @@ Removing events is optional too, and is enabled by inheriting from the matching 
 | `RemoveFiltered` | `remove_events(filters)` | `ckan event-audit remove-events` with a time range, and the [retention](../configure/retention.md) command |
 | `RemoveAll` | `remove_all_events()` | `ckan event-audit remove-events` without a time range, and the dashboard's "Delete all events" |
 
+The dashboard's bulk delete hands all the selected events to `remove_events_by_ids(event_ids)`.
+By default it calls `remove_event` once per event, so override it if your storage can remove
+several events in one go.
+
 Implement the method *and* inherit from its marker class. The command line tools check the
 marker classes before calling anything, while the dashboard calls the method and treats the
 `NotImplementedError` raised by the default implementation as "not supported".

@@ -104,7 +104,7 @@ class RepositoryDataSource(t.ListDataSource):
 
         if repo_filters != self._fetched_with:
             events = self.repo.filter_events(repo_filters)
-            self.data = [event.model_dump() for event in events]
+            self.data = [dict(event) for event in events]
             self._fetched_with = repo_filters
 
         # Re-apply every filter in memory: it makes the pushed-down filters
@@ -228,8 +228,7 @@ class EventAuditTable(t.TableDefinition):
         repo = utils.get_active_repo()
 
         try:
-            for row in rows:
-                repo.remove_event(row["id"])
+            repo.remove_events_by_ids([row["id"] for row in rows])
         except NotImplementedError:
             return t.ActionHandlerResult(
                 success=False,

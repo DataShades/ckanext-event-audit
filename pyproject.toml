@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ckanext-event-audit"
-version = "1.5.2"
+version = "2.0.0"
 description = "Capture and retain a record of API, model and custom events in a CKAN app"
 requires-python = ">=3.10"
 license = "AGPL-3.0-or-later"

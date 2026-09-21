@@ -2,12 +2,60 @@ from __future__ import annotations
 
 import pytest
 
-from ckanext.event_audit import utils
+from ckanext.event_audit import types, utils
 from ckanext.event_audit.repositories import (
+    AbstractRepository,
     PostgresRepository,
     RedisRepository,
     RemoveFiltered,
 )
+
+
+class _Repository(AbstractRepository):
+    """The bare minimum of a repository, that only knows how to remove one event."""
+
+    def __init__(self, missing: str = "") -> None:
+        self.removed: list[str] = []
+        self.missing = missing
+
+    @classmethod
+    def get_name(cls) -> str:
+        return "bare"
+
+    def write_event(self, event: types.Event) -> types.Result:
+        return types.Result(status=True)
+
+    def get_event(self, event_id: str) -> types.Event | None:
+        return None
+
+    def filter_events(self, filters: types.Filters) -> list[types.Event]:
+        return []
+
+    def test_connection(self) -> bool:
+        return True
+
+    def remove_event(self, event_id: str) -> types.Result:
+        self.removed.append(event_id)
+
+        return types.Result(status=event_id != self.missing)
+
+
+class TestRemoveEventsByIds:
+    def test_default_removes_the_events_one_by_one(self):
+        repo = _Repository(missing="b")
+
+        result = repo.remove_events_by_ids(["a", "b", "c"])
+
+        assert repo.removed == ["a", "b", "c"]
+        assert result.status is True
+        assert result.message == "2 event(s) removed successfully"
+
+    def test_default_fails_if_removal_isnt_supported(self):
+        class NoRemoval(_Repository):
+            remove_event = AbstractRepository.remove_event
+
+        with pytest.raises(NotImplementedError):
+            NoRemoval().remove_events_by_ids(["a"])
 
 
 class TestSharedInstances:

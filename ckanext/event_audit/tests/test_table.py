@@ -32,6 +32,9 @@ class RepoWithoutRemoval:
     def remove_event(self, event_id: str) -> types.Result:
         raise NotImplementedError
 
+    def remove_events_by_ids(self, event_ids: list[str]) -> types.Result:
+        raise NotImplementedError
+
     def remove_all_events(self) -> types.Result:
         raise NotImplementedError
 
@@ -229,6 +232,24 @@ class TestEventAuditTable:
         assert repo.get_event(first.id) is None
         assert repo.get_event(second.id) is None
         assert repo.get_event(kept.id) is not None
+
+    def test_delete_events_in_one_call(self, monkeypatch: pytest.MonkeyPatch):
+        calls: list[list[str]] = []
+
+        class Repo:
+            def remove_events_by_ids(self, event_ids: list[str]) -> types.Result:
+                calls.append(list(event_ids))
+
+                return types.Result(status=True)
+
+        _use_repo(monkeypatch, Repo())
+
+        result = table.EventAuditTable()._delete_events(
+            [{"id": "a"}, {"id": "b"}, {"id": "c"}]
+        )
+
+        assert result["success"] is True
+        assert calls == [["a", "b", "c"]]
 
     def test_delete_all_events(
         self, monkeypatch: pytest.MonkeyPatch, event: types.Event

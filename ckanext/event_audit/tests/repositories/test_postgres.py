@@ -224,6 +224,26 @@ class TestPostgresRepo:
         repo.remove_event(event.id)
         assert repo.get_event(event.id) is None
 
+    def test_remove_events_by_ids(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        first, second, kept = event_factory(), event_factory(), event_factory()
+        repo.write_events([first, second, kept])
+
+        result = repo.remove_events_by_ids([first.id, second.id, "unknown"])
+
+        assert result.status is True
+        assert result.message == "2 event(s) removed successfully"
+        assert repo.get_event(first.id) is None
+        assert repo.get_event(second.id) is None
+        assert repo.get_event(kept.id) is not None
+
+    def test_remove_events_by_no_ids(self, repo: PostgresRepository):
+        result = repo.remove_events_by_ids([])
+
+        assert result.status is True
+        assert result.message == "0 event(s) removed successfully"
+
     def test_remove_event_not_found(self, repo: PostgresRepository):
         result = repo.remove_event("xxx")
 

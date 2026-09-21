@@ -67,7 +67,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFilt
         Returns:
             types.Result: result of the operation.
         """
-        db_event = model.EventModel(**event.model_dump())
+        db_event = model.EventModel(**dict(event))
 
         if session is not None:
             db_event.save(session=session, defer_commit=defer_commit)
@@ -237,6 +237,33 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFilt
             session.commit()
 
         return types.Result(status=True, message="Event removed successfully")
+
+    def remove_events_by_ids(self, event_ids: Iterable[str]) -> types.Result:
+        """Removes several events by their IDs with a single statement.
+
+        Args:
+            event_ids (Iterable[str]): IDs of the events to remove.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+        ids = list(dict.fromkeys(event_ids))
+
+        if not ids:
+            return types.Result(status=True, message="0 event(s) removed successfully")
+
+        with _fresh_session() as session:
+            statement = sa.delete(model.EventModel).where(
+                model.EventModel.id.in_(ids)
+            )
+            result: Any = session.execute(
+                statement.execution_options(synchronize_session=False)
+            )
+            session.commit()
+
+        return types.Result(
+            status=True, message=f"{result.rowcount} event(s) removed successfully"
+        )
 
     def remove_events(self, filters: types.Filters) -> types.Result:
         """Removes a filtered set of events from the repository.

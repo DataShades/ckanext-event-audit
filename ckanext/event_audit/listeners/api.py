@@ -19,6 +19,9 @@ def action_succeeded_subscriber(
     if not config.is_api_log_enabled():
         return
 
+    if utils.is_ignored(const.Category.API.value, action_name):
+        return
+
     repo = utils.get_active_repo()
 
     if not repo.is_available():

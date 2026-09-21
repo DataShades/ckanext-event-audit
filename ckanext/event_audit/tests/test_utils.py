@@ -132,6 +132,36 @@ class TestEnforceRetentionUnsupported:
         assert "does not support removing events by time range" in str(result.message)
 
 
+@pytest.mark.usefixtures("with_plugins")
+class TestIsIgnored:
+    @pytest.mark.ckan_config(config.CONF_IGNORED_ACTIONS, ["package_show"])
+    def test_ignored_action(self):
+        assert utils.is_ignored("api", "package_show")
+
+    def test_action_that_isnt_ignored(self):
+        assert not utils.is_ignored("api", "package_create")
+
+    @pytest.mark.ckan_config(config.CONF_IGNORED_CATEGORIES, ["api"])
+    def test_ignored_category(self):
+        assert utils.is_ignored("api", "package_create")
+        assert not utils.is_ignored("model", "created")
+
+    def test_ignored_model(self):
+        assert utils.is_ignored("model", "created", "Option")
+        assert not utils.is_ignored("model", "created", "Package")
+
+    @pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Option"])
+    def test_tracked_models_have_priority_over_ignored_ones(self):
+        assert not utils.is_ignored("model", "created", "Option")
+
+    @pytest.mark.ckan_config(config.CONF_IGNORED_ACTIONS, ["package_show"])
+    def test_skip_event_asks_the_same_question(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        assert utils.skip_event(event_factory(action="package_show"))
+        assert not utils.skip_event(event_factory(action="created"))
+
+
 @pytest.mark.usefixtures("with_plugins", "anonymous_request")
 class TestIsRateLimited:
     @pytest.mark.ckan_config(config.CONF_ANONYMOUS_RATE_LIMIT, 2)

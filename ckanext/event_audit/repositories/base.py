@@ -113,6 +113,24 @@ class AbstractRepository(ABC):
         """
         raise NotImplementedError
 
+    def remove_events_by_ids(self, event_ids: Iterable[Any]) -> types.Result:
+        """Removes several events from the repository by their IDs.
+
+        Falls back to removing the events one by one. Override it if the
+        storage can do that in a single round trip.
+
+        Args:
+            event_ids (Iterable[Any]): IDs of the events to remove.
+
+        Returns:
+            types.Result: result of the operation.
+        """
+        removed = sum(self.remove_event(event_id).status for event_id in event_ids)
+
+        return types.Result(
+            status=True, message=f"{removed} event(s) removed successfully"
+        )
+
     def remove_events(self, filters: types.Filters) -> types.Result:
         """Removes a filtered set of events from the repository.
 

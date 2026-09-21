@@ -184,18 +184,28 @@ def get_exporter(exporter_name: str) -> type[exporters.AbstractExporter]:
     return exporters[exporter_name]
 
 
-def skip_event(event: types.Event) -> bool:
-    if event.action in config.get_ignored_actions():
+def is_ignored(category: str, action: str, action_object: str = "") -> bool:
+    """Check whether the configuration says to ignore such events.
+
+    It only needs a few fields, so the listeners can ask before they build an
+    event. Building one serialises its ``payload`` and ``result``, which is
+    wasted on the events that are about to be dropped.
+    """
+    if action in config.get_ignored_actions():
         return True
 
-    if event.category in config.get_ignored_categories():
+    if category in config.get_ignored_categories():
         return True
 
     # track specific models have priority over ignoring specific models
     return (
         not config.get_tracked_models()
-        and event.action_object in config.get_ignored_models()
+        and action_object in config.get_ignored_models()
     )
+
+
+def skip_event(event: types.Event) -> bool:
+    return is_ignored(event.category, event.action, event.action_object)
 
 
 def is_rate_limited(event: types.Event) -> bool:
