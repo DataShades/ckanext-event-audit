@@ -19,9 +19,11 @@ class RecordingRepo:
     def __init__(self, events: list[types.Event] | None = None):
         self.events = events or []
         self.filters: types.Filters | None = None
+        self.calls = 0
 
     def filter_events(self, filters: types.Filters) -> list[types.Event]:
         self.filters = filters
+        self.calls += 1
 
         return self.events
 
@@ -87,6 +89,25 @@ class TestEventAuditDataSource:
 
         assert [row["id"] for row in rows] == [events[2].id, events[1].id]
 
+    def test_rows_and_count_share_one_fetch(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        event_factory: Callable[..., types.Event],
+    ):
+        """The table asks for the count and for a page with the same filters."""
+        repo = RecordingRepo([event_factory() for _ in range(5)])
+        _use_repo(monkeypatch, repo)
+
+        source = table.EventAuditDataSource()
+        filters = [t.FilterItem("category", "=", "model")]
+
+        count = source.filter(filters).count()
+        rows = source.filter(filters).sort(None, None).paginate(1, 2).all()
+
+        assert count == 5
+        assert len(rows) == 2
+        assert repo.calls == 1
+
 
 class TestRepositoryDataSource:
     def test_equality_and_time_filters_are_pushed_down(self):
@@ -116,6 +137,46 @@ class TestRepositoryDataSource:
         )
 
         assert repo.filters == types.Filters()
+
+    def test_events_are_fetched_once_for_the_same_filters(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        repo = RecordingRepo([event_factory() for _ in range(3)])
+        source = table.RepositoryDataSource(repo)
+        filters = [t.FilterItem("category", "=", "model")]
+
+        source.filter(filters).count()
+        source.filter(filters).sort("timestamp", "asc").paginate(1, 2).all()
+
+        assert repo.calls == 1
+
+    def test_events_are_fetched_again_when_pushed_down_filters_change(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        repo = RecordingRepo([event_factory()])
+        source = table.RepositoryDataSource(repo)
+
+        source.filter([t.FilterItem("category", "=", "model")])
+        source.filter([t.FilterItem("category", "=", "api")])
+
+        assert repo.calls == 2
+        assert repo.filters is not None
+        assert repo.filters.category == "api"
+
+    def test_cached_events_are_not_narrowed_by_earlier_in_memory_filters(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        """`like` isn't pushed down, so both calls share one fetch."""
+        repo = RecordingRepo(
+            [event_factory(action="package_create"), event_factory(action="other")]
+        )
+        source = table.RepositoryDataSource(repo)
+
+        narrowed = source.filter([t.FilterItem("action", "like", "package")]).count()
+        everything = source.filter([]).count()
+
+        assert (narrowed, everything) == (1, 2)
+        assert repo.calls == 1
 
     def test_filters_are_applied_in_memory_too(
         self, event_factory: Callable[..., types.Event]

@@ -85,15 +85,27 @@ class RepositoryDataSource(t.ListDataSource):
     as the backend allows. The remaining filters, plus sorting and pagination,
     are handled by :class:`~ckanext.tables.shared.ListDataSource` on top of the
     fetched events.
+
+    The table asks for the rows and for the total count separately, both with
+    the same filters, and every fetch is a full scan plus a pydantic decode of
+    each event. The fetched events are therefore kept for as long as the
+    filters pushed down to the repository stay the same. That's safe because
+    the data source lives for a single request; it must not be kept around
+    while events are written or removed.
     """
 
     def __init__(self, repo: Any):
         self.repo = repo
+        self._fetched_with: types.Filters | None = None
         super().__init__(data=[])
 
     def filter(self, filters: list[t.FilterItem]) -> RepositoryDataSource:
-        events = self.repo.filter_events(self._to_repo_filters(filters))
-        self.data = [event.model_dump() for event in events]
+        repo_filters = self._to_repo_filters(filters)
+
+        if repo_filters != self._fetched_with:
+            events = self.repo.filter_events(repo_filters)
+            self.data = [event.model_dump() for event in events]
+            self._fetched_with = repo_filters
 
         # Re-apply every filter in memory: it makes the pushed-down filters
         # idempotent and covers operators/fields the repository can't express.
@@ -138,7 +150,9 @@ class EventAuditTable(t.TableDefinition):
             table_template="event_audit/tables/base.html",
             columns=[
                 t.ColumnDefinition(field="id", visible=False),
-                t.ColumnDefinition(field="category", title="Category"),
+                t.ColumnDefinition(
+                    field="category", title="Category", width=140, resizable=False
+                ),
                 t.ColumnDefinition(field="action", title="Action"),
                 t.ColumnDefinition(
                     field="actor",
@@ -160,9 +174,13 @@ class EventAuditTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="result",
                     title="Result",
+                    width=100,
                     formatters=[
                         (t.formatters.JsonStringFormatter, {}),
-                        (t.formatters.DialogModalFormatter, {"modal_title": "Result"}),
+                        (
+                            t.formatters.DialogModalFormatter,
+                            {"modal_title": "Result", "max_length": 3},
+                        ),
                     ],
                     tabulator_formatter="html",
                     filterable=False,
@@ -171,9 +189,13 @@ class EventAuditTable(t.TableDefinition):
                 t.ColumnDefinition(
                     field="payload",
                     title="Payload",
+                    width=100,
                     formatters=[
                         (t.formatters.JsonStringFormatter, {}),
-                        (t.formatters.DialogModalFormatter, {"modal_title": "Payload"}),
+                        (
+                            t.formatters.DialogModalFormatter,
+                            {"modal_title": "Payload", "max_length": 3},
+                        ),
                     ],
                     tabulator_formatter="html",
                     filterable=False,
