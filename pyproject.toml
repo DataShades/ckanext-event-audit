@@ -1,5 +1,5 @@
 [build-system]
-requires = [ "setuptools>=61.2"]
+requires = [ "setuptools>=77.0.3"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,9 +7,10 @@ name = "ckanext-event-audit"
 version = "1.5.2"
 description = "Capture and retain a record of API, model and custom events in a CKAN app"
 requires-python = ">=3.10"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSE"]
 classifiers = [
             "Development Status :: 4 - Beta",
-            "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
             "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
             "Programming Language :: Python :: 3.12",
@@ -42,9 +43,6 @@ docs = [
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
-
-[project.license]
-file = "LICENSE"
 
 [project.urls]
 Homepage = "https://github.com/DataShades/ckanext-event-audit"
