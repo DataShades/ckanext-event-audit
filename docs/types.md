@@ -11,7 +11,7 @@ An event is what gets stored in a repository.
 | `action` | Required. What happened, e.g. `package_create`, or `created`/`changed`/`deleted` for model events. |
 | `actor` | The ID of the user who did it. Empty for anonymous users. |
 | `action_object` | The kind of the object, e.g. the model name for model events. |
-| `action_object_id` | The ID of the object. |
+| `action_object_id` | The ID of the object. For a model with a composite primary key, all its parts joined with a comma. |
 | `target_type`, `target_id` | The target of the action, if it has one. The built-in trackers don't set them. |
 | `timestamp` | An ISO 8601 string, the current UTC time by default. |
 | `payload` | Input of the action. The built-in API tracker fills it in only with [`store_payload_and_result`](configure/tracking.md#storing-payload-and-result-data). |

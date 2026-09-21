@@ -57,8 +57,19 @@ def before_flush(
             "changed": set(),
         }
 
-    session._audit_cache["created"].update(session.new)  # type: ignore
-    session._audit_cache["deleted"].update(session.deleted)  # type: ignore
+    audit_cache: dict[str, set[Any]] = session._audit_cache  # type: ignore
+
+    audit_cache["created"].update(session.new)
+
+    for obj in session.deleted:
+        if obj in audit_cache["created"]:
+            # It was added earlier in this transaction, so the row never made
+            # it to the database and there is nothing to report about it.
+            audit_cache["created"].discard(obj)
+            audit_cache["changed"].discard(obj)
+            _discard_previous_data([obj])
+        else:
+            audit_cache["deleted"].add(obj)
 
     # the previous state is only ever reported as part of the stored result
     should_store_prev_state = (
@@ -76,7 +87,7 @@ def before_flush(
         if should_store_prev_state and not hasattr(obj, "_previous_data"):
             obj._previous_data = get_previous_data(obj)
 
-        session._audit_cache["changed"].add(obj)  # type: ignore
+        audit_cache["changed"].add(obj)
 
 
 def get_previous_data(instance: Any) -> dict[str, Any]:
@@ -113,6 +124,27 @@ def get_previous_data(instance: Any) -> dict[str, Any]:
             result[attr_state.key] = None
 
     return result
+
+
+def get_object_id(instance: Any) -> str:
+    """Get the primary key of a SQLAlchemy model instance as a string.
+
+    A composite primary key (e.g. the follower and the followed object of a
+    many-to-many link) is reported in full, its parts joined with a comma in
+    the order of the table's primary key columns.
+
+    Args:
+        instance: The SQLAlchemy model instance to inspect.
+
+    Returns:
+        The primary key, or an empty string if the instance has none yet.
+    """
+    identity = inspect(instance).identity
+
+    if not identity:
+        return ""
+
+    return ",".join(str(part) for part in identity)
 
 
 @_listen("after_commit")
@@ -176,7 +208,7 @@ def _process_cached_instances(  # noqa: PLR0913 PLR0917
                     "actor": actor,
                     "action": action,
                     "action_object": instance.__class__.__name__,
-                    "action_object_id": inspect(instance).identity[0],
+                    "action_object_id": get_object_id(instance),
                     "result": _prepare_result(instance, should_store_complex_data),
                 }
             )

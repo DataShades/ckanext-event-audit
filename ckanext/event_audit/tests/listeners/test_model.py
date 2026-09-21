@@ -524,3 +524,134 @@ class TestGetPreviousData:
             model.Session.rollback()
 
         assert set(data) == set(inspect(instance).mapper.column_attrs.keys())
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Tag"])
+class TestCreatedAndDeletedInOneTransaction:
+    def test_row_that_never_persisted_is_not_reported(
+        self, repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            tag = model.Tag(name="short-lived")
+            session.add(tag)
+            session.flush()
+            session.delete(tag)
+            session.commit()
+        finally:
+            session.close()
+
+        assert repo.filter_events(types.Filters()) == []
+
+    def test_changes_to_a_row_that_never_persisted_are_not_reported(
+        self, repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            tag = model.Tag(name="short-lived")
+            session.add(tag)
+            session.flush()
+            tag.name = "renamed"
+            session.flush()
+            session.delete(tag)
+            session.commit()
+        finally:
+            session.close()
+
+        assert repo.filter_events(types.Filters()) == []
+
+    def test_other_rows_of_the_transaction_are_still_reported(
+        self, repo: repositories.AbstractRepository
+    ):
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            short_lived = model.Tag(name="short-lived")
+            kept = model.Tag(name="kept")
+            session.add_all([short_lived, kept])
+            session.flush()
+            session.delete(short_lived)
+            session.commit()
+            kept_id = kept.id
+        finally:
+            session.close()
+
+        events = repo.filter_events(types.Filters())
+
+        assert [(e.action, e.action_object_id) for e in events] == [
+            ("created", kept_id)
+        ]
+
+    def test_deleting_a_persisted_row_is_reported(
+        self, repo: repositories.AbstractRepository
+    ):
+        session = create_local_session()
+
+        try:
+            tag = model.Tag(name="persisted")
+            session.add(tag)
+            session.commit()
+            tag_id = tag.id
+
+            repo.remove_all_events()
+
+            session.delete(tag)
+            session.commit()
+        finally:
+            session.close()
+
+        events = repo.filter_events(types.Filters())
+
+        assert [(e.action, e.action_object_id) for e in events] == [
+            ("deleted", tag_id)
+        ]
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["UserFollowingUser"])
+class TestCompositePrimaryKey:
+    def test_every_part_of_the_key_is_recorded(
+        self, repo: repositories.AbstractRepository
+    ):
+        follower = factories.User()
+        followed = factories.User()
+        repo.remove_all_events()
+
+        session = create_local_session()
+
+        try:
+            session.add(model.UserFollowingUser(follower["id"], followed["id"]))
+            session.commit()
+        finally:
+            session.close()
+
+        events = repo.filter_events(types.Filters())
+
+        assert len(events) == 1
+        assert events[0].action_object == "UserFollowingUser"
+        assert events[0].action_object_id == f"{follower['id']},{followed['id']}"
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestGetObjectId:
+    def test_single_column_key_is_the_value(self):
+        user = factories.User()
+        instance = model.User.get(user["id"])
+
+        assert listener_database.get_object_id(instance) == user["id"]
+
+    def test_instance_without_an_identity_yet(self):
+        assert listener_database.get_object_id(model.Tag(name="transient")) == ""
