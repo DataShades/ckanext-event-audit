@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime as dt
+from datetime import timezone as tz
 from typing import Any
 
 from redis.exceptions import RedisError
@@ -24,6 +25,22 @@ _GLOB_METACHARACTERS = re.compile(r"([*?\[\]\\])")
 def _escape_glob(value: Any) -> str:
     """Escape Redis ``MATCH`` glob metacharacters in a filter value."""
     return _GLOB_METACHARACTERS.sub(r"\\\1", str(value))
+
+
+def _parse_timestamp(value: str) -> dt:
+    """Parse an event timestamp into a timezone-aware datetime.
+
+    Timestamps are stored as ISO strings, which can't be compared as text: the
+    same instant is written differently with another UTC offset, so
+    ``10:00+05:00`` would sort after ``08:00+00:00`` although it is earlier. One
+    without an offset is taken to be UTC, so it stays comparable with the rest.
+    """
+    parsed = dt.fromisoformat(value)
+
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=tz.utc)
+
+    return parsed
 
 
 class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltered):
@@ -105,7 +122,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         # flat key glob, so match them in Python.
         matching_events = self._filter_by_data(matching_events, filters)
 
-        matching_events.sort(key=lambda event: event.timestamp)
+        matching_events.sort(key=lambda event: _parse_timestamp(event.timestamp))
 
         return matching_events
 
@@ -172,7 +189,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
             event
             for event in events
             if cls._is_within_time_range(
-                dt.fromisoformat(event.timestamp), time_from, time_to
+                _parse_timestamp(event.timestamp), time_from, time_to
             )
         ]
 

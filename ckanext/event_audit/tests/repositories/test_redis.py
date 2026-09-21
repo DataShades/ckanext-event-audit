@@ -108,6 +108,46 @@ class TestRedisRepo:
         assert len(events) == 1
         assert events[0].model_dump() == event.model_dump()
 
+    def test_events_are_sorted_by_instant_not_by_text(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        """`10:00+05:00` is 05:00 UTC, so it is earlier than `08:00+00:00`."""
+        later = event_factory(timestamp="2024-01-01T08:00:00+00:00")
+        earlier = event_factory(timestamp="2024-01-01T10:00:00+05:00")
+        repo.write_events([later, earlier])
+
+        events = repo.filter_events(types.Filters())
+
+        assert [event.id for event in events] == [earlier.id, later.id]
+
+    def test_events_without_an_offset_are_sorted_as_utc(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        aware = event_factory(timestamp="2024-01-01T08:00:00+00:00")
+        naive_earlier = event_factory(timestamp="2024-01-01T06:00:00")
+        naive_later = event_factory(timestamp="2024-01-01T09:00:00")
+        repo.write_events([naive_later, aware, naive_earlier])
+
+        events = repo.filter_events(types.Filters())
+
+        assert [event.id for event in events] == [
+            naive_earlier.id,
+            aware.id,
+            naive_later.id,
+        ]
+
+    def test_time_range_with_an_event_without_an_offset(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        event = event_factory(timestamp="2024-01-01T08:00:00")
+        repo.write_event(event)
+
+        events = repo.filter_events(
+            types.Filters(time_from=dt(2024, 1, 1, 7, tzinfo=tz.utc))
+        )
+
+        assert [e.id for e in events] == [event.id]
+
     def test_filter_by_payload(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository
     ):
