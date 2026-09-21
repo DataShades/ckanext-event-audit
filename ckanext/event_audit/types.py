@@ -189,6 +189,21 @@ class Filters(BaseModel):
         default=None, description="End time for filtering (defaults to now)"
     )
 
+    @field_validator("time_from", "time_to")
+    @classmethod
+    def assume_utc(cls, value: datetime | None) -> datetime | None:
+        """Make a time bound without an offset explicitly UTC.
+
+        Bounds typed into the dashboard arrive without a timezone. Left as they
+        are, they can't be compared with the timezone-aware event timestamps
+        (Redis), are read as server local time when converted to an epoch
+        (CloudWatch) and as the database session's timezone (Postgres).
+        """
+        if value is not None and value.utcoffset() is None:
+            return value.replace(tzinfo=timezone.utc)
+
+        return value
+
     @model_validator(mode="after")
     def validate_time_range(self) -> Self:
         """Ensure `time_from` is before `time_to`."""

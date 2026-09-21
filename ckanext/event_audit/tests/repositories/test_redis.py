@@ -136,6 +136,23 @@ class TestRedisRepo:
             naive_later.id,
         ]
 
+    def test_filter_by_time_without_an_offset(
+        self, event_factory: Callable[..., types.Event], repo: RedisRepository
+    ):
+        """The dashboard sends the bounds without a timezone."""
+        before = event_factory(timestamp="2024-01-01T08:00:00+00:00")
+        after = event_factory(timestamp="2024-01-01T12:00:00+00:00")
+        repo.write_events([before, after])
+
+        events = repo.filter_events(
+            types.Filters(
+                time_from="2024-01-01T09:00:00",  # type: ignore
+                time_to="2024-01-01T13:00:00",  # type: ignore
+            )
+        )
+
+        assert [event.id for event in events] == [after.id]
+
     def test_time_range_with_an_event_without_an_offset(
         self, event_factory: Callable[..., types.Event], repo: RedisRepository
     ):

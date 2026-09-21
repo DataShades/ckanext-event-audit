@@ -202,6 +202,43 @@ class TestFilters:
                 time_to=datetime.now(timezone.utc) - timedelta(days=1),
             )
 
+    def test_time_bounds_without_an_offset_are_utc(self):
+        """That's how the dashboard sends them, as strings without a timezone."""
+        filters = types.Filters(
+            time_from="2024-01-01T10:00:00",  # type: ignore
+            time_to=datetime(2024, 1, 2),
+        )
+
+        assert filters.time_from == datetime(2024, 1, 1, 10, tzinfo=timezone.utc)
+        assert filters.time_to == datetime(2024, 1, 2, tzinfo=timezone.utc)
+
+    def test_time_bounds_keep_their_offset(self):
+        plus_five = timezone(timedelta(hours=5))
+
+        filters = types.Filters(time_from=datetime(2024, 1, 1, tzinfo=plus_five))
+
+        assert filters.time_from is not None
+        assert filters.time_from.utcoffset() == timedelta(hours=5)
+
+    def test_time_range_with_mixed_bounds(self):
+        """A bound with an offset and one without can still be compared."""
+        with pytest.raises(
+            ValueError, match="`time_from` must be earlier than `time_to`."
+        ):
+            types.Filters(
+                time_from=datetime(2024, 1, 2, tzinfo=timezone.utc),
+                time_to="2024-01-01T00:00:00",  # type: ignore
+            )
+
+        filters = types.Filters(
+            time_from="2024-01-01T00:00:00",  # type: ignore
+            time_to=datetime(2024, 1, 2, tzinfo=timezone.utc),
+        )
+
+        assert filters.time_from is not None
+        assert filters.time_to is not None
+        assert filters.time_from < filters.time_to
+
     def test_time_range_accepts_equal_bounds(self):
         moment = datetime.now(timezone.utc)
 
