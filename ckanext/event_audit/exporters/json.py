@@ -28,10 +28,10 @@ class JSONExporter(AbstractExporter):
         Returns:
             str | None: JSON data.
         """
-        if not events:
-            return None
-
         dict_data = [event.model_dump() for event in events]
+
+        if not dict_data:
+            return None
 
         if not self.stringify:
             return dict_data

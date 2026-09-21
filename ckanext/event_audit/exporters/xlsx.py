@@ -45,9 +45,6 @@ class XLSXExporter(AbstractExporter):
             str | BytesIO | None: path to the file or BytesIO object if the
             export was successful, None otherwise.
         """
-        if not events:
-            return None
-
         headers = None
 
         # Create a workbook and add a worksheet
@@ -69,6 +66,9 @@ class XLSXExporter(AbstractExporter):
             worksheet.append(  # type: ignore
                 list(event.model_dump(exclude=self.ignore_fields).values())
             )
+
+        if not headers:
+            return None
 
         workbook.save(self.file_path)
 

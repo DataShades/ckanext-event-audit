@@ -17,7 +17,7 @@ Note, that pairing it with the `Cloudwatch` repository is not recommended, as it
 If your custom repository involves a network operations, it's recommended to keep the threaded mode enabled.
 
 ???+ warning
-    The mode is read when the application starts, because that's when the writer thread is (or isn't) started. Change it in the configuration file and **restart**. Changing it on a running site, e.g. from the admin panel, isn't supported: with the thread not running, new events pile up in a queue that nothing empties.
+    The mode is read when the application starts, because that's when the writer thread is (or isn't) started. Change it in the configuration file and **restart**. It isn't available in the admin panel, and changing it on a running site isn't supported: with the thread not running, new events pile up in a queue that nothing empties.
 
 **uwsgi note:** Python threads do not run under uwsgi unless `enable-threads = true` is set in
 the uwsgi configuration. Without it, the writer thread never runs, and events queued in threaded

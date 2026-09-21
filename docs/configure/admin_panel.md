@@ -58,7 +58,6 @@ is read again after the application has started:
 | `retention_days` | the next time the retention command runs |
 | `cloudwatch.*` | after a restart: the client is created once |
 | `batch.queue_size` | after a restart: the queue is created once, when the writer thread starts |
-| `threaded_mode` | after a restart. Don't flip it on a running site: see [Asynchronous processing](async.md) |
 
 ???+ warning
     The AWS access key and secret key are stored in the database in clear text once you save them

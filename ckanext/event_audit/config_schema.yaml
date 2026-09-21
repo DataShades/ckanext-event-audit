@@ -18,16 +18,6 @@ fields:
     help_text: The region for the AWS account
     required: false
 
-  - field_name: ckanext.event_audit.cloudwatch.log_group
-    label: Log Group
-    help_text: The log group for the AWS account
-    required: true
-
-  - field_name: ckanext.event_audit.cloudwatch.log_stream
-    label: Log Stream
-    help_text: The log stream for the AWS account
-    required: true
-
   - field_name: ckanext.event_audit.ignore.categories
     label: Ignored Categories
     help_text: |
@@ -66,17 +56,6 @@ fields:
   - field_name: ckanext.event_audit.track_api
     label: Track API
     help_text: Enable logging of API events
-    preset: select
-    required: true
-    choices:
-      - value: true
-        label: Yes
-      - value: false
-        label: No
-
-  - field_name: ckanext.event_audit.threaded_mode
-    label: Threaded Mode
-    help_text: Enable threaded mode for pushing events to the repository
     preset: select
     required: true
     choices:

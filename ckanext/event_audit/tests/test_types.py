@@ -202,6 +202,19 @@ class TestFilters:
                 time_to=datetime.now(timezone.utc) - timedelta(days=1),
             )
 
+    def test_time_range_accepts_equal_bounds(self):
+        moment = datetime.now(timezone.utc)
+
+        filters = types.Filters(time_from=moment, time_to=moment)
+
+        assert filters.time_from == filters.time_to == moment
+
+    def test_time_range_with_a_single_bound(self):
+        moment = datetime.now(timezone.utc)
+
+        assert types.Filters(time_from=moment).time_to is None
+        assert types.Filters(time_to=moment).time_from is None
+
     def test_invalid_time_from_type(self):
         """Test that invalid datetime fields raise a validation error."""
         with pytest.raises(ValueError, match="Input should be a valid datetime"):

@@ -40,9 +40,6 @@ class CSVExporter(AbstractExporter):
         Returns:
             str | None: CSV data.
         """
-        if not events:
-            return None
-
         headers = []
         dict_data = []
 
@@ -55,6 +52,9 @@ class CSVExporter(AbstractExporter):
                 ]
 
             dict_data.append(event.model_dump(exclude=self.ignore_fields))  # type: ignore
+
+        if not dict_data:
+            return None
 
         output = StringIO()
         writer = csv.DictWriter(

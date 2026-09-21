@@ -19,6 +19,21 @@ class TestXLSXExporter:
 
         assert result is None
 
+    def test_no_events_from_a_generator(self):
+        """An empty iterator is truthy, so it can't be told apart with `not events`."""
+        exporter = exporters.XLSXExporter(file_path=BytesIO())
+
+        result = exporter.export(event for event in [])
+
+        assert result is None
+
+    def test_events_from_a_generator(self, event_factory: Callable[..., types.Event]):
+        exporter = exporters.XLSXExporter(file_path=BytesIO())
+
+        result = exporter.export(event_factory() for _ in range(3))
+
+        assert result
+
     def test_from_filters_no_events(self):
         exporter = exporters.XLSXExporter(file_path=BytesIO())
 

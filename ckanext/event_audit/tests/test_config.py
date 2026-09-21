@@ -80,6 +80,36 @@ class TestActiveRepoIsNotEditable:
         assert options[config.CONF_ACTIVE_REPO]["editable"] is False
 
 
+class TestAdminPanelSchema:
+    """The admin form must only offer options that can change at runtime."""
+
+    def test_schema_fields_are_editable_options(self):
+        root = Path(config.__file__).parent
+        declaration = yaml.safe_load(
+            root.joinpath("config_declaration.yaml").read_text()
+        )
+        schema = yaml.safe_load(root.joinpath("config_schema.yaml").read_text())
+
+        editable = {
+            option["key"]
+            for group in declaration["groups"]
+            for option in group["options"]
+            if option.get("editable")
+        }
+
+        exposed = {field["field_name"] for field in schema["fields"]}
+
+        assert exposed <= editable
+
+    def test_threaded_mode_is_not_exposed(self):
+        path = Path(config.__file__).with_name("config_schema.yaml")
+        schema = yaml.safe_load(path.read_text())
+
+        assert config.CONF_THREADED not in {
+            field["field_name"] for field in schema["fields"]
+        }
+
+
 @pytest.mark.usefixtures("with_plugins", "clean_redis")
 class TestIgnoreConfig:
     @pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)

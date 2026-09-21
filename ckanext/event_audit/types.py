@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, TypedDict, Union
 
-from pydantic import BaseModel, ConfigDict, Field, FieldValidationInfo, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
 
@@ -188,16 +189,13 @@ class Filters(BaseModel):
         default=None, description="End time for filtering (defaults to now)"
     )
 
-    @field_validator("time_to")
-    @classmethod
-    def validate_time_range(cls, time_to: datetime, info: FieldValidationInfo):
+    @model_validator(mode="after")
+    def validate_time_range(self) -> Self:
         """Ensure `time_from` is before `time_to`."""
-        time_from = info.data.get("time_from")
-
-        if time_from and time_to and time_from > time_to:
+        if self.time_from and self.time_to and self.time_from > self.time_to:
             raise ValueError("`time_from` must be earlier than `time_to`.")
 
-        return time_to
+        return self
 
     @field_validator("*", mode="before")
     @classmethod

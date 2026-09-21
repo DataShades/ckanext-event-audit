@@ -9,7 +9,6 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import Session as SQLAlchemySession
-from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
 from ckan import model
@@ -28,8 +27,8 @@ class EventModel(tk.BaseModel):
         Column("target_type", String, index=True),
         Column("target_id", String, index=True),
         Column("timestamp", TIMESTAMP(timezone=True), nullable=False, index=True),
-        Column("result", MutableDict.as_mutable(JSONB), default="{}"),
-        Column("payload", MutableDict.as_mutable(JSONB), default="{}"),
+        Column("result", MutableDict.as_mutable(JSONB), default=dict),
+        Column("payload", MutableDict.as_mutable(JSONB), default=dict),
         Index("ix_event_actor_action", "actor", "action"),
         # `payload`/`result` are filtered with the JSONB containment
         # operator (`@>`) in `postgres.py`, which a GIN index can serve.
@@ -72,22 +71,3 @@ class EventModel(tk.BaseModel):
 
         if not defer_commit:
             session.commit()
-
-    def delete(
-        self, session: SQLAlchemySession | None = None, defer_commit: bool = False
-    ) -> None:
-        session = session or model.meta.create_local_session()
-
-        session.execute(sa.delete(EventModel).where(EventModel.id == self.id))
-        session.commit()
-
-        if not defer_commit:
-            session.commit()
-
-    @classmethod
-    def get(cls, event_id: str) -> Self | None:
-        session = model.meta.create_local_session()
-
-        return session.execute(
-            sa.select(cls).where(cls.id == event_id)
-        ).scalar_one_or_none()
