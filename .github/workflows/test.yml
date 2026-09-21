@@ -29,7 +29,7 @@ jobs:
           POSTGRES_DB: postgres
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
-          image: redis:3
+          image: redis:7
 
     env:
       CKAN_SQLALCHEMY_URL: postgresql://ckan_default:pass@postgres/ckan_test
@@ -43,6 +43,8 @@ jobs:
     - name: Install requirements
       # Install any extra requirements your extension has here (dev requirements, other extensions etc)
       run: |
+        # ckanext-tables 2.x isn't published on PyPI (yet), so install it from its tag
+        pip install https://github.com/DataShades/ckanext-tables/archive/refs/tags/v2.0.1.tar.gz
         pip install -e '.[dev]'
     - name: Setup extension
       # Extra initialization steps
@@ -53,3 +55,34 @@ jobs:
         ckan -c test.ini db init
     - name: Run tests
       run: pytest --ckan-ini=test.ini --cov=ckanext.event_audit --disable-warnings ckanext/event_audit
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+    - name: Install ruff
+      run: pip install "ruff==0.16.*"
+    - name: Lint
+      run: ruff check ckanext
+    - name: Check formatting
+      run: ruff format --check ckanext
+
+  typecheck:
+    # Informational for now: pyright still reports issues that predate this job.
+    # Drop `continue-on-error` once it's clean.
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    container:
+      image: ckan/ckan-dev:2.11
+      options: --user root
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install requirements
+      run: |
+        pip install https://github.com/DataShades/ckanext-tables/archive/refs/tags/v2.0.1.tar.gz
+        pip install -e '.[dev]' pyright
+    - name: Type check
+      run: pyright --pythonpath="$(command -v python)"

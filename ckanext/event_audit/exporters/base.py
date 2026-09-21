@@ -9,7 +9,7 @@ from ckanext.event_audit import types, utils
 class AbstractExporter(ABC):
     """Base class for all exporters.
 
-    Exporters are used to export a lsit of events to a specific file format.
+    Exporters are used to export a list of events to a specific file format.
     """
 
     @abstractmethod

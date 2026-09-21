@@ -40,3 +40,9 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Test caches
+.pytest_cache/
+
+# Built documentation (mkdocs build)
+site/

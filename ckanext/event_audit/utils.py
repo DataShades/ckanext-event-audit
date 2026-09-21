@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 import ckan.plugins as p
 from ckan.plugins import get_plugin
 
@@ -154,3 +156,42 @@ def skip_event(event: types.Event) -> bool:
         not config.get_tracked_models()
         and event.action_object in config.get_ignored_models()
     )
+
+
+def enforce_retention(
+    repo: repos.AbstractRepository | None = None, days: int | None = None
+) -> types.Result:
+    """Remove the events that are older than the retention period.
+
+    Nothing runs this automatically: schedule it, e.g. with the
+    ``ckan event-audit enforce-retention`` command or from a background job.
+
+    Args:
+        repo: The repository to clean up. The active one is used by default.
+        days: The retention period in days. The
+            ``ckanext.event_audit.retention_days`` option is used by default.
+            0 keeps events forever.
+
+    Returns:
+        The result of the operation. It's unsuccessful if the repository can't
+        remove events by time range.
+    """
+    days = config.get_retention_days() if days is None else max(days, 0)
+
+    if not days:
+        return types.Result(status=True, message="Retention is disabled")
+
+    repo = repo or get_active_repo()
+
+    if not isinstance(repo, repos.RemoveFiltered):
+        return types.Result(
+            status=False,
+            message=(
+                f"Repository {repo.get_name()} does not support removing events "
+                "by time range."
+            ),
+        )
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+
+    return repo.remove_events(types.Filters(time_to=cutoff))

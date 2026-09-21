@@ -1,24 +1,38 @@
 from __future__ import annotations
 
-import logging
-import queue
+import threading
 from abc import ABC, abstractmethod
 from typing import Any, Iterable
 
-from ckanext.event_audit import plugin, types
+from ckanext.event_audit import types
 
-log = logging.getLogger(__name__)
+_instance_lock = threading.Lock()
 
 
 class AbstractRepository(ABC):
     _connection = None
 
     def __new__(cls, *args: Any, **kwargs: Any):
-        """Singleton pattern implementation."""
-        if not hasattr(cls, "_instance"):
-            cls._instance = super().__new__(cls)
+        """Singleton pattern implementation.
 
-        return cls._instance
+        Every concrete repository class gets its own instance. The lookup goes
+        through ``cls.__dict__`` rather than ``hasattr``, otherwise a subclass
+        of another repository would find the parent's instance and receive it
+        instead of one of its own type.
+
+        Note that ``__init__`` runs on every instantiation, so it has to be
+        cheap and safe to repeat.
+        """
+        instance = cls.__dict__.get("_instance")
+
+        if instance is None:
+            with _instance_lock:
+                instance = cls.__dict__.get("_instance")
+
+                if instance is None:
+                    instance = cls._instance = super().__new__(cls)
+
+        return instance
 
     @classmethod
     @abstractmethod
@@ -113,28 +127,6 @@ class AbstractRepository(ABC):
             types.Result: result of the operation.
         """
         raise NotImplementedError
-
-    def enqueue_event(self, event: types.Event) -> types.Result:
-        """Enqueue an event to be written to the repository.
-
-        Args:
-            event (types.Event): event to write.
-
-        Returns:
-            types.Result: result of the operation.
-        """
-        try:
-            plugin.EventAuditPlugin.event_queue.put_nowait(event)  # type: ignore
-        except queue.Full:
-            log.exception(
-                "Event-audit write queue is full; dropping event %s (%s/%s)",
-                event.id,
-                event.category,
-                event.action,
-            )
-            return types.Result(status=False, message="Event queue is full; event dropped")
-
-        return types.Result(status=True, message="Event has been added to the queue")
 
     @abstractmethod
     def test_connection(self) -> bool:

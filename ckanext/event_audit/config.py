@@ -57,6 +57,9 @@ DEF_BATCH_TIMEOUT = 3600
 CONF_QUEUE_SIZE = "ckanext.event_audit.batch.queue_size"
 DEF_QUEUE_SIZE = 10_000
 
+CONF_RETENTION_DAYS = "ckanext.event_audit.retention_days"
+DEF_RETENTION_DAYS = 0
+
 CONF_THREADED = "ckanext.event_audit.threaded_mode"
 DEF_THREADED = True
 
@@ -152,6 +155,11 @@ def get_queue_size() -> int:
     without bound, to keep a stuck/slow repository from leaking memory.
     """
     return tk.config.get(CONF_QUEUE_SIZE, DEF_QUEUE_SIZE)
+
+
+def get_retention_days() -> int:
+    """Number of days to keep events for, 0 to keep them forever."""
+    return max(int(tk.config.get(CONF_RETENTION_DAYS, DEF_RETENTION_DAYS)), 0)
 
 
 def is_threaded_mode_enabled() -> bool:

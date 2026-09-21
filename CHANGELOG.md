@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚀 Features
+
+- Register dashboard without admin panel
+- Add modify_event hook, multiple fixes
+
+### 🐛 Bug Fixes
+
+- Harden writer thread, cloudwatch writes, and actor/index gaps for a trustworthy audit trail
+
+## [1.5.2] - 2026-09-01
+
+### 🐛 Bug Fixes
+
+- Fix treaded repo inloop init
+- Use fresh session for postgres repository
+
+## [1.5.0] - 2026-05-26
+
+### 🚀 Features
+
+- Implement event filtering by payload and result jsonb columns
+- Implement EventAuditDataSource
+
+## [1.3.0] - 2026-05-26
+
+### 🚀 Features
+
+- Migrate from collection to tables
+
+## [1.2.14] - 2025-08-18
+
+### 🐛 Bug Fixes
+
+- Fix cases when data_dict isn't dictionary
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix project.license, [no ci]
+
 ## [1.2.13] - 2025-05-09
 
 ### 🐛 Bug Fixes

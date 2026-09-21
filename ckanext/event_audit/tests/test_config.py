@@ -1,16 +1,67 @@
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Any
+
 import pytest
+import yaml
 
 from ckan.tests.helpers import call_action
 
 from ckanext.event_audit import config, const, types, utils
 
 
+def _declared_defaults() -> dict[str, Any]:
+    path = Path(config.__file__).with_name("config_declaration.yaml")
+    declaration = yaml.safe_load(path.read_text())
+
+    return {
+        option["key"]: option.get("default")
+        for group in declaration["groups"]
+        for option in group["options"]
+    }
+
+
+def _config_defaults() -> list[tuple[str, Any]]:
+    """Pair every ``DEF_*`` constant with the option key it's the default of."""
+    return [
+        (getattr(config, f"CONF_{name[4:]}"), getattr(config, name))
+        for name in dir(config)
+        if name.startswith("DEF_") and hasattr(config, f"CONF_{name[4:]}")
+    ]
+
+
 @pytest.mark.usefixtures("with_plugins")
 class TestEventAuditConfig:
     def test_get_active_repo_default(self):
         assert config.active_repo() == "redis"
+
+    def test_retention_is_disabled_by_default(self):
+        assert config.get_retention_days() == 0
+
+    @pytest.mark.ckan_config(config.CONF_RETENTION_DAYS, 30)
+    def test_retention_days(self):
+        assert config.get_retention_days() == 30
+
+    @pytest.mark.ckan_config(config.CONF_RETENTION_DAYS, -5)
+    def test_negative_retention_days_disable_retention(self):
+        assert config.get_retention_days() == 0
+
+
+class TestDeclaredDefaults:
+    """Defaults in the config declaration and in ``config`` must agree.
+
+    The declaration is what CKAN applies, and ``config`` is only the fallback.
+    """
+
+    @pytest.mark.parametrize(("key", "default"), _config_defaults())
+    def test_declaration_matches_config_default(self, key: str, default: Any):
+        declared = _declared_defaults()[key]
+
+        if isinstance(default, list):
+            declared = str(declared or "").split()
+
+        assert declared == default
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_redis")

@@ -281,3 +281,43 @@ class TestPostgresRepo:
 
         assert not errors, errors
         assert len(repo.filter_events(types.Filters())) == writers
+
+    def test_remove_filtered_events_by_time_range(
+        self, repo: PostgresRepository, event_factory: Callable[..., types.Event]
+    ):
+        now = dt.now(tz.utc)
+        old = event_factory(timestamp=(now - td(days=40)).isoformat())
+        recent = event_factory(timestamp=now.isoformat())
+
+        repo.write_events([old, recent])
+
+        result = repo.remove_events(types.Filters(time_to=now - td(days=30)))
+
+        assert result.status is True
+        assert result.message == "1 event(s) removed successfully"
+        assert repo.get_event(old.id) is None
+        assert repo.get_event(recent.id) is not None
+
+    def test_remove_filtered_events_by_payload(
+        self, repo: PostgresRepository, event_factory: Callable[..., types.Event]
+    ):
+        matching = event_factory(payload={"a": 1})
+        other = event_factory(payload={"a": 2})
+
+        repo.write_events([matching, other])
+
+        result = repo.remove_events(types.Filters(payload={"a": 1}))
+
+        assert result.message == "1 event(s) removed successfully"
+        assert repo.get_event(matching.id) is None
+        assert repo.get_event(other.id) is not None
+
+    def test_remove_filtered_events_nothing_matches(
+        self, repo: PostgresRepository, event: types.Event
+    ):
+        repo.write_event(event)
+
+        result = repo.remove_events(types.Filters(category="nope"))
+
+        assert result.message == "0 event(s) removed successfully"
+        assert repo.get_event(event.id) is not None

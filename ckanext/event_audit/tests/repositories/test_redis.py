@@ -245,3 +245,16 @@ class TestRedisRepo:
 
         events = repo.filter_events(types.Filters())
         assert len(events) == 0
+
+    def test_time_filter_keeps_no_state_on_the_repository(
+        self, event: types.Event, repo: RedisRepository
+    ):
+        """The repository is shared between threads, so no per-call state."""
+        repo.write_event(event)
+
+        repo.filter_events(
+            types.Filters(time_from=dt.now(tz.utc) - td(days=1), time_to=dt.now(tz.utc))
+        )
+
+        assert not hasattr(repo, "time_from")
+        assert not hasattr(repo, "time_to")

@@ -54,7 +54,10 @@ groups:
         type: list
         example: package_create
         editable: true
-        default: editable_config_list editable_config_change get_site_user ckanext_pages_list user_show
+        default: >-
+          resource_view_list editable_config_list editable_config_change get_site_user
+          ckanext_pages_list user_show package_search package_show task_status_update
+          task_status_show
 
       - key: ckanext.event_audit.ignore.models
         description: |
@@ -112,6 +115,14 @@ groups:
           Max number of not-yet-written events buffered in threaded mode. Once full, new
           events are dropped (and logged) instead of accumulating without bound.
         default: 10000
+        editable: true
+        type: int
+
+      - key: ckanext.event_audit.retention_days
+        description: |
+          Events older than this many days are removed by the
+          `ckan event-audit enforce-retention` command. 0 keeps events forever.
+        default: 0
         editable: true
         type: int
 

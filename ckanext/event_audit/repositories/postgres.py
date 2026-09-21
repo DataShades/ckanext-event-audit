@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from contextlib import contextmanager
-from typing import Iterable, Iterator, List
+from typing import Any, Iterable, Iterator, List
 
 import sqlalchemy as sa
 from sqlalchemy import select
@@ -14,6 +14,7 @@ from ckanext.event_audit import model, types
 from ckanext.event_audit.repositories.base import (
     AbstractRepository,
     RemoveAll,
+    RemoveFiltered,
     RemoveSingle,
 )
 
@@ -41,7 +42,7 @@ def _fresh_session() -> Iterator[SQLAlchemySession]:
         session.close()
 
 
-class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
+class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltered):
     @classmethod
     def get_name(cls) -> str:
         return "postgres"
@@ -139,8 +140,23 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         Returns:
             list[model.EventModel]: list of event models.
         """
-        query = select(model.EventModel)
+        query = self._apply_filters(select(model.EventModel), filters)
+        query = query.order_by(model.EventModel.timestamp)
 
+        return session.execute(query).scalars().all()
+
+    @staticmethod
+    def _apply_filters(statement: Any, filters: types.Filters) -> Any:
+        """Add ``WHERE`` clauses for the filters to a select or delete statement.
+
+        Args:
+            statement (Any): a ``select()`` or ``delete()`` statement to narrow
+                down.
+            filters (types.Filters): filters to apply.
+
+        Returns:
+            Any: the statement with the filters applied.
+        """
         filterable_fields = [
             "category",
             "action",
@@ -154,25 +170,27 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
         for field in filterable_fields:
             value = getattr(filters, field, None)
             if value:
-                query = query.where(getattr(model.EventModel, field) == value)
+                statement = statement.where(getattr(model.EventModel, field) == value)
 
         # ``payload`` and ``result`` are JSONB columns, so match them with the
         # containment operator (``@>``). Unlike ``->>`` this is type-aware
         # (booleans/numbers compare correctly, not just as strings) and can use
         # a GIN index. Only the given keys must match; others are ignored.
         if filters.payload:
-            query = query.where(model.EventModel.payload.contains(filters.payload))
+            statement = statement.where(
+                model.EventModel.payload.contains(filters.payload)
+            )
         if filters.result:
-            query = query.where(model.EventModel.result.contains(filters.result))
+            statement = statement.where(
+                model.EventModel.result.contains(filters.result)
+            )
 
         if filters.time_from:
-            query = query.where(model.EventModel.timestamp >= filters.time_from)
+            statement = statement.where(model.EventModel.timestamp >= filters.time_from)
         if filters.time_to:
-            query = query.where(model.EventModel.timestamp <= filters.time_to)
+            statement = statement.where(model.EventModel.timestamp <= filters.time_to)
 
-        query = query.order_by(model.EventModel.timestamp)
-
-        return session.execute(query).scalars().all()
+        return statement
 
     def remove_event(
         self,
@@ -230,19 +248,19 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle):
             types.Result: result of the operation.
         """
         with _fresh_session() as session:
-            events = self._filter_events(session, filters)
-
-            for event in events:
-                session.execute(
-                    sa.delete(model.EventModel).where(
-                        model.EventModel.id == event.id
-                    )
-                )
-
+            # nothing is loaded into this session, so there's no state to
+            # synchronise (and the JSONB criteria can't be evaluated in Python)
+            statement = self._apply_filters(
+                sa.delete(model.EventModel).execution_options(
+                    synchronize_session=False
+                ),
+                filters,
+            )
+            result: Any = session.execute(statement)
             session.commit()
 
         return types.Result(
-            status=True, message=f"{len(events)} event(s) removed successfully"
+            status=True, message=f"{result.rowcount} event(s) removed successfully"
         )
 
     def remove_all_events(self) -> types.Result:

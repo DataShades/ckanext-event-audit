@@ -37,6 +37,8 @@ class CloudWatchEvent(TypedDict):
 
 
 class CloudWatchRepository(AbstractRepository, RemoveAll):
+    _initialised = False
+
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
@@ -52,6 +54,12 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 If not specified, the configured log group will be used.
             log_stream (str | None, optional): Log stream name.
                 If not specified, the configured log stream will be used.
+
+        Note:
+            The repository is a singleton, so this runs on every
+            ``CloudWatchRepository()`` call. Once the client is set up, calls
+            without arguments reuse it; passing any argument sets the
+            repository up again with the given values.
         """
         # Reset on every call to the constructor (not just a "real" init),
         # since the singleton pattern below means `CloudWatchRepository()`
@@ -62,8 +70,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         # this doesn't reintroduce a per-event check.
         self._log_stream_ready = False
 
-        # TODO: check conn?
-        if self._connection is not None:
+        explicit_args = any(
+            arg is not None for arg in (credentials, log_group, log_stream)
+        )
+
+        if self._initialised and not explicit_args:
             return
 
         if not credentials:
@@ -87,6 +98,8 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                 "AWS credentials are not configured. "
                 "Please, check the extension configuration."
             ) from e
+
+        self._initialised = True
 
     @classmethod
     def get_name(cls) -> str:

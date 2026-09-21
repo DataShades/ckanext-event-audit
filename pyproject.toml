@@ -5,20 +5,23 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ckanext-event-audit"
 version = "1.5.2"
-description = ""
+description = "Capture and retain a record of API, model and custom events in a CKAN app"
+requires-python = ">=3.10"
 classifiers = [
             "Development Status :: 4 - Beta",
             "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
             "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Programming Language :: Python :: 3.14",
 ]
 keywords = [ "CKAN" ]
 dependencies = [
              "pydantic>=2.3.0,<3.0.0",
              "boto3>=1.28.35",
              "openpyxl>=3.1.2",
-             "ckanext-tables",
+             "ckanext-tables>=2.0.1",
 ]
 authors = [
     {name = "DataShades", email = "datashades@linkdigital.com.au"},
@@ -29,7 +32,11 @@ authors = [
 dev = [
     "boto3-stubs[logs]>=1.35.0,<2.0.0",
     "pytest-ckan",
-    "mkdocs>=1.6.1,<1.7"
+]
+docs = [
+    "mkdocs>=1.6.1,<1.7",
+    "mkdocs-material",
+    "mkdocstrings[python]",
 ]
 
 [project.readme]
@@ -54,7 +61,7 @@ ckan = "ckan.lib.extract:extract_ckan"
 find = {}
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py310"
 exclude = [
     "**/migration",
 ]
@@ -100,7 +107,8 @@ ignore = [
        "RET503", # don't enforce return-None,
        "TRY003", # allow specifying the error message,
        "UP006",
-       "UP007"
+       "UP007",
+       "UP035",
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -154,11 +162,15 @@ convention = "conventional"
 parse-trailers = true
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.10"
 include = ["ckanext"]
+extraPaths = ["../ckan", "/srv/app/src/ckan"]
 exclude = [
     "**/test*",
     "**/migration",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*"
 ]
 strict = []
 

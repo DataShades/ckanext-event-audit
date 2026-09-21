@@ -98,10 +98,15 @@ def export_data(
     default=False,
     help="Skip the confirmation prompt when deleting all events.",
 )
-def remove_events( # noqa: PLR0911
+def remove_events(  # noqa: PLR0911
     repository: str | None, start: dt | None, end: dt | None, yes: bool
 ):
     """Remove events from the repository by time range.
+
+    Without `--start` and `--end` **all** the events are removed, after a
+    confirmation unless `--yes` is given. Not every repository can remove by
+    time range. For CloudWatch, removing all the events deletes the log group
+    and creates it again.
 
     Args:
         repository (str | None): The repository name. If not provided, the
@@ -132,9 +137,13 @@ def remove_events( # noqa: PLR0911
             fg="red",
         )
 
-    if deleting_everything and not yes and not click.confirm(
-        f"This will delete ALL events from the '{repo.get_name()}' "
-        "repository. Continue?"
+    if (
+        deleting_everything
+        and not yes
+        and not click.confirm(
+            f"This will delete ALL events from the '{repo.get_name()}' "
+            "repository. Continue?"
+        )
     ):
         return click.secho("Aborted.", fg="yellow")
 
@@ -152,3 +161,44 @@ def remove_events( # noqa: PLR0911
         return repo.remove_all_events()
 
     return repo.remove_events(types.Filters(time_from=start, time_to=end))
+
+
+@event_audit.command()
+@click.option("--repository", required=False, help="The repository name")
+@click.option(
+    "--days",
+    required=False,
+    type=click.IntRange(min=1),
+    help=(
+        "Remove events older than this many days. "
+        "Defaults to the `ckanext.event_audit.retention_days` option."
+    ),
+)
+def enforce_retention(repository: str | None, days: int | None):
+    """Remove the events that are older than the retention period.
+
+    Meant to be scheduled, e.g. from cron. Exits with an error if the
+    repository can't remove events by time range.
+
+    Args:
+        repository (str | None): The repository name. If not provided, the
+            active repository will be used.
+        days (int | None): Remove events older than this many days. If not
+            provided, the `ckanext.event_audit.retention_days` option is used.
+
+    Example:
+        $ ckan event-audit enforce-retention
+
+        $ ckan event-audit enforce-retention --days=90
+    """
+    try:
+        repo = utils.get_repo(repository) if repository else utils.get_active_repo()
+    except ValueError as e:
+        raise click.ClickException(f"Unknown repository: {repository}") from e
+
+    result = utils.enforce_retention(repo, days)
+
+    if not result.status:
+        raise click.ClickException(result.message or "Retention wasn't enforced.")
+
+    click.secho(result.message, fg="green")

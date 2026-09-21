@@ -6,8 +6,19 @@ The following repositories are available:
 2. `postgres` - stores logs in a PostgreSQL database.
 3. `cloudwatch` - stores logs in AWS CloudWatch.
 
+| | `redis` | `postgres` | `cloudwatch` |
+|---|---|---|---|
+| Durable | only as much as your Redis persistence settings | yes | yes |
+| Filtering | scans all the events | SQL, with indexes | `FilterLogEvents` query |
+| Remove one event | yes | yes | no |
+| Remove by time range ([retention](retention.md)) | yes | yes | no |
+| Remove all events | yes | yes | yes, recreates the log group |
+
 ???+ note
     If the `cloudwatch` repository is used, the extension will automatically create a log group in CloudWatch. Also, check the [CloudWatch repository documentation](cloudwatch.md) for additional configuration options.
+
+???+ tip
+    Redis is the default because it needs no setup, but every read scans all the events, and nothing removes old ones on its own. For an audit log that you keep and query, prefer `postgres`.
 
 ## Active repository
 
@@ -16,6 +27,11 @@ The default repository is `redis`, but it can be changed to a different one. To 
 ```ini
 ckanext.event_audit.active_repo = postgres
 ```
+
+The `postgres` repository needs the extension's tables, see [Installation](../install.md).
+
+The repository is picked when the application starts. Changing this option from the admin panel
+of a running site doesn't switch the repository until the application is restarted.
 
 ## List of available repositories
 

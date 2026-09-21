@@ -111,3 +111,10 @@ fields:
     form_snippet: text.html
     input_type: number
     required: true
+
+  - field_name: ckanext.event_audit.retention_days
+    help_text: Events older than this many days are removed by the `event-audit enforce-retention` command. 0 keeps events forever
+    label: Retention (days)
+    form_snippet: text.html
+    input_type: number
+    required: true

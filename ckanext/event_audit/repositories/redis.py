@@ -149,34 +149,41 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
 
         return "*" + "*".join(parts) + "*"
 
+    @classmethod
     def _filter_by_time(
-        self, events: list[types.Event], time_from: dt | None, time_to: dt | None
+        cls, events: list[types.Event], time_from: dt | None, time_to: dt | None
     ) -> list[types.Event]:
         """Filters events based on the provided time range.
 
         Only narrows down the events it is given -- it must never fall back
         to rescanning the whole hash, or the category/action/actor filters
         that produced ``events`` would be silently discarded.
+
+        The bounds are passed along rather than stored on the repository: it
+        is a process-wide singleton shared by request and writer threads, so
+        it must not carry per-call state.
         """
         if not time_from and not time_to:
             return events
 
-        self.time_from = time_from
-        self.time_to = time_to
-
         return [
             event
             for event in events
-            if self._is_within_time_range(dt.fromisoformat(event.timestamp))
+            if cls._is_within_time_range(
+                dt.fromisoformat(event.timestamp), time_from, time_to
+            )
         ]
 
-    def _is_within_time_range(self, event_time: dt) -> bool:
-        if self.time_from and self.time_to:
-            return self.time_from <= event_time <= self.time_to
-        if self.time_from:
-            return self.time_from <= event_time
-        if self.time_to:
-            return event_time <= self.time_to
+    @staticmethod
+    def _is_within_time_range(
+        event_time: dt, time_from: dt | None, time_to: dt | None
+    ) -> bool:
+        if time_from and time_to:
+            return time_from <= event_time <= time_to
+        if time_from:
+            return time_from <= event_time
+        if time_to:
+            return event_time <= time_to
         return True
 
     def remove_event(self, event_id: float) -> types.Result:

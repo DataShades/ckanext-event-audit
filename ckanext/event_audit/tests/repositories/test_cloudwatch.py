@@ -305,9 +305,7 @@ class TestCloudWatchRepository:
     ):
         repo, _ = cloudwatch_repo
 
-        log_events = [
-            {"timestamp": i, "message": "x"} for i in range(25_000)
-        ]
+        log_events = [{"timestamp": i, "message": "x"} for i in range(25_000)]
 
         chunks = list(repo._chunk_log_events(log_events))
 
@@ -322,9 +320,7 @@ class TestCloudWatchRepository:
         # Each message is ~100KB, so ~10 of them exceed the 1MB cap and must
         # split into two chunks well before the 10,000-event count limit.
         big_message = "x" * 100_000
-        log_events = [
-            {"timestamp": i, "message": big_message} for i in range(11)
-        ]
+        log_events = [{"timestamp": i, "message": big_message} for i in range(11)]
 
         chunks = list(repo._chunk_log_events(log_events))
 
@@ -353,3 +349,111 @@ class TestCloudWatchRepository:
         assert repo._get_event_dump(event) == event.model_dump_json(
             exclude={"result", "payload"}
         )
+
+    def test_write_events_returns_failure_on_client_error(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
+    ):
+        repo, stubber = cloudwatch_repo
+
+        stubber.add_response("create_log_stream", {})
+        stubber.add_client_error(
+            "put_log_events", service_error_code="ServiceUnavailableException"
+        )
+
+        with stubber:
+            result = repo.write_events([event])
+
+        assert result.status is False
+        assert result.message
+
+    def test_write_events_retries_stream_creation_after_a_failure(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
+    ):
+        """A failed `create_log_stream` mustn't be cached as "stream ready"."""
+        repo, stubber = cloudwatch_repo
+
+        stubber.add_client_error(
+            "create_log_stream", service_error_code="AccessDeniedException"
+        )
+
+        with stubber:
+            failed = repo.write_events([event])
+
+        assert failed.status is False
+
+        stubber.add_response("create_log_stream", {})
+        stubber.add_response("put_log_events", put_log_events_response)
+
+        with stubber:
+            succeeded = repo.write_events([event])
+
+        assert succeeded.status is True
+        stubber.assert_no_pending_responses()
+
+    def test_filter_events_follows_pagination(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        repo, stubber = cloudwatch_repo
+        first = event_factory(action_object_id="1")
+        second = event_factory(action_object_id="2")
+
+        def page(event: types.Event, next_token: str | None = None) -> dict[str, Any]:
+            response: dict[str, Any] = {
+                "events": [
+                    {
+                        "timestamp": int(dt.now(tz.utc).timestamp() * 1000),
+                        "message": event.model_dump_json(),
+                    }
+                ]
+            }
+
+            if next_token:
+                response["nextToken"] = next_token
+
+            return response
+
+        stubber.add_response("filter_log_events", page(first, "next-page"))
+        stubber.add_response("filter_log_events", page(second))
+
+        with stubber:
+            events = repo.filter_events(types.Filters())
+
+        assert [event.action_object_id for event in events] == ["1", "2"]
+        stubber.assert_no_pending_responses()
+
+
+class TestCloudWatchInit:
+    """The repository is a singleton whose constructor runs on every call."""
+
+    def test_repeated_calls_reuse_the_client(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+        client = repo.client
+
+        assert CloudWatchRepository() is repo
+        assert repo.client is client
+
+    def test_explicit_arguments_set_the_repository_up_again(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        repo, _ = cloudwatch_repo
+
+        # the repository is shared with the other tests: put everything back
+        for attr in ("session", "client", "log_group", "log_stream"):
+            monkeypatch.setattr(repo, attr, getattr(repo, attr))
+
+        # don't reach out to AWS
+        monkeypatch.setattr(
+            CloudWatchRepository, "_create_log_group_if_not_exists", lambda self: None
+        )
+
+        again = CloudWatchRepository(log_group="/other/group", log_stream="other")
+
+        assert again is repo
+        assert repo.log_group == "/other/group"
+        assert repo.log_stream == "other"

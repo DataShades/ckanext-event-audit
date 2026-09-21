@@ -69,7 +69,7 @@ def test_modify_event_default_returns_event_unchanged(event: types.Event):
 @pytest.mark.ckan_config("ckan.plugins", "event_audit test_event_audit")
 @pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)
 @pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
-class TestEventAuditInterace:
+class TestEventAuditInterface:
     def test_get_available_repos(self):
         repos = utils.get_available_repos()
         assert MyRepository.get_name() in repos

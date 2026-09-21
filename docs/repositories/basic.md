@@ -4,6 +4,7 @@ Repositories are the storages where the event audit logs are stored. There are a
 2. `postgres` - stores logs in a PostgreSQL database.
 3. `cloudwatch` - stores logs in AWS CloudWatch.
 
+See [how to choose one](../configure/repository.md).
 
 You can also implement your own repository. To do this, you need to create a new class that inherits from the `AbstractRepository` class and implement all the required methods.
 

@@ -6,7 +6,7 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 import ckan.types as ckan_types
 
-from ckanext.event_audit import config, const, types, utils
+from ckanext.event_audit import config, const, types, utils, worker
 from ckanext.event_audit.interfaces import IEventAudit
 
 
@@ -54,6 +54,6 @@ def action_succeeded_subscriber(
         event = plugin.modify_event(event)
 
     if thread_mode_enabled:
-        repo.enqueue_event(event)
+        worker.enqueue_event(event)
     else:
         repo.write_event(event)

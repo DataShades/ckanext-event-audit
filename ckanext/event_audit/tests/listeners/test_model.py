@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 from botocore.stub import Stubber
+from sqlalchemy import inspect
 
 from ckan import model
 from ckan.tests import factories
@@ -201,7 +202,11 @@ class TestModelListener:
         assert config.get_tracked_models() == ["Dashboard"]
         assert config.get_ignored_models() == ["Dashboard"]
 
+        events = repo.filter_events(types.Filters())
 
+        # the model is both tracked and ignored, and it's still recorded
+        assert len(events) == 1
+        assert events[0].action_object == "Dashboard"
 
     @pytest.mark.usefixtures("with_plugins", "clean_db")
     @pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
@@ -330,3 +335,47 @@ class TestModelListenerRecordsActor:
 
         assert len(events) == 1
         assert events[0].actor == ""
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+class TestGetPreviousData:
+    def test_changed_column_reports_its_old_value(self):
+        user = factories.User(about="old info")
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        instance.about = "new info"
+
+        try:
+            data = listener_database.get_previous_data(instance)
+        finally:
+            model.Session.rollback()
+
+        assert data["about"] == "old info"
+
+    def test_unchanged_column_reports_its_current_value(self):
+        user = factories.User()
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        instance.about = "new info"
+
+        try:
+            data = listener_database.get_previous_data(instance)
+        finally:
+            model.Session.rollback()
+
+        assert data["name"] == user["name"]
+        assert data["id"] == user["id"]
+
+    def test_only_plain_columns_are_inspected(self):
+        user = factories.User()
+        instance = model.User.get(user["id"])
+        model.Session.refresh(instance)
+
+        try:
+            data = listener_database.get_previous_data(instance)
+        finally:
+            model.Session.rollback()
+
+        assert set(data) == set(inspect(instance).mapper.column_attrs.keys())

@@ -46,6 +46,11 @@ By default, the extension doesn't track the previous state of the model. If you 
 ckanext.event_audit.track.store_previous_model_state = true
 ```
 
+???+ Warning
+    The previous state is stored in the `result` of the event, so this option only has an effect
+    together with [`store_payload_and_result`](#storing-payload-and-result-data). On its own, it
+    only makes the extension do extra work on every database flush.
+
 The `event` result field contains two keys: `old` and `new`. If this option is enabled, the `old` key will contain the previous state of the model:
 
 ```json
@@ -69,6 +74,12 @@ ckanext.event_audit.store_payload_and_result = true
 
 ???+ Warning
     Enabling this option might have a significant impact on the storage size. Use it with caution.
+
+???+ Danger
+    The data is stored **as it is**. Payloads of actions like `user_create` contain passwords,
+    the result of `api_token_create` contains the token, and the rows of the `User` model contain
+    the password hash, the reset key and the email address. Nothing is redacted by default, and with the CloudWatch
+    repository the data leaves your server. Read [Security](../security.md) before enabling this option.
 
 ## Custom trackers
 

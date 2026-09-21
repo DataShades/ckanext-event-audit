@@ -10,7 +10,7 @@ import ckan.plugins as p
 import ckan.plugins.toolkit as tk
 from ckan.model.base import Session
 
-from ckanext.event_audit import config, const, types, utils
+from ckanext.event_audit import config, const, types, utils, worker
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel
 
@@ -128,7 +128,7 @@ def _should_process_commit(session: SQLAlchemySession) -> bool:
     return hasattr(session, CACHE_ATTR)
 
 
-def _process_cached_instances( # noqa: PLR0913 PLR0917
+def _process_cached_instances(  # noqa: PLR0913 PLR0917
     session: SQLAlchemySession,
     repo: Any,
     thread_mode_enabled: bool,
@@ -168,7 +168,7 @@ def _process_cached_instances( # noqa: PLR0913 PLR0917
                 event = plugin.modify_event(event)
 
             if thread_mode_enabled:
-                repo.enqueue_event(event)
+                worker.enqueue_event(event)
             else:
                 repo.write_event(event)
 
