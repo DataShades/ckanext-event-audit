@@ -8,17 +8,20 @@
       
       
       
-        <link rel="canonical" href="https://.github.io/ckanext-event-audit/cli/">
+        <link rel="canonical" href="https://datashades.github.io/ckanext-event-audit/cli/">
       
       
         <link rel="prev" href="../utils/">
       
       
-        <link rel="next" href="../configure/repository/">
+        <link rel="next" href="../security/">
+      
+      
+        
       
       
       <link rel="icon" href="../img/favicon.ico">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.5.46">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -26,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6f8fc17f.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -54,7 +57,6 @@
     
       
 
-    
     
     
   </head>
@@ -159,11 +161,13 @@
     
     
     
-      <label class="md-header__button md-icon" for="__search">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
-      </label>
-      <div class="md-search" data-md-component="search" role="dialog">
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
   <label class="md-search__overlay" for="__search"></label>
   <div class="md-search__inner" role="search">
     <form class="md-search__form" name="search">
@@ -195,13 +199,14 @@
     </div>
   </div>
 </div>
+      
     
     
       <div class="md-header__source">
         <a href="https://github.com/DataShades/ckanext-event-audit" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -246,7 +251,7 @@
       <a href="https://github.com/DataShades/ckanext-event-audit" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     GitHub
@@ -266,9 +271,16 @@
       <a href=".." class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Home
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -286,9 +298,16 @@
       <a href="../install/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Installation
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -306,9 +325,43 @@
       <a href="../usage/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Usage
+  
+
+    
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Types
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -326,9 +379,16 @@
       <a href="../interfaces/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Interfaces
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -346,9 +406,16 @@
       <a href="../validators/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Validators
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -366,9 +433,16 @@
       <a href="../utils/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Utility Functions
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -395,9 +469,16 @@
         <label class="md-nav__link md-nav__link--active" for="__toc">
           
   
+  
   <span class="md-ellipsis">
+    
+  
     CLI
+  
+
+    
   </span>
+  
   
 
           <span class="md-nav__icon md-icon"></span>
@@ -406,9 +487,16 @@
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     CLI
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -429,9 +517,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#event_audit.cli.enforce_retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enforce_retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event_audit.cli.export_data" class="md-nav__link">
     <span class="md-ellipsis">
-      export_data
+      
+        export_data
+      
     </span>
   </a>
   
@@ -440,7 +541,9 @@
         <li class="md-nav__item">
   <a href="#event_audit.cli.remove_events" class="md-nav__link">
     <span class="md-ellipsis">
-      remove_events
+      
+        remove_events
+      
     </span>
   </a>
   
@@ -460,6 +563,60 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
     
     
       
@@ -475,6 +632,9 @@
       
         
       
+        
+      
+    
     
     
     
@@ -482,24 +642,35 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_11" >
         
           
-          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_11" id="__nav_11_label" tabindex="0">
             
   
+  
   <span class="md-ellipsis">
+    
+  
     Configuration
+  
+
+    
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_8">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_11">
             <span class="md-nav__icon md-icon"></span>
-            Configuration
+            
+  
+    Configuration
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -513,9 +684,16 @@
       <a href="../configure/repository/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Repository
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -534,9 +712,16 @@
       <a href="../configure/cloudwatch/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Cloudwatch
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -555,9 +740,16 @@
       <a href="../configure/admin_panel/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
-    Admin panel
+    
+  
+    Admin panel and dashboard
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -576,9 +768,16 @@
       <a href="../configure/ignore/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Ignore events
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -597,9 +796,16 @@
       <a href="../configure/tracking/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     In-built tracking
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -618,9 +824,44 @@
       <a href="../configure/async/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Asynchronous processing
+  
+
+    
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configure/retention/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Retention
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -658,28 +899,40 @@
     
     
     
+    
     <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_12" >
         
           
-          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_12" id="__nav_12_label" tabindex="0">
             
   
+  
   <span class="md-ellipsis">
+    
+  
     Exporters
+  
+
+    
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_9">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_12">
             <span class="md-nav__icon md-icon"></span>
-            Exporters
+            
+  
+    Exporters
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -693,9 +946,16 @@
       <a href="../exporters/basic/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Basic
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -714,9 +974,16 @@
       <a href="../exporters/csv/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     CSV exporter
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -735,9 +1002,16 @@
       <a href="../exporters/tsv/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     TSV exporter
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -756,9 +1030,16 @@
       <a href="../exporters/json/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     JSON exporter
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -777,9 +1058,16 @@
       <a href="../exporters/xlsx/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     XLSX exporter
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -819,28 +1107,40 @@
     
     
     
+    
     <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_13" >
         
           
-          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_13" id="__nav_13_label" tabindex="0">
             
   
+  
   <span class="md-ellipsis">
+    
+  
     Repositories
+  
+
+    
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_10">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_13_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_13">
             <span class="md-nav__icon md-icon"></span>
-            Repositories
+            
+  
+    Repositories
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -854,9 +1154,16 @@
       <a href="../repositories/basic/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Basic
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -875,9 +1182,16 @@
       <a href="../repositories/abstract/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Abstract
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -896,9 +1210,16 @@
       <a href="../repositories/redis/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Redis repository
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -917,9 +1238,16 @@
       <a href="../repositories/postgres/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Postgres repository
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -938,9 +1266,16 @@
       <a href="../repositories/cloudwatch/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
+    
+  
     Cloudwatch repository
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -959,9 +1294,16 @@
       <a href="../repositories/custom/" class="md-nav__link">
         
   
+  
   <span class="md-ellipsis">
-    Custom
+    
+  
+    Custom repository
+  
+
+    
   </span>
+  
   
 
       </a>
@@ -1004,9 +1346,22 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#event_audit.cli.enforce_retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enforce_retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#event_audit.cli.export_data" class="md-nav__link">
     <span class="md-ellipsis">
-      export_data
+      
+        export_data
+      
     </span>
   </a>
   
@@ -1015,7 +1370,9 @@
         <li class="md-nav__item">
   <a href="#event_audit.cli.remove_events" class="md-nav__link">
     <span class="md-ellipsis">
-      remove_events
+      
+        remove_events
+      
     </span>
   </a>
   
@@ -1031,9 +1388,11 @@
           
           
             <div class="md-content" data-md-component="content">
+              
               <article class="md-content__inner md-typeset">
                 
                   
+
 
   
   
@@ -1056,7 +1415,9 @@
 
 
 
-  <div class="doc doc-children">
+
+
+<div class="doc doc-children">
 
 
 
@@ -1065,6 +1426,160 @@
 
 
 
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="event_audit.cli.enforce_retention" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">enforce_retention</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">days</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Remove the events that are older than the retention period.</p>
+<p>Meant to be scheduled, e.g. from cron. Exits with an error if the
+repository can't remove events by time range.</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">PARAMETER</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>repository</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>The repository name. If not provided, the
+active repository will be used.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="str">str</span> | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>days</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>Remove events older than this many days. If not
+provided, the <code>ckanext.event_audit.retention_days</code> option is used.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="int">int</span> | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>$ ckan event-audit enforce-retention</p>
+<p>$ ckan event-audit enforce-retention --days=90</p>
+</details>
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"--repository"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The repository name"</span><span class="p">)</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">"--days"</span><span class="p">,</span>
+    <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">IntRange</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">"Remove events older than this many days. "</span>
+        <span class="s2">"Defaults to the `ckanext.event_audit.retention_days` option."</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">enforce_retention</span><span class="p">(</span><span class="n">repository</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">days</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Remove the events that are older than the retention period.</span>
+
+<span class="sd">    Meant to be scheduled, e.g. from cron. Exits with an error if the</span>
+<span class="sd">    repository can't remove events by time range.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        repository (str | None): The repository name. If not provided, the</span>
+<span class="sd">            active repository will be used.</span>
+<span class="sd">        days (int | None): Remove events older than this many days. If not</span>
+<span class="sd">            provided, the `ckanext.event_audit.retention_days` option is used.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        $ ckan event-audit enforce-retention</span>
+
+<span class="sd">        $ ckan event-audit enforce-retention --days=90</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">repo</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_repo</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span> <span class="k">if</span> <span class="n">repository</span> <span class="k">else</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_active_repo</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown repository: </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">enforce_retention</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">days</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">click</span><span class="o">.</span><span class="n">ClickException</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span> <span class="ow">or</span> <span class="s2">"Retention wasn't enforced."</span><span class="p">)</span>
+
+    <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"green"</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -1099,7 +1614,7 @@
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str</code>
+                      <code><span title="str">str</span></code>
                   </span>
               </p>
             </td>
@@ -1115,7 +1630,7 @@
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str</code>
+                      <code><span title="str">str</span></code>
                   </span>
               </p>
             </td>
@@ -1131,7 +1646,7 @@
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str | None</code>
+                      <code><span title="str">str</span> | None</code>
                   </span>
               </p>
             </td>
@@ -1148,7 +1663,7 @@ documentation for args details.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str | None</code>
+                      <code><span title="str">str</span> | None</code>
                   </span>
               </p>
             </td>
@@ -1189,7 +1704,8 @@ documentation for args details.</p>
 <p>$ ckan event-audit export-data xlsx --start=2024-11-11
     --config='{"file_path": "/tmp/test.xlsx"}'</p>
 </details>
-            <details class="quote">
+
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
               <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">21</span>
 <span class="normal">22</span>
@@ -1246,29 +1762,33 @@ documentation for args details.</p>
 <span class="normal">73</span>
 <span class="normal">74</span>
 <span class="normal">75</span>
-<span class="normal">76</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">&quot;exporter_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+<span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">argument</span><span class="p">(</span><span class="s2">"exporter_name"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
-    <span class="s2">&quot;--start&quot;</span><span class="p">,</span>
+    <span class="s2">"--start"</span><span class="p">,</span>
     <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format start date&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"ISO format start date"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
-    <span class="s2">&quot;--end&quot;</span><span class="p">,</span>
+    <span class="s2">"--end"</span><span class="p">,</span>
     <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format end date&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"ISO format end date"</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Custom config in JSON format&quot;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">export_data</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export data using the specified exporter.</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"--config"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Custom config in JSON format"</span><span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">export_data</span><span class="p">(</span>
+    <span class="n">exporter_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Export data using the specified exporter.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        exporter_name (str): The name of the exporter.</span>
 <span class="sd">        start (str): The start date string in %Y-%m-%d format.</span>
 <span class="sd">        end (str | None): The end date string in %Y-%m-%d format.</span>
-<span class="sd">        config (str | None): The exporter config in JSON format. See the exporter&#39;s</span>
+<span class="sd">        config (str | None): The exporter config in JSON format. See the exporter's</span>
 <span class="sd">            documentation for args details.</span>
 
 <span class="sd">    Returns:</span>
@@ -1277,29 +1797,29 @@ documentation for args details.</p>
 <span class="sd">    Example:</span>
 <span class="sd">        $ ckan event-audit export-data csv --start=2024-11-11 &gt; report.csv</span>
 
-<span class="sd">        $ ckan event-audit export-data json --start=2024-11-11 | jq &#39;[.[] |</span>
-<span class="sd">            {id, category, action}]&#39;</span>
+<span class="sd">        $ ckan event-audit export-data json --start=2024-11-11 | jq '[.[] |</span>
+<span class="sd">            {id, category, action}]'</span>
 
 <span class="sd">        $ ckan event-audit export-data xlsx --start=2024-11-11</span>
-<span class="sd">            --config=&#39;{&quot;file_path&quot;: &quot;/tmp/test.xlsx&quot;}&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">            --config='{"file_path": "/tmp/test.xlsx"}'</span>
+<span class="sd">    """</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">start</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">config_dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">config</span> <span class="ow">or</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Invalid JSON format for config.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">"Invalid JSON format for config."</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">exporter</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_exporter</span><span class="p">(</span><span class="n">exporter_name</span><span class="p">)(</span><span class="o">**</span><span class="n">config_dict</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid exporter config: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Invalid exporter config: </span><span class="si">{</span><span class="n">config</span><span class="si">}</span><span class="s2">. Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Start date must be before the end date.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">"Start date must be before the end date."</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
 
     <span class="n">click</span><span class="o">.</span><span class="n">echo</span><span class="p">(</span><span class="n">exporter</span><span class="o">.</span><span class="n">from_filters</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">time_from</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">time_to</span><span class="o">=</span><span class="n">end</span><span class="p">)))</span>
 </code></pre></div></td></tr></table></div>
@@ -1312,7 +1832,7 @@ documentation for args details.</p>
 
 
 <h2 id="event_audit.cli.remove_events" class="doc doc-heading">
-<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">remove_events</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span></code>
+<code class="doc-symbol doc-symbol-heading doc-symbol-function"></code>            <code class="highlight language-python"><span class="n">remove_events</span><span class="p">(</span><span class="n">repository</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">yes</span><span class="p">)</span></code>
 
 </h2>
 
@@ -1320,6 +1840,10 @@ documentation for args details.</p>
     <div class="doc doc-contents ">
 
         <p>Remove events from the repository by time range.</p>
+<p>Without <code>--start</code> and <code>--end</code> <strong>all</strong> the events are removed, after a
+confirmation unless <code>--yes</code> is given. Not every repository can remove by
+time range. For CloudWatch, removing all the events deletes the log group
+and creates it again.</p>
 
 
 <table>
@@ -1342,7 +1866,7 @@ active repository will be used.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str | None</code>
+                      <code><span title="str">str</span> | None</code>
                   </span>
               </p>
             </td>
@@ -1358,7 +1882,7 @@ active repository will be used.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str</code>
+                      <code><span title="str">str</span></code>
                   </span>
               </p>
             </td>
@@ -1374,7 +1898,23 @@ active repository will be used.</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code>str | None</code>
+                      <code><span title="str">str</span> | None</code>
+                  </span>
+              </p>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>yes</code>
+            </td>
+            <td class="doc-param-details">
+              <div class="doc-md-description">
+                <p>Skip the confirmation prompt when deleting all events.</p>
+              </div>
+              <p>
+                  <span class="doc-param-annotation">
+                    <b>TYPE:</b>
+                      <code><span title="bool">bool</span></code>
                   </span>
               </p>
             </td>
@@ -1387,11 +1927,10 @@ active repository will be used.</p>
   <summary>Example</summary>
   <p>$ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12</p>
 </details>
-            <details class="quote">
+
+            <details class="mkdocstrings-source">
               <summary>Source code in <code>ckanext/event_audit/cli.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 79</span>
-<span class="normal"> 80</span>
-<span class="normal"> 81</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 81</span>
 <span class="normal"> 82</span>
 <span class="normal"> 83</span>
 <span class="normal"> 84</span>
@@ -1443,58 +1982,116 @@ active repository will be used.</p>
 <span class="normal">130</span>
 <span class="normal">131</span>
 <span class="normal">132</span>
-<span class="normal">133</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
-<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">&quot;--repository&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The repository name&quot;</span><span class="p">)</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@event_audit</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span><span class="s2">"--repository"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The repository name"</span><span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
-    <span class="s2">&quot;--start&quot;</span><span class="p">,</span>
+    <span class="s2">"--start"</span><span class="p">,</span>
     <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format start date&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"ISO format start date"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
-    <span class="s2">&quot;--end&quot;</span><span class="p">,</span>
+    <span class="s2">"--end"</span><span class="p">,</span>
     <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">]),</span>
-    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ISO format end date&quot;</span><span class="p">,</span>
+    <span class="nb">type</span><span class="o">=</span><span class="n">click</span><span class="o">.</span><span class="n">DateTime</span><span class="p">(</span><span class="n">formats</span><span class="o">=</span><span class="p">[</span><span class="s2">"%Y-%m-</span><span class="si">%d</span><span class="s2">"</span><span class="p">]),</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"ISO format end date"</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="k">def</span> <span class="nf">remove_events</span><span class="p">(</span><span class="n">repository</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Remove events from the repository by time range.</span>
+<span class="nd">@click</span><span class="o">.</span><span class="n">option</span><span class="p">(</span>
+    <span class="s2">"--yes"</span><span class="p">,</span>
+    <span class="n">is_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">help</span><span class="o">=</span><span class="s2">"Skip the confirmation prompt when deleting all events."</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">remove_events</span><span class="p">(</span>  <span class="c1"># noqa: PLR0911</span>
+    <span class="n">repository</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">end</span><span class="p">:</span> <span class="n">dt</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">yes</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Remove events from the repository by time range.</span>
+
+<span class="sd">    Without `--start` and `--end` **all** the events are removed, after a</span>
+<span class="sd">    confirmation unless `--yes` is given. Not every repository can remove by</span>
+<span class="sd">    time range. For CloudWatch, removing all the events deletes the log group</span>
+<span class="sd">    and creates it again.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        repository (str | None): The repository name. If not provided, the</span>
 <span class="sd">            active repository will be used.</span>
 <span class="sd">        start (str): The start date string in %Y-%m-%d format.</span>
 <span class="sd">        end (str | None): The end date string in %Y-%m-%d format.</span>
+<span class="sd">        yes (bool): Skip the confirmation prompt when deleting all events.</span>
 
 <span class="sd">    Example:</span>
 <span class="sd">        $ ckan event-audit remove-events --start=2024-11-11 --end=2024-11-12</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">start</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">start</span><span class="p">)</span> <span class="k">if</span> <span class="n">start</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">end</span> <span class="o">=</span> <span class="n">UTC</span><span class="o">.</span><span class="n">localize</span><span class="p">(</span><span class="n">end</span><span class="p">)</span> <span class="k">if</span> <span class="n">end</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="n">start</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">and</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">&quot;Start date must be before the end date.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">"Start date must be before the end date."</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">repo</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_repo</span><span class="p">(</span><span class="n">repository</span><span class="p">)</span> <span class="k">if</span> <span class="n">repository</span> <span class="k">else</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_active_repo</span><span class="p">()</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown repository: </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown repository: </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">start</span> <span class="ow">or</span> <span class="n">end</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repositories</span><span class="o">.</span><span class="n">RemoveAll</span><span class="p">):</span>
+    <span class="n">deleting_everything</span> <span class="o">=</span> <span class="ow">not</span> <span class="p">(</span><span class="n">start</span> <span class="ow">or</span> <span class="n">end</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">deleting_everything</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repositories</span><span class="o">.</span><span class="n">RemoveAll</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;Repository </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2"> does not support removing events.&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span>
+            <span class="sa">f</span><span class="s2">"Repository </span><span class="si">{</span><span class="n">repo</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> does not support removing events."</span><span class="p">,</span>
+            <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span>
         <span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">deleting_everything</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">yes</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="n">click</span><span class="o">.</span><span class="n">confirm</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"This will delete ALL events from the '</span><span class="si">{</span><span class="n">repo</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">' "</span>
+            <span class="s2">"repository. Continue?"</span>
+        <span class="p">)</span>
+    <span class="p">):</span>
+        <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span><span class="s2">"Aborted."</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">"yellow"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">repo</span><span class="p">,</span> <span class="n">repositories</span><span class="o">.</span><span class="n">RemoveFiltered</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">start</span> <span class="ow">or</span> <span class="n">end</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">click</span><span class="o">.</span><span class="n">secho</span><span class="p">(</span>
                 <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;Repository </span><span class="si">{</span><span class="n">repository</span><span class="si">}</span><span class="s2"> does not support removing events &quot;</span>
-                    <span class="s2">&quot;by time range. &quot;</span>
-                    <span class="s2">&quot;Please remove the --start and --end flags to delete all events.&quot;</span>
+                    <span class="sa">f</span><span class="s2">"Repository </span><span class="si">{</span><span class="n">repo</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2"> does not support removing events "</span>
+                    <span class="s2">"by time range. "</span>
+                    <span class="s2">"Please remove the --start and --end flags to delete all events."</span>
                 <span class="p">),</span>
-                <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+                <span class="n">fg</span><span class="o">=</span><span class="s2">"red"</span><span class="p">,</span>
             <span class="p">)</span>
+
         <span class="k">return</span> <span class="n">repo</span><span class="o">.</span><span class="n">remove_all_events</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">repo</span><span class="o">.</span><span class="n">remove_events</span><span class="p">(</span><span class="n">types</span><span class="o">.</span><span class="n">Filters</span><span class="p">(</span><span class="n">time_from</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">time_to</span><span class="o">=</span><span class="n">end</span><span class="p">))</span>
@@ -1563,13 +2160,13 @@ active repository will be used.</p>
         
         
           
-          <a href="../configure/repository/" class="md-footer__link md-footer__link--next" aria-label="Next: Repository">
+          <a href="../security/" class="md-footer__link md-footer__link--next" aria-label="Next: Security">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Repository
+                Security
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -1605,10 +2202,13 @@ active repository will be used.</p>
       <div class="md-progress" data-md-component="progress" role="progressbar"></div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.6ce7567c.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.instant.prefetch", "navigation.instant.progress", "navigation.footer", "navigation.indexes", "navigation.top", "content.code.copy", "content.code.select", "content.code.annotate"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.83f73b43.min.js"></script>
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
