@@ -12,7 +12,7 @@ The region is required. The access key and the secret key can be left empty: the
 credential chain is used then (the `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` environment
 variables, a shared credentials file, or the IAM role of the instance/container). This is the
 recommended setup, because credentials given through the CKAN configuration end up in the
-configuration file, and the admin panel stores them in the database in clear text.
+configuration file. The admin panel doesn't offer them, so they are never stored in the database.
 
 The credentials need permission to create the log group and the log stream and to write, read and
 delete log events (`logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`,

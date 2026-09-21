@@ -56,12 +56,13 @@ is read again after the application has started:
 | `track_model`, `track_api` | immediately |
 | `batch.size`, `batch.timeout` | immediately (the writer thread reads them on each round) |
 | `retention_days` | the next time the retention command runs |
-| `cloudwatch.*` | after a restart: the client is created once |
+| `cloudwatch.region` | after a restart: the client is created once |
 | `batch.queue_size` | after a restart: the queue is created once, when the writer thread starts |
 
 ???+ warning
-    The AWS access key and secret key are stored in the database in clear text once you save them
-    here. See [Security](../security.md) for the alternatives.
+    The AWS access key and secret key can't be set here, so that they never end up in the database
+    in clear text. Give them in the configuration file or, better, use an IAM role or environment
+    credentials. See [Security](../security.md#credentials).
 
 The "Clear repo" button on the configuration page removes **all** the events from the active
 repository, after a confirmation.

@@ -3,16 +3,6 @@ schema_id: event_audit_config
 about: An extension config form schema
 
 fields:
-  - field_name: ckanext.event_audit.cloudwatch.access_key
-    label: Access Key
-    help_text: The access key for the AWS account
-    required: false
-
-  - field_name: ckanext.event_audit.cloudwatch.secret_key
-    label: Secret Key
-    help_text: The secret key for the AWS account
-    required: false
-
   - field_name: ckanext.event_audit.cloudwatch.region
     label: Region
     help_text: The region for the AWS account

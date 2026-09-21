@@ -16,12 +16,12 @@ groups:
       - key: ckanext.event_audit.cloudwatch.access_key
         description: The access key for the AWS account
         default: ''
-        editable: true
+        editable: false
 
       - key: ckanext.event_audit.cloudwatch.secret_key
         description: The secret key for the AWS account
         default: ''
-        editable: true
+        editable: false
 
       - key: ckanext.event_audit.cloudwatch.region
         description: The region for the AWS account

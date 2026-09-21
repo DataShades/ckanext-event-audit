@@ -80,6 +80,25 @@ class TestActiveRepoIsNotEditable:
         assert options[config.CONF_ACTIVE_REPO]["editable"] is False
 
 
+class TestCloudWatchCredentialsAreNotEditable:
+    """Editable options are stored in the database in clear text."""
+
+    @pytest.mark.parametrize(
+        "key", [config.CONF_CLOUDWATCH_KEY, config.CONF_CLOUDWATCH_SECRET]
+    )
+    def test_declaration_forbids_editing(self, key: str):
+        path = Path(config.__file__).with_name("config_declaration.yaml")
+        declaration = yaml.safe_load(path.read_text())
+
+        options = {
+            option["key"]: option
+            for group in declaration["groups"]
+            for option in group["options"]
+        }
+
+        assert options[key]["editable"] is False
+
+
 class TestAdminPanelSchema:
     """The admin form must only offer options that can change at runtime."""
 

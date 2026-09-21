@@ -92,7 +92,7 @@ and a token in a test environment.
 
 ## Credentials
 
-The CloudWatch access key and secret key can be edited in the admin panel, where they are stored in the database in clear text. Leave them empty and give the CKAN process an IAM role or environment credentials instead, see [CloudWatch](configure/cloudwatch.md). Grant only the permissions the repository needs.
+The CloudWatch access key and secret key are not available in the admin panel, so they are never stored in the database. They can only be set in the CKAN configuration file, where they are in clear text. Leave them empty and give the CKAN process an IAM role or environment credentials instead, see [CloudWatch](configure/cloudwatch.md). Grant only the permissions the repository needs.
 
 ## Log volume
 
