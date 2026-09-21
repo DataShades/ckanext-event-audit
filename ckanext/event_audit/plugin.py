@@ -17,7 +17,6 @@ from ckanext.event_audit import config, listeners, utils, worker
 @tk.blanket.validators
 @tk.blanket.cli
 @tk.blanket.blueprints
-@tk.blanket.helpers
 class EventAuditPlugin(p.SingletonPlugin):
     p.implements(p.IConfigurable)
     p.implements(p.IConfigurer)
