@@ -30,8 +30,9 @@ ckanext.event_audit.active_repo = postgres
 
 The `postgres` repository needs the extension's tables, see [Installation](../install.md).
 
-The repository is picked when the application starts. Changing this option from the admin panel
-of a running site doesn't switch the repository until the application is restarted.
+The repository is picked when the application starts, so this option can't be changed from the
+admin panel of a running site. To switch the repository, change the config file and restart the
+application.
 
 ## List of available repositories
 

@@ -6,7 +6,7 @@ groups:
         description: The active repository to store the audit logs
         default: redis
         validators: audit_repo_exists
-        editable: true
+        editable: false
 
       - key: ckanext.event_audit.restrict_available_repos
         description: The available repositories to store the audit logs

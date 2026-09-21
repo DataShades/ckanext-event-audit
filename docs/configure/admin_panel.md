@@ -54,7 +54,6 @@ is read again after the application has started:
 | `track_model`, `track_api` | immediately |
 | `batch.size`, `batch.timeout` | immediately (the writer thread reads them on each round) |
 | `retention_days` | the next time the retention command runs |
-| `active_repo` | after a restart: the repository is picked once, on startup |
 | `cloudwatch.*` | after a restart: the client is created once |
 | `batch.queue_size` | after a restart: the queue is created once, when the writer thread starts |
 | `threaded_mode` | after a restart. Don't flip it on a running site: see [Asynchronous processing](async.md) |

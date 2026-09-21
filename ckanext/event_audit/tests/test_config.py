@@ -64,6 +64,22 @@ class TestDeclaredDefaults:
         assert declared == default
 
 
+class TestActiveRepoIsNotEditable:
+    """The repository is picked once on startup, so it mustn't be editable."""
+
+    def test_declaration_forbids_editing(self):
+        path = Path(config.__file__).with_name("config_declaration.yaml")
+        declaration = yaml.safe_load(path.read_text())
+
+        options = {
+            option["key"]: option
+            for group in declaration["groups"]
+            for option in group["options"]
+        }
+
+        assert options[config.CONF_ACTIVE_REPO]["editable"] is False
+
+
 @pytest.mark.usefixtures("with_plugins", "clean_redis")
 class TestIgnoreConfig:
     @pytest.mark.ckan_config(config.CONF_API_TRACK_ENABLED, True)
