@@ -11,6 +11,7 @@ import ckan.plugins.toolkit as tk
 from ckan.model.base import Session
 
 from ckanext.event_audit import config, const, types, utils, worker
+from ckanext.event_audit import repositories as repos
 from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel
 
@@ -130,7 +131,7 @@ def _should_process_commit(session: SQLAlchemySession) -> bool:
 
 def _process_cached_instances(  # noqa: PLR0913 PLR0917
     session: SQLAlchemySession,
-    repo: Any,
+    repo: repos.AbstractRepository,
     thread_mode_enabled: bool,
     should_store_complex_data: bool,
     tracked_models: list[str],

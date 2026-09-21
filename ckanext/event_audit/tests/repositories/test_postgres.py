@@ -35,6 +35,15 @@ class TestPostgresRepo:
         status = repo.write_event(event)
         assert status.status
 
+    def test_write_event_is_synchronous(
+        self, event: types.Event, repo: PostgresRepository
+    ):
+        """The write is committed by the time it returns, so nothing is queued."""
+        status = repo.write_event(event)
+
+        assert not status.message
+        assert repo.get_event(event.id)
+
     def test_get_event(self, event: types.Event, repo: PostgresRepository):
         repo.write_event(event)
         loaded_event = repo.get_event(event.id)

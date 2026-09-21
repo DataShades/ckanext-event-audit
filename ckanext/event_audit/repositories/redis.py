@@ -64,7 +64,7 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
             f"ts:{event.timestamp}"
         )
 
-    def get_event(self, event_id: float) -> types.Event | None:
+    def get_event(self, event_id: str) -> types.Event | None:
         """Get an event by its ID.
 
         Args:

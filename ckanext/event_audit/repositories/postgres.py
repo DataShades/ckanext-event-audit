@@ -75,7 +75,7 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFilt
             with _fresh_session() as own_session:
                 db_event.save(session=own_session, defer_commit=False)
 
-        return types.Result(status=True, message="Event has been added to the queue")
+        return types.Result(status=True)
 
     def write_events(self, events: Iterable[types.Event]) -> types.Result:
         """Write multiple events to the repository in a single transaction.

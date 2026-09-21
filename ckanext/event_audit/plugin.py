@@ -96,5 +96,5 @@ class EventAuditPlugin(p.SingletonPlugin):
         clear_validators_cache()
         here = Path(__file__).parent
 
-        with Path.open(here / "config_declaration.yaml", "rb") as src:
+        with (here / "config_declaration.yaml").open("rb") as src:
             declaration.load_dict(yaml.safe_load(src))
