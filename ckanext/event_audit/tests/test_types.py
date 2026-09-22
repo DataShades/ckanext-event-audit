@@ -267,3 +267,28 @@ class TestFilters:
         filters = types.Filters(actor="non-existent-user")
 
         assert filters.actor == "non-existent-user"
+
+    def test_default_limit_and_offset(self):
+        """No limit means no limit; offset defaults to 0."""
+        filters = types.Filters()
+
+        assert filters.limit is None
+        assert filters.offset == 0
+
+    def test_valid_limit_and_offset(self):
+        filters = types.Filters(limit=10, offset=5)
+
+        assert filters.limit == 10
+        assert filters.offset == 5
+
+    def test_limit_must_be_positive(self):
+        with pytest.raises(
+            ValueError, match="Input should be greater than or equal to 1"
+        ):
+            types.Filters(limit=0)
+
+    def test_offset_cannot_be_negative(self):
+        with pytest.raises(
+            ValueError, match="Input should be greater than or equal to 0"
+        ):
+            types.Filters(offset=-1)

@@ -10,8 +10,10 @@ Notes for running the extension in production.
 * `redis` keeps all the events in a single hash and scans the whole of it on every read. It
   survives a restart only as far as your Redis persistence settings (RDB/AOF) allow, and shares
   memory with everything else that uses that Redis. It suits development and small sites.
-* `cloudwatch` is durable and keeps the events away from the CKAN server, but it's slow to query
-  and can't remove individual events.
+* `cloudwatch` is durable and keeps the events away from the CKAN server, but it can't remove
+  individual events. The dashboard queries it efficiently via CloudWatch Logs Insights; a single
+  lookup (`get_event`), the CLI export and retention use a slower, chronological `FilterLogEvents`
+  query instead - see [CloudWatch](configure/cloudwatch.md#how-events-are-read).
 
 See [Repository](configure/repository.md) for the comparison.
 

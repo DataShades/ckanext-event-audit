@@ -9,7 +9,7 @@ The following repositories are available:
 | | `postgres` | `redis` | `cloudwatch` |
 |---|---|---|---|
 | Durable | yes | only as much as your Redis persistence settings | yes |
-| Filtering | SQL, with indexes | scans all the events | `FilterLogEvents` query |
+| Filtering | SQL, with indexes | scans all the events | dashboard: Logs Insights query; otherwise `FilterLogEvents` |
 | Remove one event | yes | yes | no |
 | Remove by time range ([retention](retention.md)) | yes | yes | no |
 | Remove all events | yes | yes | yes, recreates the log group |

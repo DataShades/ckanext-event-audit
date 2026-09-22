@@ -3,16 +3,17 @@ from __future__ import annotations
 import json
 import logging
 import re
+import time
 from contextlib import suppress
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Iterable, TypedDict
+from typing import TYPE_CHECKING, Any, Iterable, NamedTuple, TypedDict
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, PartialCredentialsError
 
 if TYPE_CHECKING:
     from mypy_boto3_logs.client import CloudWatchLogsClient
-    from mypy_boto3_logs.type_defs import FilteredLogEventTypeDef
+    from mypy_boto3_logs.type_defs import FilteredLogEventTypeDef, ResultFieldTypeDef
 else:
     CloudWatchLogsClient = object
 
@@ -35,13 +36,84 @@ PER_EVENT_OVERHEAD_BYTES = 26
 # pattern selector. Dots are allowed, as they address nested members.
 PATTERN_KEY_RE = re.compile(r"[A-Za-z0-9_.-]+")
 
+# Columns the dashboard table (`EventAuditTable`) lets a user sort by -
+# ``payload``/``result`` are ``sortable=False`` there. ``sort_by`` is
+# validated against this fixed set (rather than interpolated as given)
+# before it goes into a Logs Insights query string.
+INSIGHTS_SORTABLE_FIELDS = frozenset(
+    {
+        "id",
+        "category",
+        "action",
+        "actor",
+        "action_object",
+        "action_object_id",
+        "target_type",
+        "target_id",
+        "timestamp",
+    }
+)
+
+# Same fields, minus ``timestamp``: its comparisons are the query's time
+# range (``startTime``/``endTime``), not a ``filter`` condition - see
+# ``supports_condition``.
+INSIGHTS_FILTERABLE_FIELDS = INSIGHTS_SORTABLE_FIELDS - frozenset({"timestamp"})
+
+# CloudWatch Logs Insights comparison operators - identical spelling to
+# ``ckanext.tables.types.FILTER_OPERATORS``, so no translation table is
+# needed for these (``"like"`` is handled separately, as a regex match).
+INSIGHTS_COMPARISON_OPERATORS = frozenset({"=", "!=", ">", ">=", "<", "<="})
+
+# Logs Insights query statuses that mean "still running, poll again".
+INSIGHTS_PENDING_STATUSES = frozenset({"Scheduled", "Running"})
+
+# How long to wait between ``get_query_results`` polls.
+INSIGHTS_POLL_INTERVAL_SECONDS = 0.5
+
+# ``GetQueryResults`` returns at most this many rows per call. This
+# repository only ever makes one such call per completed query (no
+# ``nextToken`` pagination), so a page can't ask for more than this.
+MAX_INSIGHTS_ITEMS = 10_000
+
 
 class CloudWatchEvent(TypedDict):
     timestamp: int
     message: str
 
 
+class InsightsCondition(NamedTuple):
+    """One ``(field, operator, value)`` condition for ``query_page``.
+
+    ``field`` must be in ``INSIGHTS_FILTERABLE_FIELDS`` and ``operator`` one
+    of ``INSIGHTS_COMPARISON_OPERATORS`` or ``"like"`` - see
+    ``CloudWatchRepository.supports_condition``, which the caller
+    (``table.CloudWatchInsightsDataSource``) is expected to check before
+    building one of these, rather than relying on the ``ValueError``
+    ``_render_insights_condition`` raises for one that isn't.
+    """
+
+    field: str
+    operator: str
+    value: Any
+
+
 class CloudWatchRepository(AbstractRepository, RemoveAll):
+    """Events are read through two different AWS APIs, depending on the caller.
+
+    * ``filter_events()`` (used by ``get_event()``, the CLI export and
+      retention) runs a ``FilterLogEvents`` query: it walks the log group
+      chronologically and can only match by equality. It gets slower as the
+      log group grows.
+    * ``query_page()`` (used only by the dashboard table, see
+      ``table.CloudWatchInsightsDataSource``) runs a CloudWatch Logs
+      Insights query instead: it can filter by more than equality (see
+      ``supports_condition``), sort by any column and paginate
+      server-side, so a dashboard page load only pays for the page it
+      shows. It's asynchronous (the extension polls for the result) and
+      billed for the data it scans, which is why it isn't used for the
+      simpler, one-off reads ``filter_events()`` serves.
+    """
+
     def __init__(
         self,
         credentials: types.AWSCredentials | None = None,
@@ -303,18 +375,21 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             "filterPattern": self._build_filter_pattern(filters),
         }
 
-        return [
+        events = [
             types.Event.model_validate(json.loads(e["message"]))
             for e in self._get_all_matching_events(
-                {k: v for k, v in kwargs.items() if v is not None}
+                {k: v for k, v in kwargs.items() if v is not None}, filters
             )
             if "message" in e
         ]
 
-    def _build_filter_pattern(self, filters: types.Filters) -> str | None:
-        """Builds the CloudWatch filter pattern for querying logs."""
-        conditions = [
-            f"($.{field} = {self._quote_pattern_string(value)})"
+        return self._paginate(events, filters)
+
+    @staticmethod
+    def _equality_field_conditions(filters: types.Filters) -> list[tuple[str, Any]]:
+        """Collect the top-level ``(field, value)`` equality pairs to match."""
+        return [
+            (field, value)
             for field, value in [
                 ("id", filters.id),
                 ("category", filters.category),
@@ -328,10 +403,11 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
             if value
         ]
 
-        # CloudWatch JSON filter patterns address nested members with dotted
-        # selectors, so payload/result key-value matches map onto
-        # ``$.payload.<key>``. Values are rendered type-aware (booleans and
-        # numbers unquoted, strings quoted) to match CloudWatch syntax.
+    @staticmethod
+    def _payload_result_conditions(filters: types.Filters) -> list[tuple[str, Any]]:
+        """Collect ``payload``/``result`` equality pairs, as dotted ``(path, value)``."""
+        conditions: list[tuple[str, Any]] = []
+
         for prefix, data in (("payload", filters.payload), ("result", filters.result)):
             for key, value in (data or {}).items():
                 if not PATTERN_KEY_RE.fullmatch(str(key)):
@@ -340,14 +416,105 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
                         "digits, '_', '-' and '.' are allowed"
                     )
 
-                conditions.append(
-                    f"($.{prefix}.{key} = {self._format_pattern_value(value)})"
-                )
+                conditions.append((f"{prefix}.{key}", value))
+
+        return conditions
+
+    @classmethod
+    def _filter_conditions(cls, filters: types.Filters) -> list[tuple[str, Any]]:
+        """Collect every ``(path, value)`` equality pair a filter query must match.
+
+        Used by ``_build_filter_pattern`` (``FilterLogEvents``' JSON pattern
+        syntax, equality-only). ``_build_insights_filter_expression`` uses
+        ``_payload_result_conditions`` directly instead, since Logs
+        Insights' ``query_page`` can express more than equality for the
+        top-level fields - see ``InsightsCondition``.
+        """
+        return cls._equality_field_conditions(filters) + cls._payload_result_conditions(
+            filters
+        )
+
+    def _build_filter_pattern(self, filters: types.Filters) -> str | None:
+        """Builds the CloudWatch filter pattern for querying logs.
+
+        Values are rendered type-aware (booleans and numbers unquoted,
+        strings quoted) to match CloudWatch syntax.
+        """
+        conditions = [
+            f"($.{path} = {self._format_pattern_value(value)})"
+            for path, value in self._filter_conditions(filters)
+        ]
 
         if conditions:
             return f"{{ {' && '.join(conditions)} }}"
 
         return None
+
+    def _build_insights_filter_expression(
+        self, filters: types.Filters, conditions: Iterable[InsightsCondition] = ()
+    ) -> str | None:
+        """Builds the Logs Insights ``filter`` clause for ``query_page``.
+
+        Unlike ``_build_filter_pattern`` (equality-only, via
+        ``_filter_conditions``), this takes arbitrary ``(field, operator,
+        value)`` ``conditions`` too: Logs Insights can express every
+        comparison/``like`` the dashboard's filter UI offers on the
+        top-level fields (see ``supports_condition``), not just equality.
+        ``payload``/``result`` stay equality-only (the dashboard doesn't
+        expose filtering by them).
+        """
+        parts = [
+            self._render_insights_condition(field, operator, value)
+            for field, operator, value in conditions
+        ]
+
+        parts.extend(
+            f"{path} = {self._format_pattern_value(value)}"
+            for path, value in self._payload_result_conditions(filters)
+        )
+
+        if parts:
+            return " and ".join(parts)
+
+        return None
+
+    @classmethod
+    def supports_condition(cls, field: str, operator: str) -> bool:
+        """Whether ``(field, operator)`` can be pushed down as an ``InsightsCondition``.
+
+        Used by ``table.CloudWatchInsightsDataSource`` to decide, per
+        filter, whether to push it down here or surface it as unsupported
+        (see that class) instead of silently dropping it or applying it in
+        memory, which would break pushed-down pagination.
+
+        ``timestamp`` isn't included: its ordering comparisons become the
+        query's time range (``startTime``/``endTime``) instead of a
+        ``filter`` condition - see ``query_page``.
+        """
+        return field in INSIGHTS_FILTERABLE_FIELDS and (
+            operator in INSIGHTS_COMPARISON_OPERATORS or operator == "like"
+        )
+
+    @classmethod
+    def _render_insights_condition(cls, field: str, operator: str, value: Any) -> str:
+        """Render one ``(field, operator, value)`` condition in Logs Insights syntax."""
+        if not cls.supports_condition(field, operator):
+            raise ValueError(
+                f"Can't push down CloudWatch Insights condition: "
+                f"{field} {operator} {value!r}"
+            )
+
+        if operator == "like":
+            # Case-insensitive substring match, mirroring the table's own
+            # in-memory `like` (`b.lower() in a.lower()`). Logs Insights'
+            # `like` takes a regex, not a literal, so the value is escaped
+            # and `(?i)` makes it case-insensitive - both need checking
+            # against real AWS, same caveat as the rest of this query
+            # building (nothing here can reach the real API to verify it).
+            pattern = re.escape(str(value))
+            return f"{field} like /(?i){pattern}/"
+
+        return f"{field} {operator} {cls._format_pattern_value(value)}"
 
     @staticmethod
     def _format_pattern_value(value: Any) -> str:
@@ -368,17 +535,218 @@ class CloudWatchRepository(AbstractRepository, RemoveAll):
         return f'"{escaped}"'
 
     def _get_all_matching_events(
-        self, kwargs: dict[str, Any]
+        self, kwargs: dict[str, Any], filters: types.Filters
     ) -> list[FilteredLogEventTypeDef]:
-        """Retrieve all matching events from CloudWatch using pagination."""
+        """Retrieve all matching events from CloudWatch using pagination.
+
+        Args:
+            kwargs (dict[str, Any]): ``filter_log_events`` parameters.
+            filters (types.Filters): the filters the caller applied; only
+                ``limit``/``offset`` are read here, to stop paginating once
+                enough events have been collected instead of always draining
+                every page.
+        """
         events: list[FilteredLogEventTypeDef] = []
 
         paginator = self.client.get_paginator("filter_log_events")
+
+        if filters.limit is not None:
+            kwargs = {
+                **kwargs,
+                "PaginationConfig": {"MaxItems": filters.offset + filters.limit},
+            }
 
         for page in paginator.paginate(**kwargs):
             events.extend(page.get("events", []))
 
         return events
+
+    def query_page(
+        self,
+        filters: types.Filters,
+        conditions: Iterable[InsightsCondition] = (),
+        sort_by: str | None = None,
+        sort_order: str | None = None,
+    ) -> tuple[list[types.Event], int]:
+        """Fetch one page of matching events, sorted, via Logs Insights.
+
+        Unlike ``filter_events`` (which walks ``FilterLogEvents``
+        chronologically and can only filter by equality, and sort/paginate
+        in Python once everything is fetched), Logs Insights filters by any
+        of the comparison operators ``supports_condition`` accepts, sorts by
+        any field and limits server-side in a single query - so a dashboard
+        page load only pays for ``offset + limit`` results instead of
+        draining the whole log group.
+
+        Used by the dashboard table (``table.CloudWatchInsightsDataSource``).
+        Everywhere else (CLI export, ``get_event``, ...) keeps using
+        ``filter_events``: each Insights query is asynchronous (real
+        per-call latency, polled for below) and billed for the data it
+        scans, which isn't worth it for a single lookup or a one-off
+        export.
+
+        Args:
+            filters (types.Filters): equality/time-range filters to apply
+                (only ``time_from``/``time_to``/``limit``/``offset``/
+                ``payload``/``result`` are read here - the top-level
+                equality fields go through ``conditions`` instead, which can
+                express more than equality for them). ``limit``/``offset``
+                define the page (``limit=None`` fetches up to
+                ``MAX_INSIGHTS_ITEMS`` matching events).
+            conditions (Iterable[InsightsCondition], optional): additional
+                ``(field, operator, value)`` conditions - see
+                ``supports_condition``. The caller is expected to have
+                already dropped anything that fails it, since this raises
+                ``ValueError`` instead.
+            sort_by (str | None, optional): column to sort by. A missing or
+                unrecognised value (not one of ``INSIGHTS_SORTABLE_FIELDS``)
+                falls back to the default, ``timestamp``/``desc``.
+            sort_order (str | None, optional): ``"desc"`` (case-insensitive)
+                or anything else for ascending - matches
+                ``ckanext.tables.shared.ListDataSource.sort``'s own default,
+                so this orders results the same way an in-memory sort would.
+
+        Returns:
+            tuple[list[types.Event], int]: the requested page, and how many
+            events matched in total (the query's own
+            ``statistics.recordsMatched``) - the table's row count, with no
+            second query needed for it.
+        """
+        sort_field, ascending = self._normalize_insights_sort(sort_by, sort_order)
+
+        start_time = int(filters.time_from.timestamp()) if filters.time_from else 0
+        end_time = (
+            int(filters.time_to.timestamp())
+            if filters.time_to
+            else int(datetime.now(timezone.utc).timestamp())
+        )
+
+        kwargs: dict[str, Any] = {
+            "logGroupName": self.log_group,
+            "startTime": start_time,
+            "endTime": end_time,
+            "queryString": self._build_insights_query_string(
+                filters, conditions, sort_field, ascending
+            ),
+            "queryLanguage": "CWLI",
+        }
+
+        if filters.limit is not None:
+            kwargs["limit"] = min(filters.offset + filters.limit, MAX_INSIGHTS_ITEMS)
+
+        rows, matched = self._run_insights_query(kwargs)
+
+        events = [
+            types.Event.model_validate(json.loads(message))
+            for message in (self._insights_message(row) for row in rows)
+            if message is not None
+        ]
+
+        return self._paginate(events, filters), matched
+
+    def _build_insights_query_string(
+        self,
+        filters: types.Filters,
+        conditions: Iterable[InsightsCondition],
+        sort_field: str,
+        ascending: bool,
+    ) -> str:
+        """Builds the Logs Insights query string for `query_page`'s request."""
+        query = "fields @message"
+
+        expression = self._build_insights_filter_expression(filters, conditions)
+        if expression:
+            query += f" | filter {expression}"
+
+        query += f" | sort {sort_field} {'asc' if ascending else 'desc'}"
+
+        return query
+
+    @staticmethod
+    def _normalize_insights_sort(
+        sort_by: str | None, sort_order: str | None
+    ) -> tuple[str, bool]:
+        """Map a dashboard sort column/order to an Insights field/direction.
+
+        ``sort_by`` is validated against ``INSIGHTS_SORTABLE_FIELDS`` rather
+        than interpolated as given, since it ends up directly in a Logs
+        Insights query string; a missing or unrecognised value falls back to
+        ``timestamp``/``desc``, matching
+        ``table.RepositoryDataSource.sort``'s own default for "no sort
+        requested".
+
+        Returns:
+            tuple[str, bool]: the Insights field to sort by (``@timestamp``
+            for the ``timestamp`` column - CloudWatch's own numeric
+            ingestion timestamp, reliable to sort on unlike the JSON
+            ``timestamp`` string field), and whether ascending order was
+            asked for.
+        """
+        if not sort_by or sort_by not in INSIGHTS_SORTABLE_FIELDS:
+            return "@timestamp", False
+
+        field = "@timestamp" if sort_by == "timestamp" else sort_by
+
+        return field, (sort_order or "").lower() != "desc"
+
+    def _run_insights_query(
+        self, kwargs: dict[str, Any]
+    ) -> tuple[list[list[ResultFieldTypeDef]], int]:
+        """Start a Logs Insights query and poll it to completion.
+
+        Args:
+            kwargs (dict[str, Any]): ``start_query`` parameters.
+
+        Returns:
+            tuple[list[list[ResultFieldTypeDef]], int]: the raw result rows,
+            and how many records matched in total
+            (``statistics.recordsMatched``).
+
+        Raises:
+            RuntimeError: the query failed, was cancelled, or otherwise
+                ended without reaching ``"Complete"``.
+            TimeoutError: the query didn't complete within
+                ``config.get_cloudwatch_insights_poll_timeout()`` seconds. A
+                best-effort ``stop_query`` is issued before raising.
+        """
+        query_id = self.client.start_query(**kwargs)["queryId"]
+
+        deadline = time.monotonic() + config.get_cloudwatch_insights_poll_timeout()
+
+        while True:
+            response = self.client.get_query_results(queryId=query_id)
+            status = response["status"]
+
+            if status == "Complete":
+                matched = int(response.get("statistics", {}).get("recordsMatched", 0))
+                return response.get("results", []), matched
+
+            if status not in INSIGHTS_PENDING_STATUSES:
+                raise RuntimeError(
+                    f"CloudWatch Logs Insights query {query_id} ended with "
+                    f"status {status!r}"
+                )
+
+            if time.monotonic() >= deadline:
+                with suppress(ClientError):
+                    self.client.stop_query(queryId=query_id)
+
+                raise TimeoutError(
+                    f"CloudWatch Logs Insights query {query_id} did not "
+                    f"complete within "
+                    f"{config.get_cloudwatch_insights_poll_timeout()}s"
+                )
+
+            time.sleep(INSIGHTS_POLL_INTERVAL_SECONDS)
+
+    @staticmethod
+    def _insights_message(row: list[ResultFieldTypeDef]) -> str | None:
+        """Pull the raw log message (the event's JSON dump) out of a result row."""
+        for entry in row:
+            if entry.get("field") == "@message":
+                return entry.get("value")
+
+        return None
 
     def remove_event(self, event_id: str) -> types.Result:
         """Remove operation is not supported for CloudWatch logs.

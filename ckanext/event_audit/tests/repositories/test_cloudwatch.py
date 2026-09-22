@@ -8,8 +8,12 @@ from typing import Any, Callable
 import pytest
 from botocore.stub import Stubber
 
-from ckanext.event_audit import const, types, utils
-from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
+from ckanext.event_audit import config, const, types, utils
+from ckanext.event_audit.repositories import cloudwatch as cloudwatch_module
+from ckanext.event_audit.repositories.cloudwatch import (
+    CloudWatchRepository,
+    InsightsCondition,
+)
 
 put_log_events_response: dict[str, Any] = {
     "nextSequenceToken": "49654796026243824240318171692305216662718669063406487010",
@@ -195,6 +199,349 @@ class TestCloudWatchRepository:
         )
 
         assert pattern == '{ ($.payload.user.first-name = "alice") }'
+
+    def test_build_insights_filter_expression_with_conditions_and_payload(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        """Equality fields go through `conditions` now, payload stays on `filters`."""
+        repo, _ = cloudwatch_repo
+
+        expression = repo._build_insights_filter_expression(
+            types.Filters(payload={"visitor": "alice"}),
+            [InsightsCondition("category", "=", "visit")],
+        )
+
+        assert expression == 'category = "visit" and payload.visitor = "alice"'
+
+    def test_build_insights_filter_expression_is_type_aware(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        expression = repo._build_insights_filter_expression(
+            types.Filters(payload={"new_visitor": True, "count": 3})
+        )
+
+        assert expression == "payload.new_visitor = true and payload.count = 3"
+
+    def test_build_insights_filter_expression_escapes_quotes_in_values(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        expression = repo._build_insights_filter_expression(
+            types.Filters(), [InsightsCondition("actor", "=", 'x" or "y')]
+        )
+
+        assert expression == 'actor = "x\\" or \\"y"'
+
+    def test_build_insights_filter_expression_rejects_unsafe_payload_keys(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        with pytest.raises(ValueError, match="Can't filter by payload key"):
+            repo._build_insights_filter_expression(
+                types.Filters(payload={"a b": "value"})
+            )
+
+    def test_build_insights_filter_expression_empty_filters(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        assert repo._build_insights_filter_expression(types.Filters()) is None
+
+    @pytest.mark.parametrize(
+        ("field", "operator", "supported"),
+        [
+            ("category", "=", True),
+            ("category", "!=", True),
+            ("category", ">", True),
+            ("category", ">=", True),
+            ("category", "<", True),
+            ("category", "<=", True),
+            ("category", "like", True),
+            ("id", "=", True),
+            ("target_id", "=", True),
+            # `timestamp` is handled as the query's time range, not a
+            # `filter` condition - see `query_page`.
+            ("timestamp", "=", False),
+            ("timestamp", ">", False),
+            # not one of the equality fields at all
+            ("payload", "=", False),
+            ("result", "=", False),
+            # not an operator the table's filter UI (or Logs Insights) offers
+            ("category", "contains", False),
+        ],
+    )
+    def test_supports_condition(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        field: str,
+        operator: str,
+        supported: bool,
+    ):
+        repo, _ = cloudwatch_repo
+
+        assert repo.supports_condition(field, operator) is supported
+
+    @pytest.mark.parametrize(
+        ("operator", "expected"),
+        [
+            ("=", 'actor = "alice"'),
+            ("!=", 'actor != "alice"'),
+            (">", 'actor > "alice"'),
+            (">=", 'actor >= "alice"'),
+            ("<", 'actor < "alice"'),
+            ("<=", 'actor <= "alice"'),
+        ],
+    )
+    def test_render_insights_condition_comparison_operators(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        operator: str,
+        expected: str,
+    ):
+        repo, _ = cloudwatch_repo
+
+        assert repo._render_insights_condition("actor", operator, "alice") == expected
+
+    def test_render_insights_condition_like_is_a_case_insensitive_regex(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        rendered = repo._render_insights_condition("action", "like", "package")
+
+        assert rendered == "action like /(?i)package/"
+
+    def test_render_insights_condition_like_escapes_regex_metacharacters(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        """A value with regex-special characters must match itself literally."""
+        repo, _ = cloudwatch_repo
+
+        rendered = repo._render_insights_condition("action", "like", "a.b*c")
+
+        assert rendered == r"action like /(?i)a\.b\*c/"
+
+    def test_render_insights_condition_rejects_unsupported_field(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        with pytest.raises(ValueError, match="Can't push down"):
+            repo._render_insights_condition("payload", "=", "x")
+
+    def test_render_insights_condition_rejects_unsupported_operator(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        with pytest.raises(ValueError, match="Can't push down"):
+            repo._render_insights_condition("category", "contains", "x")
+
+    @pytest.mark.parametrize(
+        ("sort_by", "sort_order", "expected_field", "expected_ascending"),
+        [
+            (None, None, "@timestamp", False),
+            ("", "asc", "@timestamp", False),
+            ("not-a-column", "asc", "@timestamp", False),
+            # An *explicit* `sort_by` with no `sort_order` sorts ascending,
+            # even when that field is `timestamp` - only a missing/falsy
+            # `sort_by` (the rows above) defaults to desc. This matches
+            # `RepositoryDataSource.sort`'s own `if not sort_by: ... "desc"`
+            # guard, which "timestamp" (truthy) doesn't trigger.
+            ("timestamp", None, "@timestamp", True),
+            ("category", None, "category", True),
+            ("category", "asc", "category", True),
+            ("category", "desc", "category", False),
+            ("category", "DESC", "category", False),
+        ],
+    )
+    def test_normalize_insights_sort(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        sort_by: str | None,
+        sort_order: str | None,
+        expected_field: str,
+        expected_ascending: bool,
+    ):
+        repo, _ = cloudwatch_repo
+
+        field, ascending = repo._normalize_insights_sort(sort_by, sort_order)
+
+        assert field == expected_field
+        assert ascending is expected_ascending
+
+    def test_query_page(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        repo, stubber = cloudwatch_repo
+        first = event_factory(action_object_id="1")
+        second = event_factory(action_object_id="2")
+
+        # Don't actually wait between polls.
+        monkeypatch.setattr(cloudwatch_module.time, "sleep", lambda _seconds: None)
+
+        stubber.add_response("start_query", {"queryId": "query-1"})
+        stubber.add_response(
+            "get_query_results",
+            {
+                "status": "Running",
+                "results": [],
+                "statistics": {},
+            },
+        )
+        stubber.add_response(
+            "get_query_results",
+            {
+                "status": "Complete",
+                "results": [
+                    [{"field": "@message", "value": first.model_dump_json()}],
+                    [{"field": "@message", "value": second.model_dump_json()}],
+                ],
+                "statistics": {"recordsMatched": 2.0},
+            },
+        )
+
+        with stubber:
+            events, total = repo.query_page(types.Filters())
+
+        assert [event.action_object_id for event in events] == ["1", "2"]
+        assert total == 2
+        stubber.assert_no_pending_responses()
+
+    def test_query_page_accepts_conditions(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        repo, stubber = cloudwatch_repo
+        event = event_factory(category="model")
+
+        stubber.add_response("start_query", {"queryId": "query-1"})
+        stubber.add_response(
+            "get_query_results",
+            {
+                "status": "Complete",
+                "results": [
+                    [{"field": "@message", "value": event.model_dump_json()}]
+                ],
+                "statistics": {"recordsMatched": 1.0},
+            },
+        )
+
+        with stubber:
+            events, total = repo.query_page(
+                types.Filters(), [InsightsCondition("category", "=", "model")]
+            )
+
+        assert len(events) == 1
+        assert total == 1
+        stubber.assert_no_pending_responses()
+
+    def test_build_insights_query_string_includes_conditions_and_sort(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        query = repo._build_insights_query_string(
+            types.Filters(),
+            [InsightsCondition("category", "=", "model")],
+            "actor",
+            True,
+        )
+
+        assert query == 'fields @message | filter category = "model" | sort actor asc'
+
+    def test_build_insights_query_string_omits_filter_clause_when_empty(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, _ = cloudwatch_repo
+
+        query = repo._build_insights_query_string(
+            types.Filters(), [], "@timestamp", False
+        )
+
+        assert query == "fields @message | sort @timestamp desc"
+
+    def test_query_page_applies_offset_and_limit(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        """`_paginate` still strips the leading `offset` rows client-side.
+
+        Logs Insights' `limit` only caps the end of the result, the same way
+        `FilterLogEvents`' `MaxItems` does - see `_get_all_matching_events`.
+        """
+        repo, stubber = cloudwatch_repo
+        events_in = [event_factory(action_object_id=str(i)) for i in range(3)]
+
+        stubber.add_response("start_query", {"queryId": "query-1"})
+        stubber.add_response(
+            "get_query_results",
+            {
+                "status": "Complete",
+                "results": [
+                    [{"field": "@message", "value": e.model_dump_json()}]
+                    for e in events_in
+                ],
+                "statistics": {"recordsMatched": 3.0},
+            },
+        )
+
+        with stubber:
+            events, total = repo.query_page(types.Filters(offset=1, limit=1))
+
+        assert [event.action_object_id for event in events] == ["1"]
+        assert total == 3
+        stubber.assert_no_pending_responses()
+
+    def test_query_page_raises_on_failed_query(
+        self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber]
+    ):
+        repo, stubber = cloudwatch_repo
+
+        stubber.add_response("start_query", {"queryId": "query-1"})
+        stubber.add_response(
+            "get_query_results", {"status": "Failed", "results": []}
+        )
+
+        with stubber, pytest.raises(RuntimeError, match="status 'Failed'"):
+            repo.query_page(types.Filters())
+
+        stubber.assert_no_pending_responses()
+
+    def test_query_page_stops_and_raises_on_timeout(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        repo, stubber = cloudwatch_repo
+
+        # A timeout of 0 seconds means the very first poll already exceeds
+        # the deadline (`time.monotonic()` is non-decreasing by contract, so
+        # the check right after `get_query_results` is always `>=` a
+        # deadline computed 0 seconds earlier) - no need to fake the passage
+        # of time itself.
+        monkeypatch.setattr(config, "get_cloudwatch_insights_poll_timeout", lambda: 0)
+
+        stubber.add_response("start_query", {"queryId": "query-1"})
+        stubber.add_response(
+            "get_query_results", {"status": "Running", "results": []}
+        )
+        stubber.add_response("stop_query", {"success": True})
+
+        with stubber, pytest.raises(TimeoutError):
+            repo.query_page(types.Filters())
+
+        stubber.assert_no_pending_responses()
 
     def test_filter_by_time_range(
         self, cloudwatch_repo: tuple[CloudWatchRepository, Stubber], event: types.Event
@@ -427,6 +774,93 @@ class TestCloudWatchRepository:
 
         assert succeeded.status is True
         stubber.assert_no_pending_responses()
+
+    def test_filter_with_offset(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        repo, stubber = cloudwatch_repo
+        first = event_factory(action_object_id="1")
+        second = event_factory(action_object_id="2")
+
+        stubber.add_response(
+            "filter_log_events",
+            {
+                "events": [
+                    {
+                        "timestamp": int(dt.now(tz.utc).timestamp() * 1000),
+                        "message": e.model_dump_json(),
+                    }
+                    for e in (first, second)
+                ]
+            },
+        )
+
+        with stubber:
+            events = repo.filter_events(types.Filters(offset=1))
+
+        assert [event.action_object_id for event in events] == ["2"]
+        stubber.assert_no_pending_responses()
+
+    def test_filter_with_limit_and_offset(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        repo, stubber = cloudwatch_repo
+        events_in = [event_factory(action_object_id=str(i)) for i in range(4)]
+
+        stubber.add_response(
+            "filter_log_events",
+            {
+                "events": [
+                    {
+                        "timestamp": int(dt.now(tz.utc).timestamp() * 1000),
+                        "message": e.model_dump_json(),
+                    }
+                    for e in events_in
+                ]
+            },
+        )
+
+        with stubber:
+            events = repo.filter_events(types.Filters(offset=1, limit=2))
+
+        assert [event.action_object_id for event in events] == ["1", "2"]
+        stubber.assert_no_pending_responses()
+
+    def test_filter_with_limit_stops_paginating_early(
+        self,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+        event_factory: Callable[..., types.Event],
+    ):
+        """`limit` is pushed down as `MaxItems`, so pagination stops early.
+
+        Only one response is stubbed (with a `nextToken` pointing at a page
+        that's never fetched), so this would fail with an unexpected
+        `filter_log_events` call if the second page were requested anyway.
+        """
+        repo, stubber = cloudwatch_repo
+        first = event_factory(action_object_id="1")
+
+        stubber.add_response(
+            "filter_log_events",
+            {
+                "events": [
+                    {
+                        "timestamp": int(dt.now(tz.utc).timestamp() * 1000),
+                        "message": first.model_dump_json(),
+                    }
+                ],
+                "nextToken": "next-page",
+            },
+        )
+
+        with stubber:
+            events = repo.filter_events(types.Filters(limit=1))
+
+        assert [event.action_object_id for event in events] == ["1"]
 
     def test_filter_events_follows_pagination(
         self,

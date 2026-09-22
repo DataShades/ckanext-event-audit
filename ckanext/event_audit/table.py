@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from pydantic import ValidationError
@@ -8,6 +9,8 @@ from sqlalchemy import select
 import ckanext.tables.shared as t
 
 from ckanext.event_audit import model, types, utils
+
+log = logging.getLogger(__name__)
 
 _REPO_EQUALITY_FIELDS = frozenset(
     {
@@ -23,6 +26,84 @@ _REPO_EQUALITY_FIELDS = frozenset(
 )
 
 
+def _to_repo_filters(filters: list[t.FilterItem]) -> types.Filters:
+    """Translate table filters into the subset a repository understands.
+
+    Shared by ``RepositoryDataSource`` and ``CloudWatchInsightsDataSource``.
+    """
+    data: dict[str, Any] = {}
+
+    for item in filters:
+        if item.field in _REPO_EQUALITY_FIELDS and item.operator == "=":
+            data[item.field] = item.value
+        elif item.field == "timestamp" and item.operator in (">", ">="):
+            data["time_from"] = item.value
+        elif item.field == "timestamp" and item.operator in ("<", "<="):
+            data["time_to"] = item.value
+
+    try:
+        return types.Filters(**data)
+    except ValidationError:
+        # An invalid pushdown value (e.g. an unknown actor) just means we
+        # fetch more and let the in-memory pass narrow it down.
+        return types.Filters()
+
+
+def _time_range_filters(filters: list[t.FilterItem]) -> types.Filters:
+    """Extract just the timestamp range into a ``Filters``.
+
+    Used by ``CloudWatchInsightsDataSource`` instead of ``_to_repo_filters``:
+    the equality fields go through ``_to_insights_conditions`` there, since
+    Logs Insights can express more than equality for them.
+    """
+    data: dict[str, Any] = {}
+
+    for item in filters:
+        if item.field == "timestamp" and item.operator in (">", ">="):
+            data["time_from"] = item.value
+        elif item.field == "timestamp" and item.operator in ("<", "<="):
+            data["time_to"] = item.value
+
+    try:
+        return types.Filters(**data)
+    except ValidationError:
+        return types.Filters()
+
+
+def _to_insights_conditions(
+    filters: list[t.FilterItem],
+) -> tuple[list[Any], list[t.FilterItem]]:
+    """Split filter items into ones CloudWatch Logs Insights can push down.
+
+    Returns ``(conditions, unsupported)`` - ``conditions`` are
+    ``cloudwatch.InsightsCondition``s ready for ``repo.query_page``.
+    ``unsupported`` is whatever isn't a ``(field, operator)`` combination
+    ``CloudWatchRepository.supports_condition`` accepts. The caller
+    (``CloudWatchInsightsDataSource``) logs and drops these rather than
+    applying them in memory: fetching a bounded page from Insights and then
+    filtering it further in Python would silently return fewer rows than
+    the page size asked for, without that meaning "no more matches" -
+    breaking pagination. A missing/unrecognised timestamp comparison stays
+    silent here, same as ``_to_repo_filters``: it becomes part of the query's
+    time range, and an invalid one just means a wider range, not fewer rows.
+    """
+    from ckanext.event_audit.repositories import cloudwatch as cw  # noqa: PLC0415
+
+    conditions: list[Any] = []
+    unsupported: list[t.FilterItem] = []
+
+    for item in filters:
+        if item.field == "timestamp" and item.operator in (">", ">=", "<", "<="):
+            continue
+
+        if cw.CloudWatchRepository.supports_condition(item.field, item.operator):
+            conditions.append(cw.InsightsCondition(item.field, item.operator, item.value))
+        else:
+            unsupported.append(item)
+
+    return conditions, unsupported
+
+
 class EventAuditDataSource(t.BaseDataSource):
     """Feed the table with events from the currently active repository.
 
@@ -32,17 +113,23 @@ class EventAuditDataSource(t.BaseDataSource):
       :class:`~ckanext.tables.shared.DatabaseDataSource` and let SQL handle
       filtering, sorting and pagination. Nothing is loaded into memory beyond
       the current page.
-    * **Redis/CloudWatch** can't sort or paginate at the source, so we fall
-      back to :class:`RepositoryDataSource`, which still pushes the filters
-      those backends understand down to ``filter_events`` and only sorts and
-      paginates the (already filtered) result in memory.
+    * **CloudWatch** delegates to :class:`CloudWatchInsightsDataSource`,
+      which pushes filtering, sorting and pagination down to a CloudWatch
+      Logs Insights query instead - see that class.
+    * **Redis** can't sort or paginate at the source, so we fall back to
+      :class:`RepositoryDataSource`, which still pushes the filters it
+      understands down to ``filter_events`` and only sorts and paginates
+      the (already filtered) result in memory.
 
     The active repository is resolved per request, because the table is
     instantiated per request.
     """
 
     def __init__(self):
-        from ckanext.event_audit.repositories import PostgresRepository  # noqa: PLC0415
+        from ckanext.event_audit.repositories import (  # noqa: PLC0415
+            CloudWatchRepository,
+            PostgresRepository,
+        )
 
         repo = utils.get_active_repo()
 
@@ -52,6 +139,8 @@ class EventAuditDataSource(t.BaseDataSource):
                     model.EventModel.timestamp.desc()
                 )
             )
+        elif isinstance(repo, CloudWatchRepository):
+            self._inner = CloudWatchInsightsDataSource(repo)
         else:
             self._inner = RepositoryDataSource(repo)
 
@@ -100,7 +189,7 @@ class RepositoryDataSource(t.ListDataSource):
         super().__init__(data=[])
 
     def filter(self, filters: list[t.FilterItem]) -> RepositoryDataSource:
-        repo_filters = self._to_repo_filters(filters)
+        repo_filters = _to_repo_filters(filters)
 
         if repo_filters != self._fetched_with:
             events = self.repo.filter_events(repo_filters)
@@ -122,24 +211,101 @@ class RepositoryDataSource(t.ListDataSource):
     def get_columns(self) -> list[str]:
         return list(types.Event.model_fields)
 
-    def _to_repo_filters(self, filters: list[t.FilterItem]) -> types.Filters:
-        """Translate table filters into the subset a repository understands."""
-        data: dict[str, Any] = {}
 
-        for item in filters:
-            if item.field in _REPO_EQUALITY_FIELDS and item.operator == "=":
-                data[item.field] = item.value
-            elif item.field == "timestamp" and item.operator in (">", ">="):
-                data["time_from"] = item.value
-            elif item.field == "timestamp" and item.operator in ("<", "<="):
-                data["time_to"] = item.value
+class CloudWatchInsightsDataSource(t.BaseDataSource):
+    """Pushes filtering, sorting and pagination to CloudWatch Logs Insights.
 
-        try:
-            return types.Filters(**data)
-        except ValidationError:
-            # An invalid pushdown value (e.g. an unknown actor) just means we
-            # fetch more and let the in-memory pass narrow it down.
-            return types.Filters()
+    ``filter()``/``sort()``/``paginate()`` only record state; the query
+    itself is deferred to ``all()``/``count()``, via ``repo.query_page()``.
+
+    The table asks for the rows and the total count separately, in that
+    order, both against the same filters and (for the rows call) the same
+    sort/page - see ``ckanext-tables``' ``TableDefinition.get_raw_data``/
+    ``get_total_count``. The fetch is cached on ``(filters, conditions,
+    sort_by, sort_order, page, size)`` for exactly that reason: the
+    ``count()`` call that follows a same-request ``all()`` call reuses its
+    result (including the query's own ``recordsMatched``) instead of
+    running a second query. That's safe because the data source lives for a
+    single request; it must not be kept around while events are written or
+    removed.
+
+    A filter the table's UI offers that Logs Insights can't express (see
+    ``CloudWatchRepository.supports_condition``) is dropped and logged
+    rather than silently applied in memory - see ``_to_insights_conditions``
+    for why.
+    """
+
+    def __init__(self, repo: Any):
+        self.repo = repo
+        self._filters = types.Filters()
+        self._conditions: list[Any] = []
+        self._sort_by: str | None = None
+        self._sort_order: str | None = None
+        self._page = 1
+        self._size = 20
+        self._cache_key: tuple[Any, ...] | None = None
+        self._cached_events: list[dict[str, Any]] = []
+        self._cached_total = 0
+
+    def filter(self, filters: list[t.FilterItem]) -> CloudWatchInsightsDataSource:
+        conditions, unsupported = _to_insights_conditions(filters)
+
+        if unsupported:
+            log.warning(
+                "CloudWatch dashboard: dropping filter(s) Logs Insights "
+                "can't express: %s",
+                ", ".join(
+                    f"{item.field} {item.operator} {item.value!r}"
+                    for item in unsupported
+                ),
+            )
+
+        self._conditions = conditions
+        self._filters = _time_range_filters(filters)
+        return self
+
+    def sort(
+        self, sort_by: str | None, sort_order: str | None
+    ) -> CloudWatchInsightsDataSource:
+        self._sort_by, self._sort_order = sort_by, sort_order
+        return self
+
+    def paginate(self, page: int, size: int) -> CloudWatchInsightsDataSource:
+        self._page, self._size = page, size
+        return self
+
+    def all(self) -> list[dict[str, Any]]:
+        self._ensure_fetched()
+        return self._cached_events
+
+    def count(self) -> int:
+        self._ensure_fetched()
+        return self._cached_total
+
+    def get_columns(self) -> list[str]:
+        return list(types.Event.model_fields)
+
+    def _ensure_fetched(self) -> None:
+        offset = (self._page - 1) * self._size if self._page and self._size else 0
+        page_filters = self._filters.model_copy(
+            update={"limit": self._size or None, "offset": offset}
+        )
+        cache_key = (
+            page_filters,
+            tuple(self._conditions),
+            self._sort_by,
+            self._sort_order,
+        )
+
+        if cache_key == self._cache_key:
+            return
+
+        events, total = self.repo.query_page(
+            page_filters, self._conditions, self._sort_by, self._sort_order
+        )
+        self._cached_events = [dict(event) for event in events]
+        self._cached_total = total
+        self._cache_key = cache_key
 
 
 class EventAuditTable(t.TableDefinition):

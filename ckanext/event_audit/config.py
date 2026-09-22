@@ -17,6 +17,11 @@ DEF_CLODWATCH_GROUP = "/ckan/event-audit"
 CONF_CLOUDWATCH_STREAM = "ckanext.event_audit.cloudwatch.log_stream"
 DEF_CLOUDWATCH_STREAM = "event-audit-stream"
 
+CONF_CLOUDWATCH_INSIGHTS_POLL_TIMEOUT = (
+    "ckanext.event_audit.cloudwatch.insights_poll_timeout"
+)
+DEF_CLOUDWATCH_INSIGHTS_POLL_TIMEOUT = 30
+
 CONF_IGNORED_CATEGORIES = "ckanext.event_audit.ignore.categories"
 DEF_IGNORED_CATEGORIES = []
 
@@ -93,6 +98,19 @@ def get_cloudwatch_log_group() -> str:
 
 def get_cloudwatch_log_stream() -> str:
     return tk.config.get(CONF_CLOUDWATCH_STREAM, DEF_CLOUDWATCH_STREAM)
+
+
+def get_cloudwatch_insights_poll_timeout() -> int:
+    """Seconds to poll a Logs Insights query for before giving up."""
+    return max(
+        int(
+            tk.config.get(
+                CONF_CLOUDWATCH_INSIGHTS_POLL_TIMEOUT,
+                DEF_CLOUDWATCH_INSIGHTS_POLL_TIMEOUT,
+            )
+        ),
+        1,
+    )
 
 
 def get_ignored_categories() -> list[str]:

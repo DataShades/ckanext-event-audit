@@ -102,6 +102,33 @@ class AbstractRepository(ABC):
             filters (types.Filters): filters to apply.
         """
 
+    @staticmethod
+    def _paginate(
+        events: list[types.Event], filters: types.Filters
+    ) -> list[types.Event]:
+        """Apply ``filters.offset``/``filters.limit`` to an already-sorted list.
+
+        Used by CloudWatch, which can't (always) push a ``limit``/``offset``
+        request into a single storage call the way SQL's ``LIMIT``/
+        ``OFFSET`` do: the full (filtered, sorted) result it does fetch is
+        sliced in Python after the fact instead.
+
+        Args:
+            events (list[types.Event]): the filtered, sorted events.
+            filters (types.Filters): the filters ``events`` were matched
+                against; only ``offset``/``limit`` are read here.
+
+        Returns:
+            list[types.Event]: the paginated slice.
+        """
+        if filters.offset:
+            events = events[filters.offset :]
+
+        if filters.limit is not None:
+            events = events[: filters.limit]
+
+        return events
+
     def remove_event(self, event_id: Any) -> types.Result:
         """Removes a single event from the repository.
 

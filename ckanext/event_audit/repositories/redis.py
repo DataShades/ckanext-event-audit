@@ -206,7 +206,9 @@ class RedisRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltere
         parts = [
             f"{key}:{_escape_glob(value)}|"
             for key, value in filters.model_dump().items()
-            if key not in ["time_from", "time_to", "payload", "result"] and value
+            if key
+            not in ["time_from", "time_to", "payload", "result", "limit", "offset"]
+            and value
         ]
 
         if not parts:

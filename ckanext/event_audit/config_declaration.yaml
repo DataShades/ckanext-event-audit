@@ -38,6 +38,12 @@ groups:
         default: 'event-audit-stream'
         editable: false
 
+      - key: ckanext.event_audit.cloudwatch.insights_poll_timeout
+        description: Seconds to poll a Logs Insights query for before giving up.
+        type: int
+        default: 30
+        editable: false
+
       - key: ckanext.event_audit.ignore.categories
         description: |
           A list of categories to exclude from event logging, applicable only to

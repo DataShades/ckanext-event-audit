@@ -189,6 +189,29 @@ class Filters(BaseModel):
         default=None, description="End time for filtering (defaults to now)"
     )
 
+    limit: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Maximum number of matching events to return, in `filter_events`'s "
+            "sort order (timestamp ascending). `None` means no limit. Only "
+            "honoured by the CloudWatch repository (`filter_events` and "
+            "`query_page`); Postgres and Redis ignore it, since neither has "
+            "a caller that sets it - Postgres's dashboard paginates via its "
+            "own SQL statement instead, and Redis has no server-side order "
+            "to slice a page out of."
+        ),
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description=(
+            "Number of matching events to skip, in `filter_events`'s sort "
+            "order, before returning results. Same CloudWatch-only caveat "
+            "as `limit`."
+        ),
+    )
+
     @field_validator("time_from", "time_to")
     @classmethod
     def assume_utc(cls, value: datetime | None) -> datetime | None:

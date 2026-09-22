@@ -4,21 +4,30 @@ from datetime import datetime as dt
 from datetime import timedelta as td
 from datetime import timezone as tz
 from typing import Any, Callable
+from unittest import mock
 
 import pytest
+from botocore.stub import Stubber
 
 import ckanext.tables.shared as t
 
 from ckanext.event_audit import table, types, utils
 from ckanext.event_audit.repositories import PostgresRepository, RedisRepository
+from ckanext.event_audit.repositories.cloudwatch import CloudWatchRepository
 
 
 class RecordingRepo:
-    """Stand-in repository that remembers the filters it was asked for."""
+    """Stand-in repository that remembers the filters/conditions/sort/page it was asked for."""
 
-    def __init__(self, events: list[types.Event] | None = None):
+    def __init__(
+        self, events: list[types.Event] | None = None, total: int | None = None
+    ):
         self.events = events or []
+        self.total = len(self.events) if total is None else total
         self.filters: types.Filters | None = None
+        self.conditions: list[Any] = []
+        self.sort_by: str | None = None
+        self.sort_order: str | None = None
         self.calls = 0
 
     def filter_events(self, filters: types.Filters) -> list[types.Event]:
@@ -26,6 +35,22 @@ class RecordingRepo:
         self.calls += 1
 
         return self.events
+
+    def query_page(
+        self,
+        filters: types.Filters,
+        conditions: Any = (),
+        sort_by: str | None = None,
+        sort_order: str | None = None,
+    ) -> tuple[list[types.Event], int]:
+        """Stand in for `CloudWatchRepository.query_page`."""
+        self.filters = filters
+        self.conditions = list(conditions)
+        self.sort_by = sort_by
+        self.sort_order = sort_order
+        self.calls += 1
+
+        return self.events, self.total
 
 
 class RepoWithoutRemoval:
@@ -63,6 +88,18 @@ class TestEventAuditDataSource:
         source = table.EventAuditDataSource()
 
         assert isinstance(source._inner, table.RepositoryDataSource)
+
+    def test_cloudwatch_always_uses_insights(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        cloudwatch_repo: tuple[CloudWatchRepository, Stubber],
+    ):
+        repo, _ = cloudwatch_repo
+        _use_repo(monkeypatch, repo)
+
+        source = table.EventAuditDataSource()
+
+        assert isinstance(source._inner, table.CloudWatchInsightsDataSource)
 
     @pytest.mark.usefixtures("clean_redis")
     def test_filter_sort_paginate(
@@ -207,6 +244,179 @@ class TestRepositoryDataSource:
 
     def test_columns_are_the_event_fields(self):
         source = table.RepositoryDataSource(RecordingRepo())
+
+        assert source.get_columns() == list(types.Event.model_fields)
+
+
+class TestCloudWatchInsightsDataSource:
+    def test_query_page_is_called_once_for_the_same_request(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        """The table asks for a page and the total count separately."""
+        repo = RecordingRepo([event_factory() for _ in range(2)], total=5)
+        source = table.CloudWatchInsightsDataSource(repo)
+        filters = [t.FilterItem("category", "=", "model")]
+
+        rows = source.filter(filters).sort("timestamp", "asc").paginate(1, 2).all()
+        count = source.filter(filters).count()
+
+        assert len(rows) == 2
+        assert count == 5
+        assert repo.calls == 1
+
+    def test_query_page_is_called_again_when_the_page_changes(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        repo = RecordingRepo([event_factory()])
+        source = table.CloudWatchInsightsDataSource(repo)
+        filters = [t.FilterItem("category", "=", "model")]
+
+        source.filter(filters).sort(None, None).paginate(1, 20).all()
+        source.filter(filters).sort(None, None).paginate(2, 20).all()
+
+        assert repo.calls == 2
+
+    def test_query_page_is_called_again_when_filters_change(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        repo = RecordingRepo([event_factory()])
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter([t.FilterItem("category", "=", "model")]).sort(
+            None, None
+        ).paginate(1, 20).all()
+        source.filter([t.FilterItem("category", "=", "api")]).sort(
+            None, None
+        ).paginate(1, 20).all()
+
+        assert repo.calls == 2
+        assert [(c.field, c.operator, c.value) for c in repo.conditions] == [
+            ("category", "=", "api")
+        ]
+
+    def test_equality_field_is_pushed_down_as_a_condition(self):
+        """`=` on an equality field goes through `conditions`, not `filters`."""
+        repo = RecordingRepo()
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter([t.FilterItem("category", "=", "model")]).sort(
+            None, None
+        ).paginate(1, 20).all()
+
+        assert [(c.field, c.operator, c.value) for c in repo.conditions] == [
+            ("category", "=", "model")
+        ]
+        assert repo.filters is not None
+        assert repo.filters.category is None
+
+    def test_operators_beyond_equality_are_pushed_down_as_conditions(self):
+        """Unlike `RepositoryDataSource`, `!=`/`like` reach the query too."""
+        repo = RecordingRepo()
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter(
+            [
+                t.FilterItem("actor", "!=", "admin"),
+                t.FilterItem("action", "like", "create"),
+            ]
+        ).sort(None, None).paginate(1, 20).all()
+
+        assert {(c.field, c.operator, c.value) for c in repo.conditions} == {
+            ("actor", "!=", "admin"),
+            ("action", "like", "create"),
+        }
+
+    def test_timestamp_range_still_goes_through_filters_not_conditions(self):
+        source = table.CloudWatchInsightsDataSource(RecordingRepo())
+
+        source.filter(
+            [
+                t.FilterItem("timestamp", ">=", "2024-01-01T00:00:00+00:00"),
+                t.FilterItem("timestamp", "<", "2025-01-01T00:00:00+00:00"),
+            ]
+        )
+
+        assert source._conditions == []
+        assert source._filters.time_from == dt(2024, 1, 1, tzinfo=tz.utc)
+        assert source._filters.time_to == dt(2025, 1, 1, tzinfo=tz.utc)
+
+    def test_limit_and_offset_are_derived_from_page_and_size(self):
+        repo = RecordingRepo()
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter([]).sort(None, None).paginate(3, 10).all()
+
+        assert repo.filters is not None
+        assert repo.filters.limit == 10
+        assert repo.filters.offset == 20
+
+    def test_sort_is_passed_through_to_query_page(self):
+        repo = RecordingRepo()
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter([]).sort("actor", "desc").paginate(1, 20).all()
+
+        assert repo.sort_by == "actor"
+        assert repo.sort_order == "desc"
+
+    def test_unsupported_condition_is_dropped_and_logged(
+        self,
+        event_factory: Callable[..., types.Event],
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """Dropped and logged, not applied in memory - see `_to_insights_conditions`.
+
+        There's no field/operator combination the table's real filter UI can
+        produce that Logs Insights can't express (every filterable column is
+        in ``INSIGHTS_FILTERABLE_FIELDS``, every offered operator is
+        supported), so this uses a filter item the UI itself would never
+        send, to exercise the safety net directly.
+
+        CKAN's logging setup disables loggers created before it ran, so
+        ``table``'s module logger can't be observed with ``caplog`` (same
+        issue/fix as ``test_rate_limit.py``'s ``test_warns_once_per_window``)
+        - it's monkeypatched with a ``Mock`` instead.
+        """
+        log = mock.Mock()
+        monkeypatch.setattr(table, "log", log)
+
+        repo = RecordingRepo([event_factory()])
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        source.filter(
+            [t.FilterItem("action", "unknown-operator", "x")]
+        ).sort(None, None).paginate(1, 20).all()
+
+        assert repo.conditions == []
+        assert log.warning.call_count == 1
+        assert "unknown-operator" in str(log.warning.call_args)
+
+    def test_unsupported_condition_does_not_block_the_rest_of_the_filter(
+        self, event_factory: Callable[..., types.Event]
+    ):
+        repo = RecordingRepo([event_factory()])
+        source = table.CloudWatchInsightsDataSource(repo)
+
+        rows = (
+            source.filter(
+                [
+                    t.FilterItem("category", "=", "model"),
+                    t.FilterItem("action", "unknown-operator", "x"),
+                ]
+            )
+            .sort(None, None)
+            .paginate(1, 20)
+            .all()
+        )
+
+        assert len(rows) == 1
+        assert repo.calls == 1
+        assert [(c.field, c.operator) for c in repo.conditions] == [
+            ("category", "=")
+        ]
+
+    def test_columns_are_the_event_fields(self):
+        source = table.CloudWatchInsightsDataSource(RecordingRepo())
 
         assert source.get_columns() == list(types.Event.model_fields)
 
