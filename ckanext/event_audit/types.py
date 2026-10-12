@@ -9,6 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from typing_extensions import Self
 
 import ckan.plugins.toolkit as tk
+from ckan.lib.navl.dictization_functions import Missing
 
 
 class ThreadData(TypedDict):
@@ -133,9 +134,13 @@ class Event(BaseModel):
         if isinstance(value, (str, int, float, bool)):
             return value
 
+        # validators leave `missing` in payloads, and its str() raises Invalid
+        if isinstance(value, Missing):
+            return None
+
         try:
             return str(value)
-        except TypeError:
+        except Exception:  # noqa: BLE001
             return ""
 
 

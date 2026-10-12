@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from pydantic_core import ValidationError
 
+from ckan.lib.navl.dictization_functions import missing
+
 from ckanext.event_audit import const, types
 
 
@@ -144,6 +146,16 @@ class TestEvent:
 
         assert isinstance(event.result["key"], str)
         assert isinstance(event.payload["key"], str)
+
+    def test_missing_values(self):
+        """Validators leave `missing` in payloads, which can't be converted to a string."""
+        event = types.Event(
+            category=const.Category.API.value,
+            action="package_create_default_resource_views",
+            payload={"package": {"key": missing, "items": [missing]}},
+        )
+
+        assert event.payload == {"package": {"key": None, "items": [None]}}
 
     def test_empty_dict_fields(self):
         """Test that empty dictionaries are not converted to strings."""
