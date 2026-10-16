@@ -5,6 +5,7 @@ from typing import Any, Iterable
 from sqlalchemy import event, inspect
 from sqlalchemy.orm import IdentityMap, UOWTransaction
 from sqlalchemy.orm import Session as SQLAlchemySession
+from sqlalchemy.util import IdentitySet
 
 import ckan.plugins as p
 import ckan.plugins.toolkit as tk
@@ -52,12 +53,12 @@ def before_flush(
 
     if not hasattr(session, CACHE_ATTR):
         session._audit_cache = {  # type: ignore
-            "created": set(),
-            "deleted": set(),
-            "changed": set(),
+            "created": IdentitySet(),
+            "deleted": IdentitySet(),
+            "changed": IdentitySet(),
         }
 
-    audit_cache: dict[str, set[Any]] = session._audit_cache  # type: ignore
+    audit_cache: dict[str, IdentitySet] = session._audit_cache  # type: ignore
 
     audit_cache["created"].update(session.new)
 
