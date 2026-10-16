@@ -18,6 +18,7 @@ from ckanext.event_audit.interfaces import IEventAudit
 from ckanext.event_audit.model import EventModel
 
 CACHE_ATTR = "_audit_cache"
+ACTOR_ATTR = "_audit_actor"
 
 # CKAN's scoped ``Session`` and ``create_local_session`` are separate session
 # factories, and a listener registered on one doesn't see the other's sessions.
@@ -57,6 +58,9 @@ def before_flush(
             "deleted": IdentitySet(),
             "changed": IdentitySet(),
         }
+
+    if not hasattr(session, ACTOR_ATTR):
+        session._audit_actor = _get_actor()
 
     audit_cache: dict[str, IdentitySet] = session._audit_cache  # type: ignore
 
@@ -162,13 +166,10 @@ def after_commit(session: SQLAlchemySession):
     repo = utils.get_active_repo()
 
     if not repo.is_available():
+        # don't let this transaction's cache and actor leak into the next one
+        _discard_previous_data(session._audit_cache["changed"])  # type: ignore
+        _clear_cache(session)
         return
-
-    actor = (
-        tk.current_user.id
-        if tk.current_user and not tk.current_user.is_anonymous
-        else ""
-    )
 
     _process_cached_instances(
         session,
@@ -176,11 +177,24 @@ def after_commit(session: SQLAlchemySession):
         config.is_threaded_mode_enabled(),
         config.should_store_payload_and_result(),
         config.get_tracked_models(),
-        actor,
+        getattr(session, ACTOR_ATTR, ""),
     )
 
     _discard_previous_data(session._audit_cache["changed"])  # type: ignore
+    _clear_cache(session)
+
+
+def _get_actor() -> str:
+    return (
+        tk.current_user.id
+        if tk.current_user and not tk.current_user.is_anonymous
+        else ""
+    )
+
+
+def _clear_cache(session: SQLAlchemySession) -> None:
     del session._audit_cache  # type: ignore
+    session.__dict__.pop(ACTOR_ATTR, None)
 
 
 def _should_process_commit(session: SQLAlchemySession) -> bool:
@@ -272,7 +286,7 @@ def ckan_after_rollback(session: SQLAlchemySession):
     """Remove our custom attribute after rollback."""
     if hasattr(session, CACHE_ATTR) and p.plugin_loaded("event_audit"):
         _discard_previous_data(session._audit_cache["changed"])  # type: ignore
-        del session._audit_cache  # type: ignore
+        _clear_cache(session)
 
 
 def _discard_previous_data(instances: Iterable[Any]) -> None:
