@@ -483,6 +483,34 @@ class TestModelListenerRecordsActor:
 
 
 @pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, True)
+@pytest.mark.ckan_config(config.CONF_TRACK_MODELS, ["Group"])
+class TestApiTokenRequest:
+    def test_actor_is_recorded(self, app: Any, repo: repositories.AbstractRepository):
+        """Loading the token's user commits the session and runs the listener.
+
+        The listener must not load the user again during that commit, but it
+        still has to record who made the change once the user is loaded.
+        """
+        sysadmin = factories.SysadminWithToken()
+        repo.remove_all_events()
+
+        response = app.post(
+            "/api/3/action/organization_create",
+            json={"name": "audited-org"},
+            headers={"Authorization": sysadmin["token"]},
+        )
+
+        assert response.status_code == 200
+
+        events = repo.filter_events(types.Filters(category=const.Category.MODEL.value))
+
+        assert events
+        assert all(event.actor == sysadmin["id"] for event in events)
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
 class TestGetPreviousData:
     def test_changed_column_reports_its_old_value(self):
         user = factories.User(about="old info")
