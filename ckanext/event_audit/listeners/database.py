@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Iterable
 
+from flask import has_request_context
 from sqlalchemy import event, inspect
 from sqlalchemy.orm import IdentityMap, UOWTransaction
 from sqlalchemy.orm import Session as SQLAlchemySession
@@ -185,6 +186,11 @@ def after_commit(session: SQLAlchemySession):
 
 
 def _get_actor() -> str:
+    # Only use a user flask-login has already loaded (``g._login_user``):
+    # loading one mid-flush can commit the session via the API token lookup.
+    if not has_request_context() or "_login_user" not in tk.g:
+        return ""
+
     return (
         tk.current_user.id
         if tk.current_user and not tk.current_user.is_anonymous
