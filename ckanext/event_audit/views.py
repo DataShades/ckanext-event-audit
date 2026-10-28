@@ -54,6 +54,9 @@ if p.plugin_loaded("admin_panel") and config.is_admin_panel_enabled():
             tk.h.flash_error(tk._("Repository does not support this operation"))
             return tk.h.redirect_to("event_audit.config")
 
-        tk.h.flash_success(result.message)
+        if result.status:
+            tk.h.flash_success(result.message)
+        else:
+            tk.h.flash_error(result.message or tk._("Events weren't removed"))
 
         return tk.h.redirect_to("event_audit.config")

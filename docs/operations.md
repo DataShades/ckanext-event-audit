@@ -75,4 +75,6 @@ doesn't write events at all until the next restart.
   `--yes`.
 
 Deleting events can't be undone, and with `cloudwatch` "everything" means deleting and recreating
-the log group.
+the log group. With `postgres` "everything" truncates the table, which is fast and gives the disk
+space back. If the table is busy it gives up after a few seconds without removing anything: try
+again, or stop the CKAN processes first.

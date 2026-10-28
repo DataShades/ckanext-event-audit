@@ -6,6 +6,7 @@ from typing import Any, Iterable, Iterator, List
 
 import sqlalchemy as sa
 from sqlalchemy import select
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session as SQLAlchemySession
 
 from ckan.model.meta import create_local_session
@@ -42,7 +43,21 @@ def _fresh_session() -> Iterator[SQLAlchemySession]:
         session.close()
 
 
+# SQLSTATE of a statement cancelled by ``lock_timeout``
+_LOCK_NOT_AVAILABLE = "55P03"
+
+
 class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFiltered):
+    #: How many events ``remove_events`` deletes per transaction. Removing a
+    #: large backlog in one statement holds a huge transaction and writes a
+    #: burst of WAL, so it's done in batches.
+    remove_batch_size = 10_000
+
+    #: How long ``remove_all_events`` waits for the table lock. ``TRUNCATE``
+    #: needs exclusive access, and every insert queues up behind it while it
+    #: waits, so it gives up quickly instead.
+    truncate_lock_timeout_ms = 5_000
+
     @classmethod
     def get_name(cls) -> str:
         return "postgres"
@@ -268,37 +283,86 @@ class PostgresRepository(AbstractRepository, RemoveAll, RemoveSingle, RemoveFilt
     def remove_events(self, filters: types.Filters) -> types.Result:
         """Removes a filtered set of events from the repository.
 
+        The events are deleted in batches of ``remove_batch_size``, each in
+        its own transaction, so removing a large backlog doesn't hold one huge
+        transaction. If it fails half-way, the batches already deleted stay
+        deleted.
+
         Args:
             filters (types.Filters): filters to apply.
 
         Returns:
             types.Result: result of the operation.
         """
-        with _fresh_session() as session:
-            # nothing is loaded into this session, so there's no state to
-            # synchronise (and the JSONB criteria can't be evaluated in Python)
-            statement = self._apply_filters(
-                sa.delete(model.EventModel).execution_options(
-                    synchronize_session=False
-                ),
-                filters,
+        ids = self._apply_filters(select(model.EventModel.id), filters)
+        # nothing is loaded into this session, so there's no state to
+        # synchronise (and the JSONB criteria can't be evaluated in Python)
+        statement = (
+            sa.delete(model.EventModel)
+            .where(
+                model.EventModel.id.in_(
+                    ids.limit(self.remove_batch_size).scalar_subquery()
+                )
             )
-            result: Any = session.execute(statement)
-            session.commit()
+            .execution_options(synchronize_session=False)
+        )
+
+        removed = 0
+
+        with _fresh_session() as session:
+            while True:
+                result: Any = session.execute(statement)
+                session.commit()
+
+                removed += result.rowcount
+
+                if result.rowcount < self.remove_batch_size:
+                    break
 
         return types.Result(
-            status=True, message=f"{result.rowcount} event(s) removed successfully"
+            status=True, message=f"{removed} event(s) removed successfully"
         )
 
     def remove_all_events(self) -> types.Result:
         """Removes all events from the repository.
 
+        Uses ``TRUNCATE``, which frees the disk space at once, unlike a
+        ``DELETE`` of every row. It needs an exclusive lock on the table: if
+        the lock isn't granted within ``truncate_lock_timeout_ms``, nothing is
+        removed and the result is unsuccessful.
+
         Returns:
             types.Result: result of the operation.
         """
         with _fresh_session() as session:
-            session.execute(sa.delete(model.EventModel))
-            session.commit()
+            table = session.get_bind().dialect.identifier_preparer.format_table(
+                model.EventModel.__table__
+            )
+
+            # `true` scopes the setting to this transaction, like `SET LOCAL`
+            session.execute(
+                sa.select(
+                    sa.func.set_config(
+                        "lock_timeout", f"{self.truncate_lock_timeout_ms}ms", True
+                    )
+                )
+            )
+
+            try:
+                session.execute(sa.text(f"TRUNCATE {table}"))
+                session.commit()
+            except OperationalError as e:
+                if getattr(e.orig, "pgcode", None) != _LOCK_NOT_AVAILABLE:
+                    raise
+
+                session.rollback()
+                return types.Result(
+                    status=False,
+                    message=(
+                        "The events table is in use, try again later. Nothing "
+                        "was removed."
+                    ),
+                )
 
         return types.Result(status=True, message="All events removed successfully")
 

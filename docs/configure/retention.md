@@ -34,12 +34,21 @@ scheduler like cron notices when it stops working:
 
 | Repository | |
 |------------|---|
-| `postgres` | Supported: the events are removed with a single `DELETE` statement. |
+| `postgres` | Supported: the events are removed with `DELETE`, in batches of 10,000 per transaction. |
 | `redis` | Supported, but the command has to scan all the events to find the old ones. |
 | `cloudwatch` | Not supported. Set the retention of the log group in AWS instead. |
 
 A [custom repository](../repositories/custom.md) is supported if it inherits from
 `RemoveFiltered`.
+
+With `postgres`, Postgres reuses the space of the removed events for new ones, but doesn't give it
+back to the operating system. The table stays the size it was at its largest, so start enforcing
+retention before it grows big. To shrink a table that is already too big, remove all the events
+(see [Clearing the log](../operations.md#clearing-the-log)), or run `VACUUM FULL event_audit_event`,
+which needs as much free disk as the remaining events take, and locks the table while it runs.
+
+The first run on a big backlog can take a while. The batches already removed stay removed if it's
+interrupted, so it can be run again.
 
 ## From code
 

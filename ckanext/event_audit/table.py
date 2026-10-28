@@ -251,4 +251,7 @@ class EventAuditTable(t.TableDefinition):
                 error="The active repository does not support removing events.",
             )
 
+        if not result.status:
+            return t.ActionHandlerResult(success=False, error=result.message)
+
         return t.ActionHandlerResult(success=True, message=result.message)

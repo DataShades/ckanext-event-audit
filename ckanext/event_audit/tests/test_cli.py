@@ -11,7 +11,7 @@ import pytest
 
 from ckanext.event_audit import config, types
 from ckanext.event_audit.cli import enforce_retention, export_data, remove_events
-from ckanext.event_audit.repositories import RedisRepository
+from ckanext.event_audit.repositories import PostgresRepository, RedisRepository
 
 
 @pytest.mark.usefixtures("clean_redis")
@@ -347,6 +347,77 @@ class TestRemoveEventsCLI:
 
         assert repo.get_event(old.id) is not None
         assert repo.get_event(newer.id) is None
+
+
+@pytest.mark.usefixtures("with_plugins", "clean_db")
+@pytest.mark.ckan_config(config.CONF_DATABASE_TRACK_ENABLED, False)
+@pytest.mark.ckan_config(config.CONF_ACTIVE_REPO, "postgres")
+class TestRemoveEventsCLIWithPostgres:
+    def test_remove_all_uses_remove_all_events(
+        self, cli, monkeypatch: pytest.MonkeyPatch
+    ):
+        """Postgres can remove by filters too, but everything is truncated."""
+        calls: list[str] = []
+
+        def fake_remove_all(self) -> types.Result:
+            calls.append("all")
+            return types.Result(status=True, message="All events removed")
+
+        def fake_remove_filtered(self, filters: types.Filters) -> types.Result:
+            calls.append("filtered")
+            return types.Result(status=True, message="0 event(s) removed")
+
+        monkeypatch.setattr(PostgresRepository, "remove_all_events", fake_remove_all)
+        monkeypatch.setattr(PostgresRepository, "remove_events", fake_remove_filtered)
+
+        result = cli.invoke(remove_events, ["--yes"])
+
+        assert calls == ["all"]
+        assert "All events removed" in result.output
+
+    def test_remove_all(
+        self,
+        cli,
+        repo: PostgresRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        events = [event_factory() for _ in range(3)]
+        repo.write_events(events)
+
+        result = cli.invoke(remove_events, ["--yes"])
+
+        assert result.exit_code == 0
+        assert "All events removed successfully" in result.output
+        assert repo.filter_events(types.Filters()) == []
+
+    def test_remove_by_time_range_prints_the_count(
+        self,
+        cli,
+        repo: PostgresRepository,
+        event_factory: Callable[..., types.Event],
+    ):
+        old = event_factory(timestamp="2023-06-01T00:00:00+00:00")
+        kept = event_factory(timestamp="2024-06-01T00:00:00+00:00")
+        repo.write_events([old, kept])
+
+        result = cli.invoke(
+            remove_events, ["--start", "2023-1-1", "--end", "2023-12-31"]
+        )
+
+        assert "1 event(s) removed successfully" in result.output
+        assert repo.get_event(kept.id) is not None
+
+    def test_failure_exits_with_error(self, cli, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            PostgresRepository,
+            "remove_all_events",
+            lambda self: types.Result(status=False, message="The table is in use"),
+        )
+
+        result = cli.invoke(remove_events, ["--yes"])
+
+        assert result.exit_code != 0
+        assert "The table is in use" in result.output
 
 
 @pytest.mark.usefixtures("clean_redis")

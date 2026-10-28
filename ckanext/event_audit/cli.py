@@ -173,15 +173,13 @@ def export_data(
     default=False,
     help="Skip the confirmation prompt when deleting all events.",
 )
-def remove_events(  # noqa: PLR0911
-    repository: str | None, start: dt | None, end: dt | None, yes: bool
-):
+def remove_events(repository: str | None, start: dt | None, end: dt | None, yes: bool):
     """Remove events from the repository by time range.
 
     Without `--start` and `--end` **all** the events are removed, after a
     confirmation unless `--yes` is given. Not every repository can remove by
     time range. For CloudWatch, removing all the events deletes the log group
-    and creates it again.
+    and creates it again. For Postgres, it truncates the table.
 
     Args:
         repository (str | None): The repository name. If not provided, the
@@ -222,20 +220,25 @@ def remove_events(  # noqa: PLR0911
     ):
         return click.secho("Aborted.", fg="yellow")
 
-    if not isinstance(repo, repositories.RemoveFiltered):
-        if start or end:
-            return click.secho(
-                (
-                    f"Repository {repo.get_name()} does not support removing events "
-                    "by time range. "
-                    "Please remove the --start and --end flags to delete all events."
-                ),
-                fg="red",
-            )
+    if deleting_everything:
+        result = repo.remove_all_events()
+    elif isinstance(repo, repositories.RemoveFiltered):
+        result = repo.remove_events(types.Filters(time_from=start, time_to=end))
+    else:
+        return click.secho(
+            (
+                f"Repository {repo.get_name()} does not support removing events "
+                "by time range. "
+                "Please remove the --start and --end flags to delete all events."
+            ),
+            fg="red",
+        )
 
-        return repo.remove_all_events()
+    if not result.status:
+        raise click.ClickException(result.message or "Events weren't removed.")
 
-    return repo.remove_events(types.Filters(time_from=start, time_to=end))
+    if result.message:
+        click.secho(result.message, fg="green")
 
 
 @event_audit.command()

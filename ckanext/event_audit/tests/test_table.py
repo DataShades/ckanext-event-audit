@@ -263,6 +263,18 @@ class TestEventAuditTable:
         assert result["success"] is True
         assert repo.get_event(event.id) is None
 
+    def test_delete_all_events_failure(self, monkeypatch: pytest.MonkeyPatch):
+        class Repo:
+            def remove_all_events(self) -> types.Result:
+                return types.Result(status=False, message="The table is in use")
+
+        _use_repo(monkeypatch, Repo())
+
+        result = table.EventAuditTable()._delete_all_events()
+
+        assert result["success"] is False
+        assert result.get("error") == "The table is in use"
+
     def test_repository_that_cant_remove_events(self, monkeypatch: pytest.MonkeyPatch):
         _use_repo(monkeypatch, RepoWithoutRemoval())
         event_table = table.EventAuditTable()

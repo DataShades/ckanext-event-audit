@@ -5,9 +5,29 @@ from datetime import timezone as tz
 from typing import Callable
 
 import pytest
+import sqlalchemy as sa
 
-from ckanext.event_audit import config, const, types
+from ckan.model.meta import create_local_session
+
+from ckanext.event_audit import config, const, model, types
 from ckanext.event_audit.repositories import PostgresRepository
+
+
+@pytest.fixture
+def count_deletes():
+    """Count the ``DELETE`` statements sent to the database."""
+    statements: list[str] = []
+
+    def listener(conn, cursor, statement, *args):
+        if statement.lstrip().upper().startswith("DELETE"):
+            statements.append(statement)
+
+    engine = create_local_session().get_bind()
+    sa.event.listen(engine, "before_cursor_execute", listener)
+
+    yield statements
+
+    sa.event.remove(engine, "before_cursor_execute", listener)
 
 
 def assert_event_matches(loaded: types.Event, expected: types.Event) -> None:
@@ -350,3 +370,99 @@ class TestPostgresRepo:
 
         assert result.message == "0 event(s) removed successfully"
         assert repo.get_event(event.id) is not None
+
+    def test_remove_all_events_frees_the_space(
+        self, event_factory: Callable[..., types.Event], repo: PostgresRepository
+    ):
+        """The table is truncated: a ``DELETE`` would leave the space in use."""
+        repo.write_events([event_factory() for _ in range(5)])
+
+        repo.remove_all_events()
+
+        with create_local_session() as session:
+            size = session.execute(
+                sa.select(sa.func.pg_relation_size(model.EventModel.__table__.name))
+            ).scalar_one()
+
+        assert size == 0
+
+    def test_remove_all_events_gives_up_when_table_is_locked(
+        self,
+        event: types.Event,
+        repo: PostgresRepository,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        """An open transaction on the table must not make it wait for ever."""
+        monkeypatch.setattr(repo, "truncate_lock_timeout_ms", 100)
+        repo.write_event(event)
+
+        blocker = create_local_session()
+        try:
+            # any open transaction that read the table holds a lock that
+            # conflicts with TRUNCATE
+            repo_event = blocker.get(model.EventModel, event.id)
+            assert repo_event is not None
+
+            result = repo.remove_all_events()
+        finally:
+            blocker.rollback()
+            blocker.close()
+
+        assert result.status is False
+        assert result.message
+        assert "in use" in result.message
+        assert repo.get_event(event.id) is not None
+
+    def test_remove_events_in_batches(
+        self,
+        event_factory: Callable[..., types.Event],
+        repo: PostgresRepository,
+        monkeypatch: pytest.MonkeyPatch,
+        count_deletes: list[str],
+    ):
+        monkeypatch.setattr(repo, "remove_batch_size", 2)
+        kept = event_factory(category="kept")
+        repo.write_events([event_factory(category="doomed") for _ in range(5)] + [kept])
+
+        result = repo.remove_events(types.Filters(category="doomed"))
+
+        assert result.message == "5 event(s) removed successfully"
+        assert len(count_deletes) == 3
+        assert [e.id for e in repo.filter_events(types.Filters())] == [kept.id]
+
+    def test_remove_events_batch_size_multiple(
+        self,
+        event_factory: Callable[..., types.Event],
+        repo: PostgresRepository,
+        monkeypatch: pytest.MonkeyPatch,
+        count_deletes: list[str],
+    ):
+        """A full last batch is followed by one empty batch, then it stops."""
+        monkeypatch.setattr(repo, "remove_batch_size", 2)
+        repo.write_events([event_factory() for _ in range(4)])
+
+        result = repo.remove_events(types.Filters())
+
+        assert result.message == "4 event(s) removed successfully"
+        assert len(count_deletes) == 3
+        assert repo.filter_events(types.Filters()) == []
+
+    def test_remove_events_batches_respect_time_range(
+        self,
+        event_factory: Callable[..., types.Event],
+        repo: PostgresRepository,
+        monkeypatch: pytest.MonkeyPatch,
+    ):
+        monkeypatch.setattr(repo, "remove_batch_size", 2)
+        now = dt.now(tz.utc)
+        old = [
+            event_factory(timestamp=(now - td(days=40 + i)).isoformat())
+            for i in range(3)
+        ]
+        recent = event_factory(timestamp=now.isoformat())
+        repo.write_events([*old, recent])
+
+        result = repo.remove_events(types.Filters(time_to=now - td(days=30)))
+
+        assert result.message == "3 event(s) removed successfully"
+        assert [e.id for e in repo.filter_events(types.Filters())] == [recent.id]
